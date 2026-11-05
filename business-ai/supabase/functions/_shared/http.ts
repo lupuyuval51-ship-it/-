@@ -94,7 +94,9 @@ export async function readJsonBody(req: Request, maxBytes = MAX_BODY_BYTES): Pro
 }
 
 /** Summarizes zod issues for the `details` of an invalid_request error (paths and messages only). */
-export function issueDetails(issues: readonly { path: readonly PropertyKey[]; message: string }[]): Record<string, unknown> {
+export function issueDetails(
+  issues: readonly { path: readonly PropertyKey[]; message: string }[],
+): Record<string, unknown> {
   return {
     issues: issues.slice(0, 10).map((i) => ({ path: i.path.map((p) => String(p)).join('.'), message: i.message })),
   };

@@ -222,7 +222,7 @@ export default function ConversationScreen() {
         <View style={styles.intro}>
           <Text variant="title">{t('advisor.chat.introTitle')}</Text>
           <Text variant="callout" tone="secondary">
-            {t('advisor.chat.introBody', { business: business?.name ?? '' })}
+            {business?.name ? t('advisor.chat.introBody', { business: business.name }) : t('advisor.chat.introBodyGeneric')}
           </Text>
         </View>
       ) : null}

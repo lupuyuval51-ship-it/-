@@ -17,6 +17,7 @@ import { useIsOnline } from '@/lib/net';
 import { spacing } from '@/theme/tokens';
 import { useLaunchItems, useSeedLaunchTemplates, useSetLaunchStatus } from '../api';
 import { LaunchItemRow } from '../components/LaunchItemRow';
+import { usePullRefresh } from '../hooks';
 import { computeLaunchProgress, groupLaunchItems, missingTemplates, type LaunchItem } from '../logic';
 import { GENERIC_RESEARCH_CATEGORIES, LAUNCH_TEMPLATES_LAST_REVIEWED, isTemplateCountry } from '../templates';
 
@@ -36,6 +37,7 @@ export default function LaunchScreen() {
   const items = useLaunchItems(businessId);
   const seed = useSeedLaunchTemplates(businessId);
   const status = useSetLaunchStatus(businessId);
+  const pull = usePullRefresh(items.refetch);
 
   const header = <Stack.Screen options={{ title: t('launch.title') }} />;
 
@@ -93,7 +95,7 @@ export default function LaunchScreen() {
   };
 
   return (
-    <Screen edges={['bottom']} refreshing={items.isRefetching} onRefresh={() => void items.refetch()} testID="launch-screen">
+    <Screen edges={['bottom']} refreshing={pull.refreshing} onRefresh={pull.onRefresh} testID="launch-screen">
       {header}
 
       <View style={styles.countryRow}>

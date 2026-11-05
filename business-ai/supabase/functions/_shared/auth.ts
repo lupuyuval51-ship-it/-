@@ -57,7 +57,10 @@ export async function requireUser(req: Request, cfg: FunctionConfig): Promise<Au
     // Auth unreachable / 5xx is a server problem, not a bad token.
     const status = typeof error.status === 'number' ? error.status : 0;
     if (status === 0 || status >= 500) {
-      throw new AppError('internal', 'Could not verify the session.', { cause: error, details: { op: 'auth.getUser' } });
+      throw new AppError('internal', 'Could not verify the session.', {
+        cause: error,
+        details: { op: 'auth.getUser' },
+      });
     }
     throw new AppError('unauthorized', 'Invalid or expired session.');
   }

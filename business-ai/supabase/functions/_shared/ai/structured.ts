@@ -32,7 +32,11 @@ export function parseJsonText(text: string): unknown {
   return JSON.parse(fenced?.[1] ?? trimmed) as unknown;
 }
 
-export function validateStructured<S extends z.ZodType>(schema: S, text: string, usage: UsageTotals | null): z.infer<S> {
+export function validateStructured<S extends z.ZodType>(
+  schema: S,
+  text: string,
+  usage: UsageTotals | null,
+): z.infer<S> {
   let raw: unknown;
   try {
     raw = parseJsonText(text);

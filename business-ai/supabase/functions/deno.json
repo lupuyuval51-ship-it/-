@@ -15,10 +15,7 @@
       "tests/"
     ],
     "exclude": [
-      "_shared/domain/",
-      "../tests/",
-      "../../e2e/",
-      "../../src/"
+      "_shared/domain/"
     ]
   },
   "fmt": {

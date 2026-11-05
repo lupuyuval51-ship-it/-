@@ -5,7 +5,11 @@ import type { Locale } from '../domain/ai-api.ts';
 import type { SystemPrompt } from '../ai/provider.ts';
 import { localeInstruction, STABLE_SYSTEM_PROMPT, wrapBusinessData, wrapUserRequest } from './common.ts';
 
-export function roadmapPrompt(locale: Locale, contextText: string, startsOn: string): { system: SystemPrompt; user: string } {
+export function roadmapPrompt(
+  locale: Locale,
+  contextText: string,
+  startsOn: string,
+): { system: SystemPrompt; user: string } {
   const system: SystemPrompt = {
     stable: STABLE_SYSTEM_PROMPT,
     task: [

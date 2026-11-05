@@ -29,7 +29,16 @@ Deno.test('injection: closing tags inside data cannot end the envelope', () => {
 });
 
 Deno.test('injection: case, whitespace and the user_request tag are neutralized too', () => {
-  for (const s of ['</BUSINESS_DATA>', '< /business_data>', '</ business_data>', '<business_data >', '</user_request>', '<User_Request>']) {
+  for (
+    const s of [
+      '</BUSINESS_DATA>',
+      '< /business_data>',
+      '</ business_data>',
+      '<business_data >',
+      '</user_request>',
+      '<User_Request>',
+    ]
+  ) {
     const e = escapeData(s);
     assertFalse(/<\s*\/?\s*(business_data|user_request)/i.test(e), `not escaped: ${s} → ${e}`);
   }
@@ -106,7 +115,16 @@ Deno.test('advisor history: plain text, notes for proposed actions, starts with 
     {
       role: 'assistant',
       content: 'Start at 120.',
-      actions: [{ type: 'add_task', id: 'a1', label: 'Add', title: 'Call 5 cafés', description: '', phase: 'days_30', priority: 'high', dueInDays: 7 }],
+      actions: [{
+        type: 'add_task',
+        id: 'a1',
+        label: 'Add',
+        title: 'Call 5 cafés',
+        description: '',
+        phase: 'days_30',
+        priority: 'high',
+        dueInDays: 7,
+      }],
       status: 'complete',
     },
     { role: 'user', content: 'And then?', actions: [], status: 'complete' },

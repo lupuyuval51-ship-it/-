@@ -7,7 +7,15 @@ import type { FunctionConfig } from '../_shared/config.ts';
 import { type HandlerDeps, resolveConfig, resolveProvider } from '../_shared/deps.ts';
 import { AiRequestSchema } from '../_shared/domain/ai-api.ts';
 import { AppError, logError, toAppError } from '../_shared/errors.ts';
-import { appErrorResponse, corsHeaders, errorResponse, issueDetails, json, preflight, readJsonBody } from '../_shared/http.ts';
+import {
+  appErrorResponse,
+  corsHeaders,
+  errorResponse,
+  issueDetails,
+  json,
+  preflight,
+  readJsonBody,
+} from '../_shared/http.ts';
 import { randomId } from '../_shared/outputs.ts';
 import { defaultWaitUntil } from '../_shared/runtime.ts';
 import { loadTierLimits } from '../_shared/usage.ts';
@@ -34,7 +42,9 @@ export async function handleAi(req: Request, deps: HandlerDeps = {}): Promise<Re
   }
   const cors = corsHeaders(req, cfg.corsAllowedOrigins);
   if (req.method === 'OPTIONS') return preflight(req, cfg.corsAllowedOrigins);
-  if (req.method !== 'POST') return errorResponse('invalid_request', 405, 'Use POST.', { ...cors, Allow: 'POST, OPTIONS' });
+  if (req.method !== 'POST') {
+    return errorResponse('invalid_request', 405, 'Use POST.', { ...cors, Allow: 'POST, OPTIONS' });
+  }
 
   let action = 'unknown';
   try {
@@ -86,7 +96,9 @@ export async function handleAi(req: Request, deps: HandlerDeps = {}): Promise<Re
     return json(result.body, result.status, cors);
   } catch (err) {
     const appErr = toAppError(err);
-    if (appErr.status >= 500 || appErr.code === 'ai_invalid_output' || appErr.code === 'ai_refused') logError(`ai.${action}`, err);
+    if (appErr.status >= 500 || appErr.code === 'ai_invalid_output' || appErr.code === 'ai_refused') {
+      logError(`ai.${action}`, err);
+    }
     logRequest(action, appErr.status, started, appErr.code);
     return appErrorResponse(appErr, cors);
   }

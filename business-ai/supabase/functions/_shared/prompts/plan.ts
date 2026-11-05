@@ -11,8 +11,10 @@ import { localeInstruction, STABLE_SYSTEM_PROMPT, wrapBusinessData, wrapUserRequ
 export const SECTION_GUIDE: Readonly<Record<PlanSectionKey, string>> = Object.freeze({
   executive_summary:
     'The business in brief: what it sells, to whom, why now, how it makes money, what the founder needs first and the single most important assumption to test.',
-  business_concept: 'The offer in concrete terms: product or service, how it is delivered, scope of the first version, what is deliberately out of scope.',
-  value_proposition: 'The customer problem, the promised outcome, why customers would choose this over their current alternative, and how to test that promise.',
+  business_concept:
+    'The offer in concrete terms: product or service, how it is delivered, scope of the first version, what is deliberately out of scope.',
+  value_proposition:
+    'The customer problem, the promised outcome, why customers would choose this over their current alternative, and how to test that promise.',
   target_audience:
     'Who the first customers are (specific segment, location, situation), how to reach them, and which segment to start with. Restate user-provided customer info as user_provided.',
   customer_personas:
@@ -21,15 +23,22 @@ export const SECTION_GUIDE: Readonly<Record<PlanSectionKey, string>> = Object.fr
     'A concrete validation plan: the riskiest assumptions, cheap experiments (interviews, pre-sales, landing page, pilot), success thresholds and what to do if they fail. No invented market data.',
   competitive_positioning:
     'Types of alternatives customers use today (direct competitors, substitutes, doing nothing) described generically unless the user named them, the positioning angle and how to verify it by checking real competitors.',
-  revenue_model: 'How the business earns money: revenue streams, pricing unit, purchase frequency, and estimated unit economics labelled ai_estimate.',
-  pricing_strategy: 'Starting price points or ranges with reasoning (cost-plus, value, competitor benchmarks to check), discounts or packages, and a pricing test.',
-  startup_costs: 'One-off costs to launch, as estimated line items with amounts in the business currency (ai_estimate), and which are optional or can be deferred.',
-  operating_expenses: 'Recurring monthly costs as estimated line items (ai_estimate), the fixed vs. variable split, and ways to keep them low at the start.',
-  marketing_strategy: 'The first acquisition channels that fit the budget and hours available, the message, a simple weekly routine and what to measure.',
+  revenue_model:
+    'How the business earns money: revenue streams, pricing unit, purchase frequency, and estimated unit economics labelled ai_estimate.',
+  pricing_strategy:
+    'Starting price points or ranges with reasoning (cost-plus, value, competitor benchmarks to check), discounts or packages, and a pricing test.',
+  startup_costs:
+    'One-off costs to launch, as estimated line items with amounts in the business currency (ai_estimate), and which are optional or can be deferred.',
+  operating_expenses:
+    'Recurring monthly costs as estimated line items (ai_estimate), the fixed vs. variable split, and ways to keep them low at the start.',
+  marketing_strategy:
+    'The first acquisition channels that fit the budget and hours available, the message, a simple weekly routine and what to measure.',
   launch_strategy:
     'Steps to a first sale or soft launch: preparation, a pilot with first customers, launch moment, and practical admin to confirm with official sources (registration, tax, licences) without stating legal conclusions.',
-  risks_assumptions: 'The key risks and assumptions (market, operational, financial, personal capacity), each with an early warning sign and a mitigation or test.',
-  roadmap_30_60_90: 'A narrative 30/60/90-day plan: the objective of each period and its 2-4 most important outcomes, consistent with the rest of the plan.',
+  risks_assumptions:
+    'The key risks and assumptions (market, operational, financial, personal capacity), each with an early warning sign and a mitigation or test.',
+  roadmap_30_60_90:
+    'A narrative 30/60/90-day plan: the objective of each period and its 2-4 most important outcomes, consistent with the rest of the plan.',
 });
 
 export const PLAN_TASK_RULES = `Rules for every section:
@@ -40,7 +49,11 @@ export const PLAN_TASK_RULES = `Rules for every section:
 - Where the section depends on an assumption, include at least one block that is a concrete validation step.
 - Keep the sections consistent with each other and with the onboarding answers. Do not repeat the same sentence across sections.`;
 
-export function planGroupPrompt(locale: Locale, keys: readonly PlanSectionKey[], contextText: string): { system: SystemPrompt; user: string } {
+export function planGroupPrompt(
+  locale: Locale,
+  keys: readonly PlanSectionKey[],
+  contextText: string,
+): { system: SystemPrompt; user: string } {
   const guide = keys.map((k) => `- "${k}": ${SECTION_GUIDE[k]}`).join('\n');
   const system: SystemPrompt = {
     stable: STABLE_SYSTEM_PROMPT,

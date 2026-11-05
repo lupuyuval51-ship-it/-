@@ -9,6 +9,7 @@ import { useActiveBusiness } from '@/features/business/api';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { spacing } from '@/theme/tokens';
 import { useMarketingAssets } from '../api';
+import { usePullRefresh } from '../hooks';
 import { groupAssetsByKind } from '../logic';
 import { assetMeta } from '../text';
 
@@ -18,6 +19,7 @@ export default function MarketingListScreen() {
   const router = useRouter();
   const { businessId, isLoading: businessLoading } = useActiveBusiness();
   const assets = useMarketingAssets(businessId);
+  const pull = usePullRefresh(assets.refetch);
 
   const header = <Stack.Screen options={{ title: t('marketing.title') }} />;
   const create = () => router.push('/marketing/new' as Href);
@@ -53,7 +55,7 @@ export default function MarketingListScreen() {
 
   if (list.length === 0) {
     return (
-      <Screen edges={['bottom']} refreshing={assets.isRefetching} onRefresh={() => void assets.refetch()} testID="marketing-empty">
+      <Screen edges={['bottom']} refreshing={pull.refreshing} onRefresh={pull.onRefresh} testID="marketing-empty">
         {header}
         <View style={styles.intro}>
           <Text variant="title">{t('marketing.list.emptyTitle')}</Text>
@@ -81,8 +83,8 @@ export default function MarketingListScreen() {
   return (
     <Screen
       edges={['bottom']}
-      refreshing={assets.isRefetching}
-      onRefresh={() => void assets.refetch()}
+      refreshing={pull.refreshing}
+      onRefresh={pull.onRefresh}
       footer={<Button label={t('marketing.list.create')} onPress={create} icon="plus" fullWidth testID="marketing-create" />}
       testID="marketing-list"
     >

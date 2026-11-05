@@ -48,8 +48,7 @@ function nonNegInt(n: number | null | undefined): number {
 /** Exact cost in USD micros, rounded UP to a whole micro (conservative for the cost cap). */
 export function costMicros(model: string | null | undefined, tokens: TokenCounts): number {
   const p = priceFor(model);
-  const raw =
-    nonNegInt(tokens.inputTokens) * p.input +
+  const raw = nonNegInt(tokens.inputTokens) * p.input +
     nonNegInt(tokens.outputTokens) * p.output +
     nonNegInt(tokens.cacheReadTokens) * p.input * CACHE_READ_MULTIPLIER +
     nonNegInt(tokens.cacheWriteTokens) * p.input * CACHE_WRITE_MULTIPLIER;
@@ -103,7 +102,11 @@ export interface ApiUsageLike {
  * billing source of truth (each attempt priced at the model that ran it); otherwise top-level usage
  * is priced at `responseModel`.
  */
-export function usageFromApi(usage: ApiUsageLike | null | undefined, requestedModel: string, responseModel?: string | null): UsageTotals {
+export function usageFromApi(
+  usage: ApiUsageLike | null | undefined,
+  requestedModel: string,
+  responseModel?: string | null,
+): UsageTotals {
   if (!usage) return { ...ZERO_USAGE };
   const iterations = usage.iterations ?? null;
   if (iterations && iterations.length > 0) {

@@ -45,7 +45,11 @@ export class AppError extends Error {
   readonly status: number;
   readonly details?: Record<string, unknown>;
 
-  constructor(code: AiErrorCode, message?: string, options?: { status?: number; details?: Record<string, unknown>; cause?: unknown }) {
+  constructor(
+    code: AiErrorCode,
+    message?: string,
+    options?: { status?: number; details?: Record<string, unknown>; cause?: unknown },
+  ) {
     super(message ?? DEFAULT_MESSAGES[code], options?.cause === undefined ? undefined : { cause: options.cause });
     this.name = 'AppError';
     this.code = code;
@@ -130,7 +134,11 @@ export function toAppError(err: unknown): AppError {
 export function logError(scope: string, err: unknown): void {
   const appErr = err instanceof AppError ? err : null;
   const cause = appErr ? appErr.cause : err;
-  const causeMessage = cause instanceof Error ? `${cause.name}: ${cause.message}` : cause === undefined ? undefined : String(cause);
+  const causeMessage = cause instanceof Error
+    ? `${cause.name}: ${cause.message}`
+    : cause === undefined
+    ? undefined
+    : String(cause);
   console.error(
     JSON.stringify({
       level: 'error',

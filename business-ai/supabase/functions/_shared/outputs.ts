@@ -4,7 +4,12 @@
  * integer minor units, strings trimmed to the DB limits).
  */
 import { z } from 'zod';
-import { type AdvisorAction, AdvisorActionSchema, type FinanceProposal, type RoadmapSuggestion } from './domain/ai-api.ts';
+import {
+  type AdvisorAction,
+  AdvisorActionSchema,
+  type FinanceProposal,
+  type RoadmapSuggestion,
+} from './domain/ai-api.ts';
 import type { AiMarketingContent, MarketingContent, MarketingKind } from './domain/marketing.ts';
 import { MarketingContentSchema } from './domain/marketing.ts';
 import {
@@ -132,7 +137,12 @@ export function toFinanceProposal(ai: AiFinanceProposal, newId: IdFactory = rand
   return {
     startingCapitalMinor: ai.starting_capital === null ? null : minor(ai.starting_capital),
     startupCosts: ai.startup_costs
-      .map((c) => ({ id: newId(), label: clip(c.label, 120), amountMinor: minor(c.amount), category: clip(c.category, 60) }))
+      .map((c) => ({
+        id: newId(),
+        label: clip(c.label, 120),
+        amountMinor: minor(c.amount),
+        category: clip(c.category, 60),
+      }))
       .filter((c) => c.label.length > 0),
     recurringExpenses: ai.recurring_expenses
       .map((e) => ({
@@ -194,7 +204,12 @@ export function toMarketingContent(
     .map((it) => ({ heading: clip(it.heading, 200), body: clip(it.body, 3000), label: clip(it.label, 60) }))
     .filter((it) => it.heading.length > 0 || it.body.length > 0)
     .slice(0, 40)
-    .map((it, i) => ({ id: `i${i + 1}`, heading: it.heading, body: it.body, ...(it.label ? { label: it.label } : {}) }));
+    .map((it, i) => ({
+      id: `i${i + 1}`,
+      heading: it.heading,
+      body: it.body,
+      ...(it.label ? { label: it.label } : {}),
+    }));
   const content = { summary: clip(ai.summary, 1200), items };
   const parsed = MarketingContentSchema.safeParse(content);
   if (!parsed.success || items.length === 0) {
@@ -259,7 +274,11 @@ export function parseProposeActionsInput(
       actions.push(a);
     }
   }
-  const rawFollowUps = Array.isArray(obj.follow_ups) ? obj.follow_ups : Array.isArray(obj.followUps) ? obj.followUps : [];
+  const rawFollowUps = Array.isArray(obj.follow_ups)
+    ? obj.follow_ups
+    : Array.isArray(obj.followUps)
+    ? obj.followUps
+    : [];
   for (const f of rawFollowUps) {
     if (followUps.length >= MAX_FOLLOW_UPS) break;
     if (typeof f !== 'string') continue;

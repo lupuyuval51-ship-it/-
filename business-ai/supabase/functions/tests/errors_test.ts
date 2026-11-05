@@ -6,7 +6,8 @@ import { AI_ERROR_CODES } from '../_shared/domain/ai-api.ts';
 import { appErrorResponse, errorResponse } from '../_shared/http.ts';
 
 const headers = new Headers({ 'request-id': 'req_test' });
-const apiErr = (status: number, type: string) => Anthropic.APIError.generate(status, { type: 'error', error: { type, message: 'x' } }, 'x', headers);
+const apiErr = (status: number, type: string) =>
+  Anthropic.APIError.generate(status, { type: 'error', error: { type, message: 'x' } }, 'x', headers);
 
 Deno.test('provider errors: typed SDK errors map to public codes', () => {
   assertEquals(mapProviderError(apiErr(429, 'rate_limit_error')).code, 'rate_limited');
@@ -44,7 +45,8 @@ Deno.test('error codes: every public code has an HTTP status', () => {
 });
 
 Deno.test('postgrest errors: business-rule and SQLSTATE codes map to public codes', () => {
-  const p = (code: string, message = 'x', details: string | null = null) => fromPostgrestError({ code, message, details }, 'op');
+  const p = (code: string, message = 'x', details: string | null = null) =>
+    fromPostgrestError({ code, message, details }, 'op');
   assertEquals(p('P0001', 'quota_exceeded', 'feature=plan_generation used=2 limit=2').code, 'quota_exceeded');
   assertEquals(p('P0001', 'cost_cap_reached').code, 'cost_cap_reached');
   assertEquals(p('P0001', 'not_found').code, 'not_found');
@@ -67,7 +69,9 @@ Deno.test('http: error envelope never leaks internal details', async () => {
   assertEquals(res.status, 500);
   assertEquals(await res.json(), { error: { code: 'internal', message: 'Something went wrong.' } });
 
-  const withPublic = new AppError('invalid_request', 'Bad', { details: { op: 'x', issues: [{ path: 'a', message: 'b' }] } });
+  const withPublic = new AppError('invalid_request', 'Bad', {
+    details: { op: 'x', issues: [{ path: 'a', message: 'b' }] },
+  });
   assertEquals(await appErrorResponse(withPublic).json(), {
     error: { code: 'invalid_request', message: 'Bad', details: { issues: [{ path: 'a', message: 'b' }] } },
   });

@@ -9,6 +9,7 @@ import {
   type TextInputFocusEvent,
   type TextInputInstance,
   type TextInputProps,
+  type TextStyle,
   type ViewStyle,
 } from 'react-native';
 import { currencySymbol, isolate } from '@/i18n/format';
@@ -28,6 +29,11 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style' | 'editable
   hint?: string;
   /** Translated error message. Turns the field red and is announced to screen readers. */
   error?: string;
+  /**
+   * Marks the field invalid without a message under it (when the message is shown elsewhere,
+   * e.g. the password rules checklist).
+   */
+  invalid?: boolean;
   /**
    * text (default) · email (email keyboard, no autocaps) · password (secure + show/hide) ·
    * number (decimal keyboard) · money (decimal keyboard + currency symbol; parse with parseMoneyInput).
@@ -68,6 +74,7 @@ export function TextField({
   label,
   hint,
   error,
+  invalid = false,
   mode = 'text',
   currency,
   multiline = false,
@@ -95,7 +102,8 @@ export function TextField({
     onBlur?.(e);
   };
 
-  const borderColor = error ? colors.danger : focused ? colors.accent : colors.borderStrong;
+  const hasError = !!error || invalid;
+  const borderColor = hasError ? colors.danger : focused ? colors.accent : colors.borderStrong;
   const type = typography.body;
   const prefix = mode === 'money' && currency ? isolate(currencySymbol(currency, locale)) : null;
 
@@ -193,7 +201,8 @@ const styles = StyleSheet.create({
   },
   prefix: { alignSelf: 'center' },
   input: { flex: 1, minWidth: 0, margin: 0 },
-  webInput: { outlineWidth: 0 },
+  // The field border shows focus (accent); drop the browser's default focus ring on the inner <input>.
+  webInput: { outlineStyle: 'none' } as unknown as TextStyle,
   reveal: { alignSelf: 'center', marginEnd: -spacing[2] },
   message: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing[1] + 2 },
   messageIcon: { marginTop: 2 },

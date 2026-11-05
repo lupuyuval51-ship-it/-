@@ -6,10 +6,10 @@ import { StyleSheet, View, type TextInputInstance } from 'react-native';
 import { Button, InlineNotice, Text, TextField } from '@/components/ui';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { toAppError, type AppError } from '@/lib/errors';
-import { useFieldError } from '@/lib/forms';
+import { decodeFieldMessage, useFieldError } from '@/lib/forms';
 import { spacing } from '@/theme/tokens';
 import { useAuth } from '../AuthProvider';
-import { signUpSchema, type SignUpValues } from '../schemas';
+import { PASSWORD_POLICY_ERROR_KEYS, signUpSchema, type SignUpValues } from '../schemas';
 import { AuthScaffold } from './AuthScaffold';
 import { PasswordRules } from './PasswordRules';
 
@@ -35,6 +35,8 @@ export function SignUpView() {
     defaultValues: { displayName: '', email: '', password: '', locale },
   });
   const password = useWatch({ control, name: 'password' });
+  const passwordErrorKey = errors.password?.message ? decodeFieldMessage(errors.password.message)?.key : undefined;
+  const passwordPolicyError = passwordErrorKey !== undefined && PASSWORD_POLICY_ERROR_KEYS.includes(passwordErrorKey);
 
   // The language picked on this screen becomes the account's language.
   useEffect(() => {
@@ -83,7 +85,7 @@ export function SignUpView() {
           <Text variant="callout" tone="secondary">
             {t('auth.signUp.haveAccount')}
           </Text>
-          <Button variant="quiet" inline label={t('auth.signUp.signIn')} onPress={() => router.replace('/sign-in')} testID="go-sign-in" />
+          <Button variant="quiet" inline size="compact" label={t('auth.signUp.signIn')} onPress={() => router.replace('/sign-in')} testID="go-sign-in" />
         </>
       }
     >
@@ -156,14 +158,15 @@ export function SignUpView() {
               field.ref(instance);
               passwordRef.current = instance;
             }}
-            error={fieldError(errors.password)}
+            error={passwordPolicyError ? undefined : fieldError(errors.password)}
+            invalid={!!errors.password}
             returnKeyType="go"
             onSubmitEditing={() => void onSubmit()}
             testID="password-input"
           />
         )}
       />
-      <PasswordRules password={password} />
+      <PasswordRules password={password} showErrors={passwordPolicyError} />
       <View style={styles.submit}>
         <Button label={t('auth.signUp.submit')} onPress={() => void onSubmit()} loading={isSubmitting} fullWidth testID="sign-up-submit" />
       </View>

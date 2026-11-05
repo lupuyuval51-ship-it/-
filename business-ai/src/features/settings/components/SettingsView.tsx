@@ -22,8 +22,9 @@ import {
 import { useAuth } from '@/features/auth/AuthProvider';
 import { displayNameSchema } from '@/features/auth/schemas';
 import { directionChangeRequiresReload } from '@/i18n/direction';
-import { formatDate, formatNumber } from '@/i18n/format';
+import { formatDate } from '@/i18n/format';
 import { useLocale, useT } from '@/i18n/I18nProvider';
+import { translate } from '@/i18n/translate';
 import type { Locale } from '@/i18n/types';
 import { toAppError } from '@/lib/errors';
 import { useFieldError } from '@/lib/forms';
@@ -105,7 +106,7 @@ function AccountSection() {
           ) : null}
         </View>
       )}
-      <ListRow title={t('settings.account.email')} value={user?.email ?? ''} testID="account-email" />
+      {user?.email ? <ListRow title={t('settings.account.email')} subtitle={user.email} testID="account-email" /> : null}
     </Section>
   );
 }
@@ -134,7 +135,8 @@ function LanguageSection() {
       // Saved locally as pending; PreferencesSync retries when back online.
     }
     await setLocale(next);
-    if (!reload) notice.show({ message: t('settings.language.saved') });
+    // `t` still belongs to the previous language here; confirm in the new one.
+    if (!reload) notice.show({ message: translate(next, 'settings.language.saved') });
   };
 
   return (
@@ -243,7 +245,7 @@ function SubscriptionSection() {
                       {label}
                     </Text>
                     <Text variant="caption" tone={ratio >= 1 ? 'danger' : 'secondary'} numeric>
-                      {t('settings.usage.of', { used: formatNumber(used, locale), limit: formatNumber(limit, locale) })}
+                      {t('settings.usage.of', { used, limit })}
                     </Text>
                   </View>
                   <ProgressBar value={ratio} tone={ratio >= 1 ? 'danger' : ratio >= 0.8 ? 'warning' : 'accent'} accessibilityLabel={label} />

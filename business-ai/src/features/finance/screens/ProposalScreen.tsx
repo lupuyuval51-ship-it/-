@@ -17,6 +17,11 @@ import { FinanceGate, readyFinance, type ReadyFinance } from '../components/Fina
 import { useActiveFinance, useFinanceFormat, type FinanceFormat } from '../hooks';
 import type { ProposalItem } from '../mapping';
 
+function leave() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/finance');
+}
+
 export default function ProposalScreen() {
   const t = useT();
   const finance = useActiveFinance();
@@ -83,7 +88,7 @@ function ProposalContent({ ready }: { ready: ReadyFinance }) {
           icon="check-circle"
           title={t('finance.proposal.reviewedTitle')}
           body={t('finance.proposal.reviewedBody')}
-          action={{ label: t('finance.proposal.backToFinance'), onPress: () => router.replace('/finance'), variant: 'secondary' }}
+          action={{ label: t('finance.proposal.backToFinance'), onPress: leave, variant: 'secondary' }}
           testID="finance-proposal-reviewed"
         />
         <View style={styles.center}>{askButton('quiet')}</View>

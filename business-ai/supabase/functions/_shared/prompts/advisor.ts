@@ -16,7 +16,9 @@ export const HISTORY_MESSAGE_CHARS = 2_000;
 
 /** Tool input: AdvisorAction without `id` (ids are assigned server-side) + follow-up questions. */
 const ToolActionSchema = z.union(
-  AdvisorActionSchema.options.map((o) => (o as unknown as z.ZodObject<z.ZodRawShape>).omit({ id: true })) as unknown as [
+  AdvisorActionSchema.options.map((o) =>
+    (o as unknown as z.ZodObject<z.ZodRawShape>).omit({ id: true })
+  ) as unknown as [
     z.ZodType,
     z.ZodType,
     ...z.ZodType[],

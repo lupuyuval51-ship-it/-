@@ -4,8 +4,14 @@ import { useT } from '@/i18n/I18nProvider';
 import { spacing } from '@/theme/tokens';
 import { passwordRules } from '../schemas';
 
+export interface PasswordRulesProps {
+  password: string;
+  /** After a submit attempt: unmet rules turn red (they replace the field's error text). */
+  showErrors?: boolean;
+}
+
 /** Live checklist of the password policy under a new-password field. */
-export function PasswordRules({ password }: { password: string }) {
+export function PasswordRules({ password, showErrors = false }: PasswordRulesProps) {
   const t = useT();
   const state = passwordRules(password);
   const rules = [
@@ -14,19 +20,27 @@ export function PasswordRules({ password }: { password: string }) {
   ] as const;
   return (
     <View style={styles.list} accessibilityLabel={t('auth.passwordRules.title')} testID="password-rules">
-      {rules.map((rule) => (
-        <View
-          key={rule.key}
-          style={styles.rule}
-          accessible
-          accessibilityLabel={`${rule.label}. ${rule.met ? t('auth.passwordRules.met') : t('auth.passwordRules.unmet')}`}
-        >
-          <Icon name={rule.met ? 'check' : 'circle'} size={rule.met ? 14 : 10} tone={rule.met ? 'accent' : 'secondary'} style={styles.icon} />
-          <Text variant="caption" tone={rule.met ? 'default' : 'secondary'}>
-            {rule.label}
-          </Text>
-        </View>
-      ))}
+      {rules.map((rule) => {
+        const failed = showErrors && !rule.met;
+        return (
+          <View
+            key={rule.key}
+            style={styles.rule}
+            accessible
+            accessibilityLabel={`${rule.label}. ${rule.met ? t('auth.passwordRules.met') : t('auth.passwordRules.unmet')}`}
+          >
+            <Icon
+              name={rule.met ? 'check' : failed ? 'alert-circle' : 'circle'}
+              size={rule.met || failed ? 14 : 10}
+              tone={rule.met ? 'accent' : failed ? 'danger' : 'secondary'}
+              style={styles.icon}
+            />
+            <Text variant="caption" tone={rule.met ? 'default' : failed ? 'danger' : 'secondary'}>
+              {rule.label}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }

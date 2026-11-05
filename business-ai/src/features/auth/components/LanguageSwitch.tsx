@@ -1,3 +1,4 @@
+import { StyleSheet } from 'react-native';
 import { SegmentedControl } from '@/components/ui';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import type { Locale } from '@/i18n/types';
@@ -20,6 +21,12 @@ export function LanguageSwitch({ testID = 'language-switch' }: { testID?: string
         { value: 'en', label: t('common.language.en') },
       ]}
       testID={testID}
+      style={styles.switch}
     />
   );
 }
+
+const styles = StyleSheet.create({
+  // Centered on the cross axis of the top bar (the control hugs its content).
+  switch: { alignSelf: 'center' },
+});

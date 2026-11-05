@@ -8,13 +8,16 @@ export const PASSWORD_MAX_LENGTH = 72;
 export const DISPLAY_NAME_MAX_LENGTH = 100;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const LETTER = /[A-Za-zÀ-ɏ֐-׿]/;
+const LETTER = /[A-Za-z\u00C0-\u024F\u0590-\u05FF]/;
 const DIGIT = /\d/;
 
 export interface PasswordRuleState {
   minLength: boolean;
   letterAndNumber: boolean;
 }
+
+/** Field-error keys that the PasswordRules checklist already explains. */
+export const PASSWORD_POLICY_ERROR_KEYS: readonly string[] = ['errors.field.passwordTooShort', 'errors.field.passwordNeedsLetterAndNumber'];
 
 /** Live checklist state shown under new-password fields. */
 export function passwordRules(password: string): PasswordRuleState {

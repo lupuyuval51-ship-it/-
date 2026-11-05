@@ -38,7 +38,12 @@ export default function BusinessDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { businesses, isLoading, error, refetch } = useActiveBusiness();
   const { isRefetching } = useBusinesses();
-  const business = businesses.find((b) => b.id === id) ?? null;
+  const archive = useArchiveBusiness();
+  const found = businesses.find((b) => b.id === id) ?? null;
+  // Keep showing the form while it is being archived (the list drops it before we navigate away).
+  const [lastSeen, setLastSeen] = useState<Business | null>(found);
+  if (found && found !== lastSeen) setLastSeen(found);
+  const business = found ?? (archive.isPending || archive.isSuccess ? lastSeen : null);
 
   const header = <Stack.Screen options={{ title: t('onboarding.businesses.edit.title') }} />;
 
@@ -66,12 +71,12 @@ export default function BusinessDetailsScreen() {
   return (
     <>
       {header}
-      <BusinessForm key={business.id} business={business} />
+      <BusinessForm key={business.id} business={business} archive={archive} />
     </>
   );
 }
 
-function BusinessForm({ business }: { business: Business }) {
+function BusinessForm({ business, archive }: { business: Business; archive: ReturnType<typeof useArchiveBusiness> }) {
   const t = useT();
   const { locale } = useLocale();
   const router = useRouter();
@@ -79,7 +84,6 @@ function BusinessForm({ business }: { business: Business }) {
   const confirm = useConfirm();
   const notice = useNotice();
   const update = useUpdateBusiness();
-  const archive = useArchiveBusiness();
   const [countryOpen, setCountryOpen] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 

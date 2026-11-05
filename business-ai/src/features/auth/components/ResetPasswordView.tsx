@@ -6,11 +6,11 @@ import { Platform, StyleSheet, View, type TextInputInstance } from 'react-native
 import { Button, InlineNotice, LoadingState, TextField, useNotice } from '@/components/ui';
 import { useT } from '@/i18n/I18nProvider';
 import { toAppError, type AppError } from '@/lib/errors';
-import { useFieldError } from '@/lib/forms';
+import { decodeFieldMessage, useFieldError } from '@/lib/forms';
 import { spacing } from '@/theme/tokens';
 import { useAuth } from '../AuthProvider';
 import { hasAuthCallbackError, parseAuthCallbackParams } from '../recovery';
-import { resetPasswordSchema, type ResetPasswordValues } from '../schemas';
+import { PASSWORD_POLICY_ERROR_KEYS, resetPasswordSchema, type ResetPasswordValues } from '../schemas';
 import { AuthScaffold } from './AuthScaffold';
 import { PasswordRules } from './PasswordRules';
 
@@ -68,6 +68,8 @@ export function ResetPasswordView() {
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordValues>({ resolver: zodResolver(resetPasswordSchema), defaultValues: { password: '', confirm: '' } });
   const password = useWatch({ control, name: 'password' });
+  const passwordErrorKey = errors.password?.message ? decodeFieldMessage(errors.password.message)?.key : undefined;
+  const passwordPolicyError = passwordErrorKey !== undefined && PASSWORD_POLICY_ERROR_KEYS.includes(passwordErrorKey);
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
@@ -119,7 +121,8 @@ export function ResetPasswordView() {
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             ref={field.ref}
-            error={fieldError(errors.password)}
+            error={passwordPolicyError ? undefined : fieldError(errors.password)}
+            invalid={!!errors.password}
             returnKeyType="next"
             onSubmitEditing={() => confirmRef.current?.focus()}
             submitBehavior="submit"
@@ -127,7 +130,7 @@ export function ResetPasswordView() {
           />
         )}
       />
-      <PasswordRules password={password} />
+      <PasswordRules password={password} showErrors={passwordPolicyError} />
       <Controller
         control={control}
         name="confirm"

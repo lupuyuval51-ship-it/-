@@ -30,7 +30,10 @@ Deno.test('pricing: opus input/output cost', () => {
 Deno.test('pricing: cache reads 0.1x and cache writes 1.25x input price', () => {
   assertEquals(costMicros('claude-opus-5-5', tokens(0, 0, 1_000_000, 0)), 400_000);
   assertEquals(costMicros('claude-opus-5-5', tokens(0, 0, 0, 1_000_000)), 5_000_000);
-  assertEquals(costMicros('claude-sonnet-5-5', tokens(100, 10, 1000, 1000)), 100 * 2 + 10 * 10 + 1000 * 0.2 + 1000 * 2.5);
+  assertEquals(
+    costMicros('claude-sonnet-5-5', tokens(100, 10, 1000, 1000)),
+    100 * 2 + 10 * 10 + 1000 * 0.2 + 1000 * 2.5,
+  );
 });
 
 Deno.test('pricing: fractional micros are rounded up (conservative)', () => {
@@ -51,7 +54,13 @@ Deno.test('pricing: usageFromApi uses top-level usage priced at the response mod
     'claude-opus-5-5',
     'claude-opus-5-5',
   );
-  assertEquals(u, { inputTokens: 100, outputTokens: 50, cacheReadTokens: 1000, cacheWriteTokens: 0, costMicros: 100 * 4 + 50 * 20 + 400 });
+  assertEquals(u, {
+    inputTokens: 100,
+    outputTokens: 50,
+    cacheReadTokens: 1000,
+    cacheWriteTokens: 0,
+    costMicros: 100 * 4 + 50 * 20 + 400,
+  });
 });
 
 Deno.test('pricing: usageFromApi sums fallback iterations at each attempt model', () => {
@@ -61,7 +70,13 @@ Deno.test('pricing: usageFromApi sums fallback iterations at each attempt model'
       output_tokens: 999,
       iterations: [
         { type: 'message', model: null, input_tokens: 100, output_tokens: 0 },
-        { type: 'fallback_message', model: 'claude-opus-5', input_tokens: 100, output_tokens: 40, cache_read_input_tokens: 10 },
+        {
+          type: 'fallback_message',
+          model: 'claude-opus-5',
+          input_tokens: 100,
+          output_tokens: 40,
+          cache_read_input_tokens: 10,
+        },
       ],
     },
     'claude-opus-5-5',

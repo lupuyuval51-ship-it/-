@@ -218,7 +218,7 @@ const US: readonly LaunchTemplateItem[] = [
     key: 'us.bank_account',
     country: 'US',
     category: 'banking',
-    title: { he: 'להכיר את פתיחת חשבון בנק עסקי', en: 'Learn about opening a business bank account' },
+    title: { he: 'ללמוד על פתיחת חשבון בנק עסקי', en: 'Learn about opening a business bank account' },
     description: {
       he: 'ה-SBA ממליץ לפתוח חשבון עסקי ברגע שהעסק מתחיל לקבל או להוציא כסף. בנקים מבקשים בדרך כלל מספר EIN (או מספר SSN לעסק יחיד), מסמכי התאגדות, הסכמי בעלות ורישיון עסק.',
       en: 'The SBA recommends opening one as soon as you start accepting or spending money as a business. Banks commonly ask for an EIN (or a Social Security number for sole proprietors), formation documents, ownership agreements and a business license.',

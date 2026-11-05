@@ -5,9 +5,9 @@
 import type { Db } from './auth.ts';
 import { AppError, fromPostgrestError } from './errors.ts';
 import {
+  DEFAULT_SCENARIOS,
   type FinanceInputs,
   type FinanceSummary,
-  DEFAULT_SCENARIOS,
   scenarioSettingsFromModel,
   summarize,
 } from './domain/finance.ts';
@@ -80,7 +80,14 @@ export interface FinanceSnapshot {
 }
 
 export interface RoadmapSnapshot {
-  openTasks: { title: string; status: string; priority: string; phase: string | null; dueDate: string | null; source: string }[];
+  openTasks: {
+    title: string;
+    status: string;
+    priority: string;
+    phase: string | null;
+    dueDate: string | null;
+    source: string;
+  }[];
   doneCount: number;
   aiTaskCount: number;
   milestones: { title: string; phase: string; targetDate: string | null; achieved: boolean }[];
@@ -168,7 +175,9 @@ export function businessIdeaAnswer(onboarding: OnboardingAnswerMap): { idea: str
 export async function loadCurrentPlan(db: Db, businessId: string): Promise<PlanSnapshot | null> {
   const { data, error } = await db
     .from('business_plans')
-    .select('id,current_version_id,current:plan_versions!business_plans_current_version_id_fkey(id,status,plan_sections(section_key,content))')
+    .select(
+      'id,current_version_id,current:plan_versions!business_plans_current_version_id_fkey(id,status,plan_sections(section_key,content))',
+    )
     .eq('business_id', businessId)
     .maybeSingle();
   if (error) throw fromPostgrestError(error, 'business_plans.select');
@@ -189,8 +198,12 @@ export async function loadFinance(db: Db, businessId: string): Promise<FinanceSn
   const lim = CONTEXT_LIMITS.financeLines;
   const [model, costs, expenses, streams] = await Promise.all([
     db.from('financial_models').select('*').eq('business_id', businessId).maybeSingle(),
-    db.from('startup_costs').select('label,amount_minor,basis').eq('business_id', businessId).order('sort_order').limit(lim),
-    db.from('recurring_expenses').select('label,monthly_amount_minor,basis').eq('business_id', businessId).order('sort_order').limit(lim),
+    db.from('startup_costs').select('label,amount_minor,basis').eq('business_id', businessId).order('sort_order').limit(
+      lim,
+    ),
+    db.from('recurring_expenses').select('label,monthly_amount_minor,basis').eq('business_id', businessId).order(
+      'sort_order',
+    ).limit(lim),
     db
       .from('revenue_streams')
       .select('label,unit_price_minor,unit_variable_cost_minor,monthly_units,monthly_growth_pct,basis')
@@ -198,7 +211,12 @@ export async function loadFinance(db: Db, businessId: string): Promise<FinanceSn
       .order('sort_order')
       .limit(lim),
   ]);
-  for (const [res, op] of [[model, 'financial_models'], [costs, 'startup_costs'], [expenses, 'recurring_expenses'], [streams, 'revenue_streams']] as const) {
+  for (
+    const [res, op] of [[model, 'financial_models'], [costs, 'startup_costs'], [expenses, 'recurring_expenses'], [
+      streams,
+      'revenue_streams',
+    ]] as const
+  ) {
     if (res.error) throw fromPostgrestError(res.error, `${op}.select`);
   }
   const snapshot: FinanceSnapshot = {
@@ -206,7 +224,11 @@ export async function loadFinance(db: Db, businessId: string): Promise<FinanceSn
     forecastMonths: model.data?.forecast_months ?? 12,
     startingCapitalMinor: model.data?.starting_capital_minor ?? 0,
     startupCosts: (costs.data ?? []).map((r) => ({ label: r.label, amountMinor: r.amount_minor, basis: r.basis })),
-    recurringExpenses: (expenses.data ?? []).map((r) => ({ label: r.label, monthlyAmountMinor: r.monthly_amount_minor, basis: r.basis })),
+    recurringExpenses: (expenses.data ?? []).map((r) => ({
+      label: r.label,
+      monthlyAmountMinor: r.monthly_amount_minor,
+      basis: r.basis,
+    })),
     revenueStreams: (streams.data ?? []).map((r) => ({
       label: r.label,
       unitPriceMinor: r.unit_price_minor,
@@ -217,13 +239,17 @@ export async function loadFinance(db: Db, businessId: string): Promise<FinanceSn
     })),
     summary: null,
   };
-  const hasLines = snapshot.startupCosts.length + snapshot.recurringExpenses.length + snapshot.revenueStreams.length > 0;
+  const hasLines =
+    snapshot.startupCosts.length + snapshot.recurringExpenses.length + snapshot.revenueStreams.length > 0;
   if (!snapshot.hasModel && !hasLines) return null;
   if (hasLines) {
     const inputs: FinanceInputs = {
       startingCapitalMinor: snapshot.startingCapitalMinor,
       startupCosts: snapshot.startupCosts.map((c) => ({ label: c.label, amountMinor: c.amountMinor })),
-      recurringExpenses: snapshot.recurringExpenses.map((e) => ({ label: e.label, monthlyAmountMinor: e.monthlyAmountMinor })),
+      recurringExpenses: snapshot.recurringExpenses.map((e) => ({
+        label: e.label,
+        monthlyAmountMinor: e.monthlyAmountMinor,
+      })),
       revenueStreams: snapshot.revenueStreams.map((s) => ({
         label: s.label,
         unitPriceMinor: s.unitPriceMinor,
@@ -232,13 +258,11 @@ export async function loadFinance(db: Db, businessId: string): Promise<FinanceSn
         monthlyGrowthPct: s.monthlyGrowthPct,
       })),
       forecastMonths: snapshot.forecastMonths,
-      scenarios: model.data
-        ? scenarioSettingsFromModel(model.data)
-        : {
-          conservative: { ...DEFAULT_SCENARIOS.conservative },
-          expected: { ...DEFAULT_SCENARIOS.expected },
-          optimistic: { ...DEFAULT_SCENARIOS.optimistic },
-        },
+      scenarios: model.data ? scenarioSettingsFromModel(model.data) : {
+        conservative: { ...DEFAULT_SCENARIOS.conservative },
+        expected: { ...DEFAULT_SCENARIOS.expected },
+        optimistic: { ...DEFAULT_SCENARIOS.optimistic },
+      },
     };
     snapshot.summary = summarize(inputs, 'expected');
   }
@@ -264,7 +288,12 @@ export async function loadRoadmap(db: Db, businessId: string): Promise<RoadmapSn
       .order('target_date', { ascending: true, nullsFirst: false })
       .limit(CONTEXT_LIMITS.milestones),
   ]);
-  for (const [res, op] of [[open, 'tasks'], [done, 'tasks.count'], [ai, 'tasks.count_ai'], [milestones, 'milestones']] as const) {
+  for (
+    const [res, op] of [[open, 'tasks'], [done, 'tasks.count'], [ai, 'tasks.count_ai'], [
+      milestones,
+      'milestones',
+    ]] as const
+  ) {
     if (res.error) throw fromPostgrestError(res.error, `${op}.select`);
   }
   return {
@@ -345,7 +374,11 @@ export async function loadActuals(db: Db, businessId: string, now: Date): Promis
   return { months };
 }
 
-export async function loadBusinessContext(db: Db, businessId: string, opts: ContextOptions = {}): Promise<BusinessContext> {
+export async function loadBusinessContext(
+  db: Db,
+  businessId: string,
+  opts: ContextOptions = {},
+): Promise<BusinessContext> {
   const business = await loadBusiness(db, businessId);
   const [onboarding, plan, finance, roadmap, goals, actuals] = await Promise.all([
     loadOnboarding(db, businessId),
@@ -415,12 +448,22 @@ function renderOnboarding(o: OnboardingAnswerMap): string[] {
   if (budget) lines.push(`- Starting budget: ${formatMinor(budget.amount_minor, budget.currency)}`);
   const exp = get('experience');
   if (exp) {
-    lines.push(`- Experience: ${EXPERIENCE_TEXT[exp.level] ?? exp.level}${exp.details ? ` — ${truncate(exp.details, L.field)}` : ''}`);
+    lines.push(
+      `- Experience: ${EXPERIENCE_TEXT[exp.level] ?? exp.level}${
+        exp.details ? ` — ${truncate(exp.details, L.field)}` : ''
+      }`,
+    );
   }
   const customers = get('target_customers');
   if (customers) lines.push(`- Target customers (user's words): ${truncate(customers.text, L.field)}`);
   const goal = get('primary_goal');
-  if (goal) lines.push(`- Primary goal: ${GOAL_TEXT[goal.goal] ?? goal.goal}${goal.details ? ` — ${truncate(goal.details, L.field)}` : ''}`);
+  if (goal) {
+    lines.push(
+      `- Primary goal: ${GOAL_TEXT[goal.goal] ?? goal.goal}${
+        goal.details ? ` — ${truncate(goal.details, L.field)}` : ''
+      }`,
+    );
+  }
   const hours = get('weekly_hours');
   if (hours) lines.push(`- Time available: ${HOURS_TEXT[hours.range] ?? hours.range}`);
   const timeline = get('launch_timeline');
@@ -437,7 +480,9 @@ function renderSection(key: PlanSectionKey, content: PlanSectionContent, full: b
   for (const b of blocks) {
     lines.push(`- [${b.basis}] ${truncate(b.text, full ? L.focusBlockText : L.blockText)}`);
   }
-  if (content.blocks.length > blocks.length) lines.push(`- (${content.blocks.length - blocks.length} more statements omitted)`);
+  if (content.blocks.length > blocks.length) {
+    lines.push(`- (${content.blocks.length - blocks.length} more statements omitted)`);
+  }
   return lines;
 }
 
@@ -480,27 +525,51 @@ export function renderBusinessContext(ctx: BusinessContext, opts: RenderOptions 
   if (ctx.finance) {
     const f = ctx.finance;
     out.push('', '# Financial model (user-entered assumptions; amounts per unit/month)');
-    out.push(`- Starting capital: ${formatMinor(f.startingCapitalMinor, cur)}; forecast horizon ${f.forecastMonths} months`);
-    for (const c of f.startupCosts) out.push(`- Startup cost: ${truncate(c.label, 120)} = ${formatMinor(c.amountMinor, cur)} [${c.basis}]`);
+    out.push(
+      `- Starting capital: ${formatMinor(f.startingCapitalMinor, cur)}; forecast horizon ${f.forecastMonths} months`,
+    );
+    for (const c of f.startupCosts) {
+      out.push(`- Startup cost: ${truncate(c.label, 120)} = ${formatMinor(c.amountMinor, cur)} [${c.basis}]`);
+    }
     for (const e of f.recurringExpenses) {
       out.push(`- Monthly expense: ${truncate(e.label, 120)} = ${formatMinor(e.monthlyAmountMinor, cur)} [${e.basis}]`);
     }
     for (const s of f.revenueStreams) {
       out.push(
-        `- Revenue stream: ${truncate(s.label, 120)} — price ${formatMinor(s.unitPriceMinor, cur)}, variable cost ${formatMinor(s.unitVariableCostMinor, cur)}, ${s.monthlyUnits} units in month 1, growth ${s.monthlyGrowthPct}%/month [${s.basis}]`,
+        `- Revenue stream: ${truncate(s.label, 120)} — price ${formatMinor(s.unitPriceMinor, cur)}, variable cost ${
+          formatMinor(s.unitVariableCostMinor, cur)
+        }, ${s.monthlyUnits} units in month 1, growth ${s.monthlyGrowthPct}%/month [${s.basis}]`,
       );
     }
     if (f.summary) {
       const s = f.summary;
       const fc = s.forecast;
       out.push('- Computed by the app (expected scenario, estimates only):');
-      out.push(`  - Total startup costs ${formatMinor(s.startupCostsMinor, cur)}; fixed costs ${formatMinor(s.monthlyFixedCostsMinor, cur)}/month`);
-      out.push(`  - Month 1 revenue ${formatMinor(s.month1RevenueMinor, cur)}, month 1 net ${formatMinor(s.month1NetMinor, cur)}`);
       out.push(
-        `  - Break-even revenue needed ${s.breakEven.monthlyRevenueNeededMinor === null ? 'not reachable with current margins' : `${formatMinor(s.breakEven.monthlyRevenueNeededMinor, cur)}/month`}${s.breakEven.unitsNeeded === null ? '' : ` (${s.breakEven.unitsNeeded} units/month)`}`,
+        `  - Total startup costs ${formatMinor(s.startupCostsMinor, cur)}; fixed costs ${
+          formatMinor(s.monthlyFixedCostsMinor, cur)
+        }/month`,
       );
       out.push(
-        `  - Cash: opening ${formatMinor(fc.openingCashMinor, cur)}, lowest ${formatMinor(fc.lowestCashMinor, cur)} (month ${fc.lowestCashMonth}), ending ${formatMinor(fc.endingCashMinor, cur)}; first profitable month ${fc.firstProfitableMonth ?? 'none'}; cash runs out in month ${fc.cashOutMonth ?? 'never within horizon'}; payback month ${fc.breakEvenMonth ?? 'none'}`,
+        `  - Month 1 revenue ${formatMinor(s.month1RevenueMinor, cur)}, month 1 net ${
+          formatMinor(s.month1NetMinor, cur)
+        }`,
+      );
+      out.push(
+        `  - Break-even revenue needed ${
+          s.breakEven.monthlyRevenueNeededMinor === null
+            ? 'not reachable with current margins'
+            : `${formatMinor(s.breakEven.monthlyRevenueNeededMinor, cur)}/month`
+        }${s.breakEven.unitsNeeded === null ? '' : ` (${s.breakEven.unitsNeeded} units/month)`}`,
+      );
+      out.push(
+        `  - Cash: opening ${formatMinor(fc.openingCashMinor, cur)}, lowest ${
+          formatMinor(fc.lowestCashMinor, cur)
+        } (month ${fc.lowestCashMonth}), ending ${formatMinor(fc.endingCashMinor, cur)}; first profitable month ${
+          fc.firstProfitableMonth ?? 'none'
+        }; cash runs out in month ${fc.cashOutMonth ?? 'never within horizon'}; payback month ${
+          fc.breakEvenMonth ?? 'none'
+        }`,
       );
     }
   }
@@ -509,11 +578,17 @@ export function renderBusinessContext(ctx: BusinessContext, opts: RenderOptions 
     const r = ctx.roadmap;
     out.push('', `# Roadmap progress: ${r.doneCount} tasks done, ${r.openTasks.length} open shown`);
     for (const m of r.milestones) {
-      out.push(`- Milestone (${m.phase}${m.targetDate ? `, ${m.targetDate}` : ''}${m.achieved ? ', achieved' : ''}): ${truncate(m.title, 200)}`);
+      out.push(
+        `- Milestone (${m.phase}${m.targetDate ? `, ${m.targetDate}` : ''}${m.achieved ? ', achieved' : ''}): ${
+          truncate(m.title, 200)
+        }`,
+      );
     }
     for (const t of r.openTasks) {
       out.push(
-        `- Task [${t.status}, ${t.priority}${t.phase ? `, ${t.phase}` : ''}${t.dueDate ? `, due ${t.dueDate}` : ''}]: ${truncate(t.title, 200)}`,
+        `- Task [${t.status}, ${t.priority}${t.phase ? `, ${t.phase}` : ''}${t.dueDate ? `, due ${t.dueDate}` : ''}]: ${
+          truncate(t.title, 200)
+        }`,
       );
     }
   }
@@ -522,16 +597,24 @@ export function renderBusinessContext(ctx: BusinessContext, opts: RenderOptions 
     out.push('', '# Active goals');
     for (const g of ctx.goals) {
       const money = g.metric === 'revenue' || g.metric === 'profit';
-      const target = money ? formatMinor(g.targetValue, cur) : `${g.targetValue}${g.unit ? ` ${truncate(g.unit, 20)}` : ''}`;
+      const target = money
+        ? formatMinor(g.targetValue, cur)
+        : `${g.targetValue}${g.unit ? ` ${truncate(g.unit, 20)}` : ''}`;
       const current = money ? '' : `, current ${g.currentValue}`;
-      out.push(`- ${truncate(g.title, 200)} (${g.metric}: target ${target}${current}${g.dueDate ? `, due ${g.dueDate}` : ''})`);
+      out.push(
+        `- ${truncate(g.title, 200)} (${g.metric}: target ${target}${current}${g.dueDate ? `, due ${g.dueDate}` : ''})`,
+      );
     }
   }
 
   if (ctx.actuals && ctx.actuals.months.length > 0) {
     out.push('', '# Actual results recorded by the user (by month)');
     for (const m of ctx.actuals.months) {
-      out.push(`- ${m.month}: income ${formatMinor(m.incomeMinor, cur)}, expenses ${formatMinor(m.expenseMinor, cur)} (${m.count} entries)`);
+      out.push(
+        `- ${m.month}: income ${formatMinor(m.incomeMinor, cur)}, expenses ${
+          formatMinor(m.expenseMinor, cur)
+        } (${m.count} entries)`,
+      );
     }
   }
 

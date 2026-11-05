@@ -36,7 +36,10 @@ export class AiCallError extends AppError {
  * - 413 (request too large)              → invalid_request
  * - BadRequestError (400) / other        → internal (logged: it is our bug, not the user's)
  */
-export function mapProviderError(err: unknown, partial?: { usage?: UsageTotals | null; partialText?: string }): AppError {
+export function mapProviderError(
+  err: unknown,
+  partial?: { usage?: UsageTotals | null; partialText?: string },
+): AppError {
   if (err instanceof AppError) return err;
   const opts = { usage: partial?.usage ?? null, partialText: partial?.partialText ?? '', cause: err };
   if (err instanceof Anthropic.APIUserAbortError) {

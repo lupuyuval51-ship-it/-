@@ -38,7 +38,12 @@ async function fromStatus(): Promise<Omit<LocalStack, 'source'> | null> {
   if (perm.state !== 'granted') return null;
   try {
     const cwd = new URL('../../../../', import.meta.url).pathname; // business-ai/
-    const out = await new Deno.Command('supabase', { args: ['status', '-o', 'json'], cwd, stdout: 'piped', stderr: 'null' }).output();
+    const out = await new Deno.Command('supabase', {
+      args: ['status', '-o', 'json'],
+      cwd,
+      stdout: 'piped',
+      stderr: 'null',
+    }).output();
     if (!out.success) return null;
     const text = new TextDecoder().decode(out.stdout);
     const json = JSON.parse(text.slice(text.indexOf('{'))) as Record<string, string>;
@@ -77,7 +82,9 @@ export async function assertStackReachable(stack: LocalStack): Promise<void> {
 }
 
 export function adminClient(stack: LocalStack): SupabaseClient<Database> {
-  return createClient<Database>(stack.url, stack.serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createClient<Database>(stack.url, stack.serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export function userClient(stack: LocalStack, jwt: string): SupabaseClient<Database> {
@@ -100,7 +107,9 @@ export async function createTestUser(stack: LocalStack, label: string): Promise<
   const password = `Pw-${crypto.randomUUID()}`;
   const created = await admin.auth.admin.createUser({ email, password, email_confirm: true });
   if (created.error || !created.data.user) throw new Error(`createUser failed: ${created.error?.message}`);
-  const anon = createClient<Database>(stack.url, stack.anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const anon = createClient<Database>(stack.url, stack.anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
   const session = await anon.auth.signInWithPassword({ email, password });
   if (session.error || !session.data.session) throw new Error(`signIn failed: ${session.error?.message}`);
   const jwt = session.data.session.access_token;

@@ -24,6 +24,8 @@ export interface ButtonProps {
   fullWidth?: boolean;
   /** Quiet buttons only: no horizontal padding, aligns with surrounding text. */
   inline?: boolean;
+  /** Quiet buttons only: `secondary` for low-emphasis links (e.g. "Forgot password?"). */
+  tone?: 'default' | 'secondary';
   accessibilityHint?: string;
   testID?: string;
   style?: StyleProp<ViewStyle>;
@@ -36,7 +38,7 @@ interface VariantColors {
   text: string;
 }
 
-function variantColors(variant: ButtonVariant, colors: Palette): VariantColors {
+function variantColors(variant: ButtonVariant, colors: Palette, tone: 'default' | 'secondary'): VariantColors {
   switch (variant) {
     case 'primary':
       return { background: colors.accent, pressed: colors.accentPressed, border: colors.accent, text: colors.onAccent };
@@ -45,7 +47,7 @@ function variantColors(variant: ButtonVariant, colors: Palette): VariantColors {
     case 'destructive':
       return { background: 'transparent', pressed: colors.dangerSoft, border: colors.borderStrong, text: colors.danger };
     case 'quiet':
-      return { background: 'transparent', pressed: colors.backgroundAlt, border: 'transparent', text: colors.text };
+      return { background: 'transparent', pressed: colors.backgroundAlt, border: 'transparent', text: tone === 'secondary' ? colors.textSecondary : colors.text };
   }
 }
 
@@ -59,12 +61,13 @@ export function Button({
   icon,
   fullWidth = false,
   inline = false,
+  tone = 'default',
   accessibilityHint,
   testID,
   style,
 }: ButtonProps) {
   const { colors } = useTheme();
-  const c = variantColors(variant, colors);
+  const c = variantColors(variant, colors, tone);
   const height = size === 'compact' ? layout.compactControlHeight : layout.controlHeight;
   const inactive = disabled || loading;
   const isInline = inline && variant === 'quiet';

@@ -70,6 +70,7 @@ function RootNavigator({ fontsSettled }: { fontsSettled: boolean }) {
   }
 
   const needsOnboarding = signedIn && !hasCompletedOnboarding(businesses.data ?? []);
+  const home = needsOnboarding ? '/onboarding' : '/';
 
   return (
     <NavigationThemeProvider value={navigationTheme}>
@@ -83,19 +84,19 @@ function RootNavigator({ fontsSettled }: { fontsSettled: boolean }) {
             animation: reduceMotion ? 'none' : 'fade',
           }}
         >
-          <Stack.Protected guard={!signedIn}>
+          {/*
+            Every guard redirects explicitly (a closed group without an index would otherwise
+            resolve to "/(group)" and render not-found):
+            signed out → /sign-in · signed in, no onboarded business → /onboarding · else → / (tabs).
+          */}
+          <Stack.Protected guard={!signedIn} redirectTo={home}>
             <Stack.Screen name="(auth)" />
           </Stack.Protected>
-          {/*
-            Order matters: when a guard closes the current screen, the router falls back to the first
-            available screen. (app) comes first so an onboarded user lands in the app after sign-in;
-            while onboarding is required (app) is closed and the fallback is onboarding.
-          */}
-          <Stack.Protected guard={signedIn && !needsOnboarding}>
+          <Stack.Protected guard={signedIn && !needsOnboarding} redirectTo={signedIn ? '/onboarding' : '/sign-in'}>
             <Stack.Screen name="(app)" />
           </Stack.Protected>
           {/* Reachable whenever signed in: first business (forced while needsOnboarding) or an additional one (/onboarding?new=1). */}
-          <Stack.Protected guard={signedIn}>
+          <Stack.Protected guard={signedIn} redirectTo="/sign-in">
             <Stack.Screen name="onboarding" />
           </Stack.Protected>
           {/* Reachable signed in (recovery link session) or signed out. */}

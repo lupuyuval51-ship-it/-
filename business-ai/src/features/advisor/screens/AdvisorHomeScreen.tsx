@@ -143,7 +143,7 @@ export default function AdvisorHomeScreen() {
       testID="advisor-home"
     >
       <View style={styles.intro}>
-        <Text variant="body">{t('advisor.home.intro', { business: businessName })}</Text>
+        <Text variant="body">{businessName ? t('advisor.home.intro', { business: businessName }) : t('advisor.home.introGeneric')}</Text>
         <Text variant="callout" tone="secondary">
           {t('advisor.home.proposesOnly')}
         </Text>

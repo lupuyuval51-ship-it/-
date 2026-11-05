@@ -2,7 +2,10 @@
 // Register → onboarding → AI plan → edit section → roadmap → complete task → advisor chat →
 // finance assumption → reload (persistence) → Hebrew/RTL screenshots.
 // Env: BASE_URL (web build), ART (artifacts dir, default e2e/artifacts)
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+// Playwright may be installed globally (CI image) or locally; resolve via CommonJS require.
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright');
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:4173';
@@ -60,10 +63,12 @@ await step('onboarding', async () => {
   // budget
   await page.getByRole('textbox').first().fill('40000');
   await btn('Continue').click();
-  // remaining questions: skip
-  for (let i = 0; i < 5; i += 1) {
+  // remaining questions: skip until the review step appears
+  for (let i = 0; i < 8; i += 1) {
+    if (await btn('Create my business plan').isVisible().catch(() => false)) break;
+    const before = await page.getByText(/Step \d of 8/).first().textContent().catch(() => '');
     await btn('Skip').click({ timeout: 10000 });
-    await page.waitForTimeout(400);
+    await page.waitForFunction((prev) => !document.body.innerText.includes(prev || '§'), before, { timeout: 10000 }).catch(() => {});
   }
   await btn('Create my business plan').click({ timeout: 15000 });
 });
@@ -120,7 +125,10 @@ await step('reload-persistence', async () => {
 
 // Hebrew / RTL screenshots of key screens
 await step('hebrew-rtl', async () => {
-  await page.evaluate(() => localStorage.setItem('businessai.pref.locale', 'he'));
+  await page.goto(`${BASE}/settings`);
+  await page.getByText('עברית').first().click({ timeout: 20000 });
+  await btn('Switch and restart').click({ timeout: 10000 });
+  await page.waitForTimeout(4000);
   for (const path of ['/', '/plan', '/roadmap', '/finance', '/advisor', '/workspace']) {
     await page.goto(`${BASE}${path}`);
     await page.waitForTimeout(2500);

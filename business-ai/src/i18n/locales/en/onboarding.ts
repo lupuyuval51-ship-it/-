@@ -27,7 +27,7 @@ const messages: Messages<typeof he> = {
   business_idea: {
     label: 'The idea',
     title: 'What’s your idea?',
-    why: 'Everything in your plan starts here. A few plain sentences are enough — you can refine it later.',
+    why: 'Your plan starts here. A few plain sentences are enough — you can refine it later.',
     ideaLabel: 'Your idea, in your own words',
     ideaPlaceholder: 'For example: a home bakery selling sourdough loaves to the neighborhood, pre-ordered online',
     nameLabel: 'Working name',

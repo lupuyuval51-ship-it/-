@@ -16,7 +16,14 @@ import { loadBusiness, loadBusinessContext, renderBusinessContext } from '../_sh
 import type { AdvisorAction, AdvisorRequest } from '../_shared/domain/ai-api.ts';
 import { AdvisorRequestSchema } from '../_shared/domain/ai-api.ts';
 import { AppError, fromPostgrestError, logError, toAppError } from '../_shared/errors.ts';
-import { appErrorResponse, corsHeaders, errorResponse, issueDetails, preflight, readJsonBody } from '../_shared/http.ts';
+import {
+  appErrorResponse,
+  corsHeaders,
+  errorResponse,
+  issueDetails,
+  preflight,
+  readJsonBody,
+} from '../_shared/http.ts';
 import { type IdFactory, parseProposeActionsInput, randomId } from '../_shared/outputs.ts';
 import {
   advisorSystemPrompt,
@@ -51,7 +58,9 @@ export async function handleAdvisor(req: Request, deps: HandlerDeps = {}): Promi
   }
   const cors = corsHeaders(req, cfg.corsAllowedOrigins);
   if (req.method === 'OPTIONS') return preflight(req, cfg.corsAllowedOrigins);
-  if (req.method !== 'POST') return errorResponse('invalid_request', 405, 'Use POST.', { ...cors, Allow: 'POST, OPTIONS' });
+  if (req.method !== 'POST') {
+    return errorResponse('invalid_request', 405, 'Use POST.', { ...cors, Allow: 'POST, OPTIONS' });
+  }
 
   let prepared: Prepared;
   try {
@@ -129,7 +138,8 @@ async function prepare(req: Request, cfg: FunctionConfig, deps: HandlerDeps): Pr
   try {
     if (!conversationId) {
       const title = request.message.replace(/\s+/g, ' ').trim().slice(0, 60);
-      const conv = await auth.db.from('ai_conversations').insert({ business_id: business.id, title }).select('id').single();
+      const conv = await auth.db.from('ai_conversations').insert({ business_id: business.id, title }).select('id')
+        .single();
       if (conv.error) throw fromPostgrestError(conv.error, 'ai_conversations.insert');
       conversationId = conv.data.id;
     }
@@ -172,7 +182,15 @@ async function loadHistory(db: Db, conversationId: string, excludeId: string): P
 
 async function insertAssistant(
   p: Prepared,
-  fields: { content: string; actions: AdvisorAction[]; followUps: string[]; status: 'complete' | 'error'; model: string; inputTokens: number; outputTokens: number },
+  fields: {
+    content: string;
+    actions: AdvisorAction[];
+    followUps: string[];
+    status: 'complete' | 'error';
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+  },
 ): Promise<string> {
   const { data, error } = await p.svc
     .from('ai_messages')
@@ -202,13 +220,23 @@ async function streamReply(p: Prepared, writer: SseWriter, signal: AbortSignal, 
   try {
     await runReserved(p.svc, p.reservationId, async (meter) => {
       const [ctx, history] = await Promise.all([
-        loadBusinessContext(p.db, p.request.businessId, { plan: true, finance: true, roadmap: true, goals: true, actuals: true, now }),
+        loadBusinessContext(p.db, p.request.businessId, {
+          plan: true,
+          finance: true,
+          roadmap: true,
+          goals: true,
+          actuals: true,
+          now,
+        }),
         loadHistory(p.db, p.conversationId, p.userMessageId),
       ]);
       const result = await meter.track(() =>
         p.provider.streamChat({
           system: advisorSystemPrompt(p.request.locale, p.businessCurrency, todayUtc(now)),
-          messages: [...renderHistory(history), { role: 'user', content: advisorUserTurn(renderBusinessContext(ctx), p.request.message) }],
+          messages: [...renderHistory(history), {
+            role: 'user',
+            content: advisorUserTurn(renderBusinessContext(ctx), p.request.message),
+          }],
           tools: [PROPOSE_ACTIONS_TOOL_SPEC],
           ...ADVISOR_BUDGET,
           signal,
@@ -219,7 +247,9 @@ async function streamReply(p: Prepared, writer: SseWriter, signal: AbortSignal, 
         })
       );
       const call = result.toolCalls.find((c) => c.name === PROPOSE_ACTIONS_TOOL);
-      const { actions, followUps } = call ? parseProposeActionsInput(call.input, newId) : { actions: [], followUps: [] };
+      const { actions, followUps } = call
+        ? parseProposeActionsInput(call.input, newId)
+        : { actions: [], followUps: [] };
       const text = result.text.trim() === '' ? streamed : result.text;
       writer.send({ event: 'actions', data: { actions, followUps } });
       const assistantMessageId = await insertAssistant(p, {

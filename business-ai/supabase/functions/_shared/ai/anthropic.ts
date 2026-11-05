@@ -65,7 +65,10 @@ export function messageText(message: Pick<BetaMessage, 'content'>): string {
   return text;
 }
 
-export function messageUsage(message: Pick<BetaMessage, 'usage' | 'model'> | undefined, requestedModel: string): UsageTotals {
+export function messageUsage(
+  message: Pick<BetaMessage, 'usage' | 'model'> | undefined,
+  requestedModel: string,
+): UsageTotals {
   if (!message) return { ...ZERO_USAGE };
   return usageFromApi(message.usage, requestedModel, message.model);
 }

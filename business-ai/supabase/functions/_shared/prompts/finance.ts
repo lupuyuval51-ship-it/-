@@ -6,7 +6,11 @@ import type { Locale } from '../domain/ai-api.ts';
 import type { SystemPrompt } from '../ai/provider.ts';
 import { localeInstruction, STABLE_SYSTEM_PROMPT, wrapBusinessData } from './common.ts';
 
-export function financeProposalPrompt(locale: Locale, contextText: string, currency: string): { system: SystemPrompt; user: string } {
+export function financeProposalPrompt(
+  locale: Locale,
+  contextText: string,
+  currency: string,
+): { system: SystemPrompt; user: string } {
   const system: SystemPrompt = {
     stable: STABLE_SYSTEM_PROMPT,
     task: [

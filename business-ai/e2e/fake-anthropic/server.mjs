@@ -28,6 +28,7 @@
  *
  * Usage: PORT=8787 node e2e/fake-anthropic/server.mjs   (env FAKE_ANTHROPIC_QUIET=1 disables logs)
  */
+import { Buffer } from 'node:buffer';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
 

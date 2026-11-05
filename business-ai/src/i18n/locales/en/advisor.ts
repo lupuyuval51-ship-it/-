@@ -6,6 +6,7 @@ const messages: Messages<typeof he> = {
   title: 'Advisor',
   home: {
     intro: 'The advisor knows {business}’s business plan, roadmap, finances and goals, and answers based on them.',
+    introGeneric: 'The advisor knows your business plan, roadmap, finances and goals, and answers based on them.',
     proposesOnly: 'It only proposes changes. A task, expense or cost is added to your business only after you approve it.',
     newConversation: 'New conversation',
     conversationsHeading: 'Conversations',
@@ -62,6 +63,7 @@ const messages: Messages<typeof he> = {
     advisorMessageA11y: 'Advisor reply',
     introTitle: 'What can I help with?',
     introBody: 'Ask about pricing, customers, budget or priorities. Answers are based on {business}’s data.',
+    introBodyGeneric: 'Ask about pricing, customers, budget or priorities. Answers are based on your business’s data.',
     aiNotice: 'Replies are written by AI and can contain mistakes. Numbers in them are estimates, not guarantees.',
     composerLabel: 'Ask the advisor',
     composerPlaceholder: 'For example: what’s the right price for my first product?',

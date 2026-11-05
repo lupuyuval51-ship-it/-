@@ -57,7 +57,7 @@ export function SignInView() {
           <Text variant="callout" tone="secondary">
             {t('auth.signIn.noAccount')}
           </Text>
-          <Button variant="quiet" inline label={t('auth.signIn.createAccount')} onPress={() => router.replace('/sign-up')} testID="go-sign-up" />
+          <Button variant="quiet" inline size="compact" label={t('auth.signIn.createAccount')} onPress={() => router.replace('/sign-up')} testID="go-sign-up" />
         </>
       }
     >
@@ -101,7 +101,7 @@ export function SignInView() {
             returnKeyType="go"
             onSubmitEditing={() => void onSubmit()}
             labelAccessory={
-              <Button variant="quiet" inline size="compact" label={t('auth.signIn.forgot')} onPress={() => router.push('/forgot-password')} testID="go-forgot" />
+              <Button variant="quiet" inline size="compact" tone="secondary" label={t('auth.signIn.forgot')} onPress={() => router.push('/forgot-password')} testID="go-forgot" />
             }
             testID="password-input"
           />

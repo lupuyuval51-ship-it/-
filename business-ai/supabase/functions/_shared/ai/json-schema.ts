@@ -14,7 +14,18 @@ import { z } from 'zod';
 
 export type JsonSchema = { [key: string]: unknown };
 
-const SUPPORTED_STRING_FORMATS = new Set(['date-time', 'time', 'date', 'duration', 'email', 'hostname', 'uri', 'ipv4', 'ipv6', 'uuid']);
+const SUPPORTED_STRING_FORMATS = new Set([
+  'date-time',
+  'time',
+  'date',
+  'duration',
+  'email',
+  'hostname',
+  'uri',
+  'ipv4',
+  'ipv6',
+  'uuid',
+]);
 
 /** Keywords moved to the description (unsupported by structured outputs). */
 const DESCRIBED_KEYWORDS = [
@@ -78,7 +89,10 @@ function transform(node: unknown): JsonSchema {
     const value = node[key];
     if (value === undefined) continue;
     // zod emits ±MAX_SAFE_INTEGER bounds for .int(); they carry no information.
-    if ((key === 'minimum' || key === 'maximum') && typeof value === 'number' && Math.abs(value) >= Number.MAX_SAFE_INTEGER) continue;
+    if (
+      (key === 'minimum' || key === 'maximum') && typeof value === 'number' &&
+      Math.abs(value) >= Number.MAX_SAFE_INTEGER
+    ) continue;
     constraints[key] = value;
   }
 
@@ -91,7 +105,12 @@ function transform(node: unknown): JsonSchema {
 
 /** Converts a zod schema (output side) into a structured-outputs compatible JSON Schema. */
 export function toStrictJsonSchema(schema: z.ZodType): JsonSchema {
-  const raw = z.toJSONSchema(schema, { target: 'draft-2020-12', io: 'output', unrepresentable: 'throw', reused: 'inline' });
+  const raw = z.toJSONSchema(schema, {
+    target: 'draft-2020-12',
+    io: 'output',
+    unrepresentable: 'throw',
+    reused: 'inline',
+  });
   return transform(raw);
 }
 
