@@ -67,6 +67,7 @@ const messages = {
     regenerateConfirm: 'יצירה',
     regenerated: 'נוצרה גרסה חדשה',
     share: 'שיתוף כטקסט',
+    shareFailed: 'לא הצלחנו לפתוח את חלון השיתוף במכשיר הזה.',
     delete: 'מחיקה',
     deleteConfirmTitle: 'למחוק את החומר?',
     deleteConfirmBody: 'החומר יימחק לצמיתות.',

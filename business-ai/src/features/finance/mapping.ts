@@ -20,7 +20,6 @@ import {
 } from '@domain/finance';
 import { BASIS_VALUES, type Basis } from '@domain/plan';
 import { parseMoneyInput } from '@/i18n/format';
-import { fieldMessage } from '@/lib/forms';
 import type { TranslationKey } from '@/i18n/translate';
 import { intlLocale, type Locale } from '@/i18n/types';
 
@@ -558,14 +557,14 @@ export interface HorizonFormValues {
   forecastMonths: string;
 }
 
-/** `maxMonths` is the plan's limit (useEntitlement().limits.maxForecastMonths). */
-export function horizonFormSchema(maxMonths: number) {
-  return z.object({ forecastMonths: z.string() }).superRefine((v, ctx) => {
-    const months = parseDecimalInput(v.forecastMonths, { min: FINANCE_LIMITS.minForecastMonths, max: FINANCE_LIMITS.maxForecastMonths, integer: true });
-    if (months === null) ctx.addIssue({ code: 'custom', path: ['forecastMonths'], message: K.forecastMonthsInvalid });
-    else if (months > maxMonths)
-      ctx.addIssue({ code: 'custom', path: ['forecastMonths'], message: fieldMessage('finance.horizon.overLimit', { max: maxMonths }) });
-  });
+/**
+ * Forecast horizon check. `maxMonths` is the plan's limit (useEntitlement().limits.maxForecastMonths):
+ * `invalid` = not a whole number 1…36, `over_limit` = valid but beyond the plan, null = OK.
+ */
+export function horizonIssue(text: string, maxMonths: number): 'invalid' | 'over_limit' | null {
+  const months = parseForecastMonths(text);
+  if (months === null) return 'invalid';
+  return months > maxMonths ? 'over_limit' : null;
 }
 
 export function parseForecastMonths(text: string): number | null {

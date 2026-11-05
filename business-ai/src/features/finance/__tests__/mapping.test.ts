@@ -9,7 +9,7 @@ import {
   formatMoneyInputText,
   forecastTotalCostsMinor,
   hashString,
-  horizonFormSchema,
+  horizonIssue,
   inputsWithDraft,
   isFinanceEmpty,
   isLineKind,
@@ -338,9 +338,11 @@ describe('line form', () => {
 
 describe('model settings', () => {
   it('validates the forecast horizon against the plan limit', () => {
-    expect(horizonFormSchema(12).safeParse({ forecastMonths: '12' }).success).toBe(true);
-    expect(horizonFormSchema(12).safeParse({ forecastMonths: '24' }).error?.issues[0]?.message).toBe('finance.horizon.overLimit?max=12');
-    expect(horizonFormSchema(36).safeParse({ forecastMonths: '40' }).error?.issues[0]?.message).toBe('finance.validation.forecastMonthsInvalid');
+    expect(horizonIssue('12', 12)).toBeNull();
+    expect(horizonIssue('24', 12)).toBe('over_limit');
+    expect(horizonIssue('24', 36)).toBeNull();
+    expect(horizonIssue('40', 36)).toBe('invalid');
+    expect(horizonIssue('', 36)).toBe('invalid');
   });
 
   it('round-trips scenario percentages', () => {

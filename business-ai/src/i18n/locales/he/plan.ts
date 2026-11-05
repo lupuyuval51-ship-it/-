@@ -22,9 +22,6 @@ const messages = {
     risks_assumptions: 'סיכונים והנחות',
     roadmap_30_60_90: 'תוכנית ל-30, 60 ו-90 יום',
   },
-  basis: {
-    verifiedWithSource: 'מאומת · {source}',
-  },
   basisCount: {
     user_provided: { one: 'פרט אחד שמסרת', two: 'שני פרטים שמסרת', other: '{count} פרטים שמסרת' },
     assumption: { one: 'הנחה אחת', two: 'שתי הנחות', other: '{count} הנחות' },
@@ -79,7 +76,6 @@ const messages = {
     generic: 'משהו השתבש בזמן הכתיבה. אפשר לנסות שוב.',
     retry: 'ניסיון נוסף',
     previousVersion: 'הגרסה הקודמת של התוכנית עדיין זמינה.',
-    showCurrent: 'חזרה לגרסה הנוכחית',
   },
   ready: {
     versionLine: 'גרסה {number} · עודכנה {date}',
@@ -99,7 +95,6 @@ const messages = {
     days: { one: 'אתמול', two: 'לפני יומיים', other: 'לפני {count} ימים' },
   },
   actions: {
-    more: 'פעולות נוספות',
     history: 'היסטוריית גרסאות',
     exportPdf: 'ייצוא ל-PDF',
     exporting: 'מכינים את הקובץ…',
@@ -133,7 +128,6 @@ const messages = {
     summaryLabel: 'תקציר',
     summaryHint: 'משפט או שניים שמופיעים בראש הסעיף',
     blockLabel: 'פסקה {number}',
-    textLabel: 'טקסט הפסקה',
     basisLabel: 'מקור המידע',
     sourceTitleLabel: 'שם המקור',
     sourceTitlePlaceholder: 'למשל: הלשכה המרכזית לסטטיסטיקה',
@@ -234,10 +228,7 @@ const messages = {
     legendTitle: 'מקור המידע',
     disclaimerTitle: 'חשוב לדעת',
     disclaimer: 'התוכנית נכתבה בסיוע בינה מלאכותית. הערכות AI והנחות אינן התחייבות או תחזית מובטחת, ויש לבדוק אותן מול מקורות ואנשי מקצוע לפני קבלת החלטות.',
-    sourceLabel: 'מקור:',
     failed: 'לא הצלחנו להפיק את קובץ ה-PDF. אפשר לנסות שוב.',
-    unavailable: 'שיתוף קבצים אינו זמין במכשיר הזה.',
-    done: 'קובץ ה-PDF מוכן',
     shareDialogTitle: 'שיתוף התוכנית העסקית',
   },
   errors: {
@@ -253,7 +244,6 @@ const messages = {
     sectionRow: '{title}. {preview}',
     provenance: 'מקורות: {mix}',
     legend: 'פתיחת הסבר על תוויות המקור',
-    elapsed: 'זמן שעבר',
     sectionState: '{title}: {state}',
   },
 } as const;

@@ -25,6 +25,7 @@ export function ProgressBar({ value, tone = 'accent', accessibilityLabel, height
   const fill = tone === 'danger' ? colors.danger : tone === 'warning' ? colors.warning : colors.accent;
   return (
     <View
+      accessible
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: percent, text: t('common.a11y.progress', { value: percent }) }}

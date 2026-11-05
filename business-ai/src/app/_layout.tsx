@@ -86,11 +86,17 @@ function RootNavigator({ fontsSettled }: { fontsSettled: boolean }) {
           <Stack.Protected guard={!signedIn}>
             <Stack.Screen name="(auth)" />
           </Stack.Protected>
-          <Stack.Protected guard={signedIn && needsOnboarding}>
-            <Stack.Screen name="onboarding" />
-          </Stack.Protected>
+          {/*
+            Order matters: when a guard closes the current screen, the router falls back to the first
+            available screen. (app) comes first so an onboarded user lands in the app after sign-in;
+            while onboarding is required (app) is closed and the fallback is onboarding.
+          */}
           <Stack.Protected guard={signedIn && !needsOnboarding}>
             <Stack.Screen name="(app)" />
+          </Stack.Protected>
+          {/* Reachable whenever signed in: first business (forced while needsOnboarding) or an additional one (/onboarding?new=1). */}
+          <Stack.Protected guard={signedIn}>
+            <Stack.Screen name="onboarding" />
           </Stack.Protected>
           {/* Reachable signed in (recovery link session) or signed out. */}
           <Stack.Screen name="reset-password" />

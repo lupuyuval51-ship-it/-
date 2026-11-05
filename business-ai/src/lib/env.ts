@@ -13,9 +13,22 @@ function clean(value: string | undefined): string {
   return (value ?? '').trim();
 }
 
-export function readPublicConfig(): ConfigResult {
-  const supabaseUrl = clean(process.env.EXPO_PUBLIC_SUPABASE_URL);
-  const supabaseAnonKey = clean(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY);
+export interface RawPublicEnv {
+  supabaseUrl: string | undefined;
+  supabaseAnonKey: string | undefined;
+}
+
+/** Values inlined by the Expo bundler (static access is required for inlining). */
+function bundledEnv(): RawPublicEnv {
+  return {
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  };
+}
+
+export function readPublicConfig(raw: RawPublicEnv = bundledEnv()): ConfigResult {
+  const supabaseUrl = clean(raw.supabaseUrl);
+  const supabaseAnonKey = clean(raw.supabaseAnonKey);
   const missing: string[] = [];
   if (!/^https?:\/\/\S+$/.test(supabaseUrl)) missing.push('EXPO_PUBLIC_SUPABASE_URL');
   if (!supabaseAnonKey) missing.push('EXPO_PUBLIC_SUPABASE_ANON_KEY');

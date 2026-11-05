@@ -65,6 +65,7 @@ const messages: Messages<typeof he> = {
     regenerateConfirm: 'Create',
     regenerated: 'New version created',
     share: 'Share as text',
+    shareFailed: 'Sharing isn’t available on this device.',
     delete: 'Delete',
     deleteConfirmTitle: 'Delete this asset?',
     deleteConfirmBody: 'It will be deleted permanently.',

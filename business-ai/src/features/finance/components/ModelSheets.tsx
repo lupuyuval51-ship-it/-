@@ -2,24 +2,35 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { StyleSheet, View } from 'react-native';
 import { TIER_LIMITS } from '@domain/entitlements';
 import { Button, InlineNotice, Sheet, Text, useNotice } from '@/components/ui';
 import { useEntitlement } from '@/features/settings/api';
 import { useLocale, useT } from '@/i18n/I18nProvider';
+import { fieldMessage } from '@/lib/forms';
 import { useIsOnline } from '@/lib/net';
 import { spacing } from '@/theme/tokens';
 import { useUpdateFinancialModel } from '../api';
 import {
   capitalFormSchema,
   formatMoneyInputText,
-  horizonFormSchema,
+  horizonIssue,
   parseForecastMonths,
   parseOptionalMoney,
   type CapitalFormValues,
   type HorizonFormValues,
 } from '../mapping';
 import { MoneyFormField, NumberFormField } from './FormFields';
+
+function horizonFormSchema(maxMonths: number) {
+  return z.object({ forecastMonths: z.string() }).superRefine((v, ctx) => {
+    const issue = horizonIssue(v.forecastMonths, maxMonths);
+    if (issue === 'invalid') ctx.addIssue({ code: 'custom', path: ['forecastMonths'], message: 'finance.validation.forecastMonthsInvalid' });
+    if (issue === 'over_limit')
+      ctx.addIssue({ code: 'custom', path: ['forecastMonths'], message: fieldMessage('finance.horizon.overLimit', { max: maxMonths }) });
+  });
+}
 
 interface SheetBaseProps {
   visible: boolean;

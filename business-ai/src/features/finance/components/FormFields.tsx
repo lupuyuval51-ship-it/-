@@ -1,9 +1,9 @@
-import { useController, type Control, type FieldPathByValue, type FieldValues } from 'react-hook-form';
+import { Controller, type Control, type FieldPathByValue, type FieldValues } from 'react-hook-form';
+import { StyleSheet, View } from 'react-native';
 import { BASIS_VALUES, type Basis } from '@domain/plan';
 import { ChoiceList, Text, TextField } from '@/components/ui';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { useFieldError } from '@/lib/forms';
-import { View } from 'react-native';
 import { spacing } from '@/theme/tokens';
 import { reformatMoneyText } from '../mapping';
 
@@ -28,67 +28,91 @@ export function TextFormField<T extends FieldValues>({
   testID,
   maxLength,
 }: BaseFieldProps<T> & { maxLength?: number }) {
-  const { field, fieldState } = useController({ control, name });
   const fieldError = useFieldError();
   return (
-    <TextField
-      label={label}
-      hint={hint}
-      value={field.value as string}
-      onChangeText={field.onChange}
-      onBlur={field.onBlur}
-      ref={field.ref}
-      error={fieldError(fieldState.error) ?? externalError}
-      disabled={disabled}
-      maxLength={maxLength}
-      testID={testID}
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <TextField
+          label={label}
+          hint={hint}
+          value={field.value as string}
+          onChangeText={field.onChange}
+          onBlur={field.onBlur}
+          ref={field.ref}
+          error={fieldError(fieldState.error) ?? externalError}
+          disabled={disabled}
+          maxLength={maxLength}
+          testID={testID}
+        />
+      )}
     />
   );
 }
 
 /** Money input: decimal keyboard, currency adornment, re-formatted ("1,234.50") on blur. */
-export function MoneyFormField<T extends FieldValues>({ control, name, label, hint, disabled, externalError, testID, currency }: BaseFieldProps<T> & { currency: string }) {
-  const { field, fieldState } = useController({ control, name });
+export function MoneyFormField<T extends FieldValues>({
+  control,
+  name,
+  label,
+  hint,
+  disabled,
+  externalError,
+  testID,
+  currency,
+}: BaseFieldProps<T> & { currency: string }) {
   const fieldError = useFieldError();
   const { locale } = useLocale();
   return (
-    <TextField
-      mode="money"
-      currency={currency}
-      label={label}
-      hint={hint}
-      value={field.value as string}
-      onChangeText={field.onChange}
-      onBlur={() => {
-        const text = field.value as string;
-        const formatted = reformatMoneyText(text, currency, locale);
-        if (text.trim() !== '' && formatted !== text) field.onChange(formatted);
-        field.onBlur();
-      }}
-      ref={field.ref}
-      error={fieldError(fieldState.error) ?? externalError}
-      disabled={disabled}
-      testID={testID}
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <TextField
+          mode="money"
+          currency={currency}
+          label={label}
+          hint={hint}
+          value={field.value as string}
+          onChangeText={field.onChange}
+          onBlur={() => {
+            const text = field.value as string;
+            const formatted = reformatMoneyText(text, currency, locale);
+            if (text.trim() !== '' && formatted !== text) field.onChange(formatted);
+            field.onBlur();
+          }}
+          ref={field.ref}
+          error={fieldError(fieldState.error) ?? externalError}
+          disabled={disabled}
+          testID={testID}
+        />
+      )}
     />
   );
 }
 
 /** Quantities and percentages (decimal keyboard). */
 export function NumberFormField<T extends FieldValues>({ control, name, label, hint, disabled, externalError, testID }: BaseFieldProps<T>) {
-  const { field, fieldState } = useController({ control, name });
   const fieldError = useFieldError();
   return (
-    <TextField
-      mode="number"
-      label={label}
-      hint={hint}
-      value={field.value as string}
-      onChangeText={field.onChange}
-      onBlur={field.onBlur}
-      ref={field.ref}
-      error={fieldError(fieldState.error) ?? externalError}
-      disabled={disabled}
-      testID={testID}
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <TextField
+          mode="number"
+          label={label}
+          hint={hint}
+          value={field.value as string}
+          onChangeText={field.onChange}
+          onBlur={field.onBlur}
+          ref={field.ref}
+          error={fieldError(fieldState.error) ?? externalError}
+          disabled={disabled}
+          testID={testID}
+        />
+      )}
     />
   );
 }
@@ -97,7 +121,7 @@ export function NumberFormField<T extends FieldValues>({ control, name, label, h
 export function BasisPicker({ value, onChange }: { value: Basis; onChange: (b: Basis) => void }) {
   const t = useT();
   return (
-    <View style={{ gap: spacing[2] }}>
+    <View style={styles.basis}>
       <Text variant="callout" weight={500}>
         {t('finance.line.basis')}
       </Text>
@@ -110,3 +134,7 @@ export function BasisPicker({ value, onChange }: { value: Basis; onChange: (b: B
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  basis: { gap: spacing[2] },
+});

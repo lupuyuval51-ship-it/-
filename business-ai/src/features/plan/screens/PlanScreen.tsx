@@ -47,10 +47,14 @@ export default function PlanScreen() {
   const start = useStartPlanGeneration(businessId);
   const usage = usePlanUsage();
 
-  // generate=1 (from onboarding): start once, only when there is no plan and no generation yet.
+  // generate=1 (onboarding / Home): start once when there is no plan yet — nothing generated,
+  // or only a failed first attempt that a retry can fix (not a monthly limit or server setup).
   const autoStarted = useRef(false);
   const wantsAutoStart = params.generate === '1';
-  const canAutoStart = !!businessId && plan.isReady && !plan.isLoading && !plan.currentVersion && !plan.latestVersion;
+  const failedCode = plan.pendingGeneration?.status === 'failed' ? plan.pendingGeneration.errorCode : null;
+  const retryableFailure = failedCode !== null && !isLimitError(failedCode) && failedCode !== 'not_configured' && failedCode !== 'precondition_failed';
+  const canAutoStart =
+    !!businessId && plan.isReady && !plan.isLoading && !plan.currentVersion && (!plan.latestVersion || retryableFailure);
   useEffect(() => {
     if (!wantsAutoStart || autoStarted.current || !businessId || !plan.isReady) return;
     autoStarted.current = true;

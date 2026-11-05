@@ -89,17 +89,21 @@ function useStepForm<K extends OnboardingKey>(key: K, ctx: StepContext): StepFor
     pendingDraft.current = null;
   }, [scope, key, setDraft]);
 
+  const { subscribe } = form;
   useEffect(() => {
-    const sub = form.watch((values) => {
-      pendingDraft.current = values as DraftFields;
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(flush, 300);
+    const unsubscribe = subscribe({
+      formState: { values: true },
+      callback: ({ values }) => {
+        pendingDraft.current = { ...values } as DraftFields;
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(flush, 300);
+      },
     });
     return () => {
-      sub.unsubscribe();
+      unsubscribe();
       flush(); // keep what was typed when leaving the step without saving (Back)
     };
-  }, [form, flush]);
+  }, [subscribe, flush]);
 
   const { onSave } = ctx;
   const submit = () => {

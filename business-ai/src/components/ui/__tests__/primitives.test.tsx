@@ -1,5 +1,5 @@
-import { act, fireEvent, screen } from '@testing-library/react-native';
-import { I18nManager, StyleSheet, Text as RNText } from 'react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
+import { I18nManager, StyleSheet } from 'react-native';
 import { palettes } from '@/theme/tokens';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import {
@@ -255,7 +255,9 @@ describe('content primitives', () => {
 describe('Icon', () => {
   it('is decorative by default', async () => {
     await renderWithProviders(<Icon name="home" testID="icon" />);
-    expect(screen.getByTestId('icon').props.accessible).toBe(false);
+    // Hidden from assistive tech: only found when hidden elements are included.
+    expect(screen.queryByTestId('icon')).toBeNull();
+    expect(screen.getByTestId('icon', { includeHiddenElements: true }).props.accessible).toBe(false);
   });
 
   it('mirrors directional icons only in RTL layouts', async () => {
@@ -266,15 +268,12 @@ describe('Icon', () => {
         <Icon name="home" testID="home" />
       </>,
     );
-    expect(flat(screen.getByTestId('chevron').props.style).transform).toEqual([{ scaleX: -1 }]);
-    expect(flat(screen.getByTestId('home').props.style).transform).toBeUndefined();
+    expect(flat(screen.getByTestId('chevron', { includeHiddenElements: true }).props.style).transform).toEqual([{ scaleX: -1 }]);
+    expect(flat(screen.getByTestId('home', { includeHiddenElements: true }).props.style).transform).toBeUndefined();
     replaced.restore();
 
     await renderWithProviders(<Icon name="chevron-right" testID="ltr" />);
-    expect(flat(screen.getByTestId('ltr').props.style).transform).toBeUndefined();
+    expect(flat(screen.getByTestId('ltr', { includeHiddenElements: true }).props.style).transform).toBeUndefined();
   });
 });
 
-// Keeps RNText referenced for type-only environments.
-void RNText;
-void act;

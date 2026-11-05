@@ -350,6 +350,8 @@ export function useUpdateFinancialModel(businessId: string | null | undefined) {
           unwrap(await supabase.rpc('ensure_financial_model', { p_business_id: bid }));
           result = await supabase.from('financial_models').update(row).eq('business_id', bid).select('*').maybeSingle();
         }
+        // Inspect the raw PostgrestError: `details` carries `max_forecast_months=N`.
+        if (result.error) throw result.error;
         return mapModelRow(unwrap(result));
       } catch (e) {
         const appError: FinanceAppError = { ...toAppError(e) };

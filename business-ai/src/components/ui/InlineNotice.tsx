@@ -47,6 +47,8 @@ export function InlineNotice({ tone = 'info', title, message, action, onDismiss,
   const urgent = tone === 'error' || tone === 'warning';
   return (
     <View
+      // Read as one element unless it contains its own controls.
+      accessible={!action && !onDismiss}
       accessibilityRole={urgent ? 'alert' : undefined}
       accessibilityLiveRegion={urgent ? 'assertive' : 'polite'}
       testID={testID}

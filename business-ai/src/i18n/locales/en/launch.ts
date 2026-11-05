@@ -99,6 +99,9 @@ const messages: Messages<typeof he> = {
     notFoundTitle: 'Item not found',
     notFoundBody: 'It may have been deleted.',
     back: 'Back to the Launch Center',
+    discardTitle: 'Discard your changes?',
+    discardBody: 'Unsaved changes will be lost.',
+    discard: 'Discard changes',
   },
   form: {
     sourceUrlInvalid: 'Enter a link starting with http:// or https://',

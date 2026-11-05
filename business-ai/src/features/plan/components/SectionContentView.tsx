@@ -46,7 +46,7 @@ export function SectionContentView({ content, testID }: SectionContentViewProps)
   return (
     <View style={styles.root} testID={testID}>
       {content.summary.trim() !== '' ? (
-        <Text variant="heading" weight={400} style={styles.lede}>
+        <Text variant="heading" weight={400} accessibilityRole="text" style={styles.lede}>
           {content.summary}
         </Text>
       ) : null}

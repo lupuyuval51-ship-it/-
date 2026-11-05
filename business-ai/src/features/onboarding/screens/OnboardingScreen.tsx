@@ -27,6 +27,7 @@ import { QuestionStep, type SavePhase, type StepContext } from '../components/Qu
 import { ReviewStep } from '../components/ReviewStep';
 import type { FieldDefaults } from '../forms';
 import {
+  answerStatus,
   answerValue,
   canCreateBusiness,
   firstUnansweredStep,
@@ -38,6 +39,7 @@ import {
   REVIEW_STEP,
   suggestCurrency,
   type OnboardingStep,
+  type StartMode,
 } from '../logic';
 import { newScope, useDraftHydrated, useOnboardingDraftStore } from '../store';
 
@@ -68,33 +70,32 @@ export default function OnboardingScreen() {
   const saveAnswer = useSaveOnboardingAnswer();
   const complete = useCompleteOnboarding();
 
-  // Decide fresh vs resume once, as soon as the business list is known.
-  const [mode, setMode] = useState<ReturnType<typeof resolveStartMode> | null>(null);
-  useEffect(() => {
-    if (mode || active.isLoading || (!active.businesses.length && active.error)) return;
-    setMode(resolveStartMode({ isNew, activeBusiness: active.business }));
-  }, [mode, active.isLoading, active.error, active.businesses.length, active.business, isNew]);
+  // Decide fresh vs resume once, as soon as the business list is known (state adjusted during
+  // render — the decision must not change when this screen later creates / activates a business).
+  const [mode, setMode] = useState<StartMode | null>(null);
+  const listKnown = !active.isLoading && !(active.businesses.length === 0 && active.error);
+  if (!mode && listKnown) setMode(resolveStartMode({ isNew, activeBusiness: active.business }));
 
   const [session, setSession] = useState<Session | null>(null);
   const businessId = session?.businessId ?? (mode?.kind === 'resume' ? mode.businessId : null);
   const responses = useOnboardingResponses(businessId);
   const answers = useMemo(() => responsesToAnswers(responses.data), [responses.data]);
 
-  // Start the session once everything it depends on is loaded.
-  useEffect(() => {
-    if (session || !mode || !draftsHydrated) return;
+  // Start the session once the drafts and (when resuming) the saved answers are loaded.
+  if (!session && mode && draftsHydrated) {
     if (mode.kind === 'fresh') {
       setSession({ businessId: null, step: 'business_idea', firstStep: 'business_idea', resumed: false });
     } else if (responses.data) {
       const step = firstUnansweredStep(answers);
       setSession({ businessId: mode.businessId, step, firstStep: step, resumed: step !== 'business_idea' });
     }
-  }, [session, mode, draftsHydrated, responses.data, answers]);
+  }
 
   const [returnToReview, setReturnToReview] = useState(false);
   const [pending, setPending] = useState<SavePhase>(null);
   const [error, setError] = useState<string | null>(null);
-  const [limitHit, setLimitHit] = useState(false);
+  /** Business count when the database refused a new business (`business_limit_reached`). */
+  const [limitHitAt, setLimitHitAt] = useState<number | null>(null);
 
   const business: Business | null = useMemo(
     () => (businessId ? (active.businesses.find((b) => b.id === businessId) ?? null) : null),
@@ -112,7 +113,7 @@ export default function OnboardingScreen() {
     !entitlement.isLoading &&
     !entitlement.error &&
     !canCreateBusiness(active.businesses.length, entitlement.limits.maxBusinesses);
-  const showLimit = !businessId && (limitHit || atLimit);
+  const showLimit = !businessId && (atLimit || (limitHitAt !== null && active.businesses.length >= limitHitAt));
 
   const goTo = useCallback(
     (step: OnboardingStep) => {
@@ -211,7 +212,7 @@ export default function OnboardingScreen() {
       if (next === REVIEW_STEP) setReturnToReview(false);
       goTo(next);
     } catch (e) {
-      if (toAppError(e).code === 'business_limit_reached') setLimitHit(true);
+      if (toAppError(e).code === 'business_limit_reached') setLimitHitAt(active.businesses.length);
       else setError(failureMessage(e, 'onboarding.errors.saveFailed'));
     } finally {
       setPending(null);
@@ -219,7 +220,7 @@ export default function OnboardingScreen() {
   };
 
   const onCreatePlan = async () => {
-    if (!businessId) {
+    if (!businessId || answerStatus(answers, 'business_idea') !== 'answered') {
       goTo('business_idea');
       return;
     }
@@ -303,7 +304,12 @@ export default function OnboardingScreen() {
     notice: session.resumed && step === session.firstStep ? t('onboarding.resumed') : null,
     announceRestoredDraft: step === session.firstStep,
     offline: !online,
-    onBack: returnToReview || previousStep(step) ? () => void back() : undefined,
+    onBack:
+      returnToReview || previousStep(step)
+        ? () => void back()
+        : isNew && router.canGoBack()
+          ? () => router.back() // leave the "new business" flow from its first question
+          : undefined,
     backLabel: returnToReview ? t('onboarding.actions.backToReview') : undefined,
     onSave,
   };

@@ -125,7 +125,6 @@ const messages: Messages<typeof he> = {
   },
 
   review: {
-    overline: 'Review',
     title: 'One last look',
     body: 'Here are your answers. Tap any row to change it.',
     skipped: 'Skipped',
@@ -169,7 +168,6 @@ const messages: Messages<typeof he> = {
     emptyBody: 'Each business gets its own business plan, roadmap and financial model.',
     emptyAction: 'Start a business',
     loadFailed: 'We couldn’t load your businesses.',
-    count: { one: 'One active business', other: '{count} active businesses' },
     edit: {
       title: 'Business details',
       save: 'Save changes',

@@ -21,9 +21,6 @@ const messages: Messages<typeof he> = {
     risks_assumptions: 'Risks and assumptions',
     roadmap_30_60_90: '30/60/90-day plan',
   },
-  basis: {
-    verifiedWithSource: 'Verified · {source}',
-  },
   basisCount: {
     user_provided: { one: '1 from you', other: '{count} from you' },
     assumption: { one: '1 assumption', other: '{count} assumptions' },
@@ -78,7 +75,6 @@ const messages: Messages<typeof he> = {
     generic: 'Something went wrong while writing. You can try again.',
     retry: 'Try again',
     previousVersion: 'The previous version of your plan is still available.',
-    showCurrent: 'Back to the current version',
   },
   ready: {
     versionLine: 'Version {number} · updated {date}',
@@ -98,7 +94,6 @@ const messages: Messages<typeof he> = {
     days: { one: 'yesterday', other: '{count} days ago' },
   },
   actions: {
-    more: 'More actions',
     history: 'Version history',
     exportPdf: 'Export PDF',
     exporting: 'Preparing the file…',
@@ -132,7 +127,6 @@ const messages: Messages<typeof he> = {
     summaryLabel: 'Summary',
     summaryHint: 'One or two sentences shown at the top of the section',
     blockLabel: 'Paragraph {number}',
-    textLabel: 'Paragraph text',
     basisLabel: 'Source',
     sourceTitleLabel: 'Source name',
     sourceTitlePlaceholder: 'e.g. Central Bureau of Statistics',
@@ -233,10 +227,7 @@ const messages: Messages<typeof he> = {
     legendTitle: 'Sources',
     disclaimerTitle: 'Please note',
     disclaimer: 'This plan was written with the help of AI. AI estimates and assumptions are not commitments or guaranteed forecasts — check them against sources and professionals before making decisions.',
-    sourceLabel: 'Source:',
     failed: 'We couldn’t create the PDF. You can try again.',
-    unavailable: 'Sharing files isn’t available on this device.',
-    done: 'Your PDF is ready',
     shareDialogTitle: 'Share business plan',
   },
   errors: {
@@ -252,7 +243,6 @@ const messages: Messages<typeof he> = {
     sectionRow: '{title}. {preview}',
     provenance: 'Sources: {mix}',
     legend: 'Open an explanation of the source labels',
-    elapsed: 'Elapsed time',
     sectionState: '{title}: {state}',
   },
 };

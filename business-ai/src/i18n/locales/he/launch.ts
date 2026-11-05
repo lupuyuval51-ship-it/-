@@ -103,6 +103,9 @@ const messages = {
     notFoundTitle: 'הפריט לא נמצא',
     notFoundBody: 'ייתכן שהוא נמחק.',
     back: 'חזרה למרכז ההשקה',
+    discardTitle: 'לבטל את השינויים?',
+    discardBody: 'השינויים שלא נשמרו יימחקו.',
+    discard: 'ביטול השינויים',
   },
   form: {
     sourceUrlInvalid: 'יש להזין קישור שמתחיל ב-http:// או https://',

@@ -2,7 +2,8 @@
   "imports": {
     "zod": "npm:zod@4.6.7",
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2.119.0",
-    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@1.4.0"
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@1.4.0",
+    "@std/assert": "jsr:@std/assert@1.0.19"
   },
   "compilerOptions": {
     "strict": true,
@@ -10,16 +11,28 @@
     "noFallthroughCasesInSwitch": true
   },
   "test": {
-    "include": ["tests/"],
-    "exclude": ["_shared/domain/", "../tests/", "../../e2e/", "../../src/"]
+    "include": [
+      "tests/"
+    ],
+    "exclude": [
+      "_shared/domain/",
+      "../tests/",
+      "../../e2e/",
+      "../../src/"
+    ]
   },
   "fmt": {
     "lineWidth": 120,
     "singleQuote": true,
-    "exclude": ["_shared/database.types.ts", "_shared/domain/"]
+    "exclude": [
+      "_shared/database.types.ts",
+      "_shared/domain/"
+    ]
   },
   "lint": {
-    "exclude": ["_shared/database.types.ts"]
+    "exclude": [
+      "_shared/database.types.ts"
+    ]
   },
   "tasks": {
     "check": "deno check ai/index.ts advisor/index.ts tests/",

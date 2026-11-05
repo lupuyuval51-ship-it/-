@@ -171,7 +171,11 @@ export default function ConversationScreen() {
     );
   };
 
-  const title = conversationQuery.data?.title || (isNew ? t('advisor.chat.titleNew') : t('advisor.chat.titleFallback'));
+  const firstUserText = items.find((i) => i.kind === 'user')?.text.trim();
+  const title =
+    conversationQuery.data?.title.trim() ||
+    (firstUserText ? (firstUserText.length > 48 ? `${firstUserText.slice(0, 47).trimEnd()}…` : firstUserText) : '') ||
+    (isNew ? t('advisor.chat.titleNew') : t('advisor.chat.titleFallback'));
   const header = <Stack.Screen options={{ title }} />;
 
   /* ---------------- non-chat states ---------------- */

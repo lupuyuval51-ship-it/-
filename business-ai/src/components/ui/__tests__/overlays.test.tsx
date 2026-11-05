@@ -11,8 +11,9 @@ function ConfirmHarness({ onResult }: { onResult: (v: boolean) => void }) {
   return (
     <Button
       label="Delete"
-      onPress={async () => {
-        onResult(await confirm({ title: 'Delete task?', message: 'This cannot be undone.', confirmLabel: 'Delete', destructive: true }));
+      onPress={() => {
+        // Not awaited: RNTL v14 awaits handler promises, and this one resolves only after the dialog is answered.
+        void confirm({ title: 'Delete task?', message: 'This cannot be undone.', confirmLabel: 'Delete', destructive: true }).then(onResult);
       }}
     />
   );

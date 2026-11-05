@@ -137,8 +137,8 @@ function AssistantMessageImpl({ item, appliedIds, showFollowUps, online, busy, o
   const streaming = item.state === 'streaming';
   const hasText = item.text.trim().length > 0;
   return (
-    <View style={styles.root} accessibilityLabel={t('advisor.chat.advisorMessageA11y')}>
-      <Text variant="caption" tone="secondary" weight={500}>
+    <View style={styles.root}>
+      <Text variant="caption" tone="secondary" weight={500} accessibilityLabel={t('advisor.chat.advisorMessageA11y')}>
         {t('advisor.chat.advisorLabel')}
       </Text>
       {hasText ? <Markdown source={item.text} streaming={streaming} /> : null}
