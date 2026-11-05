@@ -73,10 +73,9 @@ await step('onboarding', async () => {
   const create = page.getByRole('button', { name: 'Create my business plan' });
   const skip = page.getByRole('button', { name: 'Skip', exact: true });
   for (let i = 0; i < 10; i += 1) {
-    await create.or(skip).first().waitFor({ timeout: 15000 });
-    if (await create.isVisible()) break;
+    if (await create.waitFor({ timeout: 2000 }).then(() => true).catch(() => false)) break;
     const before = await page.getByText(/Step \d of 8/).first().textContent().catch(() => '');
-    await skip.click();
+    await skip.click({ timeout: 5000 }).catch(() => {});
     await page.waitForFunction((prev) => !document.body.innerText.includes(prev || '§'), before, { timeout: 10000 }).catch(() => {});
   }
   await btn('Create my business plan').click({ timeout: 15000 });
