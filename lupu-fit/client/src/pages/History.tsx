@@ -6,8 +6,8 @@ import { qk } from '../app/session.ts';
 import { fmt, useLang } from '../i18n/index.tsx';
 import { localDateStr } from '../lib/workoutCompose.ts';
 import { Button, Card, EmptyState, ErrorState, IconButton, LinkButton, Sheet, Tag, errorMessage } from '../ui/kit.tsx';
-import { IconChevron, IconDumbbell, IconTrash } from '../ui/icons.tsx';
-import { SkeletonList } from '../ui/patterns.tsx';
+import { IconDumbbell, IconTrash } from '../ui/icons.tsx';
+import { PageHeader, SkeletonList } from '../ui/patterns.tsx';
 import { useToast } from '../ui/toast.tsx';
 import { groupByWeek, weeksAgo } from '../components/workouts/weekUtil.ts';
 import '../styles/workouts.css';
@@ -32,8 +32,9 @@ export default function History(): ReactNode {
   const rows = q.data ?? [];
   const weeks = useMemo(() => groupByWeek(rows, lang), [rows, lang]);
 
-  if (q.isLoading) return <SkeletonList rows={5} />;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
+  const header = <PageHeader back="/workouts" title={t('workouts.history.title')} />;
+  if (q.isLoading) return <div className="stack">{header}<SkeletonList rows={5} /></div>;
+  if (q.isError) return <div className="stack">{header}<ErrorState error={q.error} onRetry={() => void q.refetch()} /></div>;
   const sportLabel = (s: string | null) => (s ? t(`label.sport.${s}`) : null);
   const today = localDateStr();
   const weekTitle = (start: string, end: string): string => {
@@ -45,8 +46,7 @@ export default function History(): ReactNode {
 
   return (
     <div className="stack">
-      <Link to="/workouts" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.history.back')}</Link>
-      <h1>{t('workouts.history.title')}</h1>
+      {header}
       {rows.length === 0 ? (
         <EmptyState icon={<IconDumbbell />} title={t('workouts.history.emptyTitle')} hint={t('workouts.history.emptyHint')} action={<LinkButton to="/workouts" variant="primary">{t('workouts.history.toWorkouts')}</LinkButton>} />
       ) : (

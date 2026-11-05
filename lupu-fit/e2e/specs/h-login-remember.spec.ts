@@ -1,4 +1,4 @@
-import { expect, test, PASSWORD } from '../fixtures.ts';
+import { expect, test, PASSWORD, uniqueName } from '../fixtures.ts';
 
 async function signIn(page: import('@playwright/test').Page, username: string, remember: boolean, label: string): Promise<void> {
   await page.goto('/login');
@@ -31,4 +31,20 @@ test('login: "keep me signed in" off -> session cookie (no expiry); on -> persis
   const on = await session();
   expect(on?.expires ?? -1).toBeGreaterThan(Date.now() / 1000 + 7 * 86400);
   expect(await page.evaluate(() => localStorage.getItem('lf_username'))).toBe(username);
+});
+
+test('register: "keep me signed in" off -> session cookie (no expiry) and no remembered username', async ({ app: page, context, t }) => {
+  const username = uniqueName('reg');
+  await page.goto('/register');
+  await page.locator('input[autocomplete="username"]').fill(username);
+  await page.locator('input[autocomplete="new-password"]').fill(PASSWORD);
+  const toggle = page.getByRole('switch', { name: t('auth.login.remember') });
+  await expect(toggle).toBeChecked(); // same default as sign-in
+  await toggle.uncheck();
+  await page.locator('form button[type="submit"]').click();
+  await expect(page).toHaveURL(/\/welcome/);
+  const cookie = (await context.cookies()).find((c) => c.name === 'lf_session');
+  expect(cookie, 'lf_session cookie after register').toBeTruthy();
+  expect(cookie?.expires).toBe(-1); // dies with the browser, as the server promises for remember=false
+  expect(await page.evaluate(() => localStorage.getItem('lf_username'))).toBeNull();
 });

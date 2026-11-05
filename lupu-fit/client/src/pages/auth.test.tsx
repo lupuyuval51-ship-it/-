@@ -126,7 +126,19 @@ describe('Register', () => {
     renderScreen(<Register />, { route: '/register' });
     type('Username', 'New_User'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     await waitFor(() => expect(path()).toBe('/welcome'));
-    expect(m.post).toHaveBeenCalledWith('/api/auth/register', { username: 'new_user', password: GOOD_PW });
+    expect(m.post).toHaveBeenCalledWith('/api/auth/register', { username: 'new_user', password: GOOD_PW, remember: true });
+  });
+  it('offers "keep me signed in" (on by default) and sends remember=false when it is turned off', async () => {
+    m.post.mockResolvedValueOnce({ ok: true });
+    renderScreen(<Register />, { route: '/register' });
+    localStorage.setItem('lf_username', 'previous_person');
+    const sw = screen.getByRole('switch', { name: 'Keep me signed in on this device' });
+    expect(sw).toBeChecked();
+    fireEvent.click(sw);
+    type('Username', 'shared_dev'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    await waitFor(() => expect(path()).toBe('/welcome'));
+    expect(m.post).toHaveBeenCalledWith('/api/auth/register', { username: 'shared_dev', password: GOOD_PW, remember: false });
+    expect(localStorage.getItem('lf_username')).toBeNull();
   });
   it('maps username_taken onto the username field', async () => {
     m.post.mockRejectedValueOnce(new ApiRequestError(409, 'username_taken', {}));

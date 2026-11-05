@@ -104,5 +104,3 @@
   direction: ltr;
   unicode-bidi: isolate;
 }
-
-[dir='rtl'] .mirror-rtl { transform: scaleX(-1); }

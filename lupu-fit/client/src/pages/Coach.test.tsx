@@ -48,7 +48,13 @@ describe('Coach', () => {
     status = { provider: 'gemini', freeTierNotice: true, limits: { perMinute: 6, perDay: 50 } };
     renderWith(<Coach />, { route: '/coach' });
     expect(await screen.findByText(/Google may use your prompts to improve its products/)).toBeInTheDocument();
-    expect(screen.getByTestId('provider-label')).toHaveTextContent('AI coach (gemini)');
+    expect(screen.getByTestId('provider-label')).toHaveTextContent('AI coach (Google Gemini)');
+  });
+  it('never shows an internal provider id: the Device Mode proxy (or anything unknown) is just "AI coach"', async () => {
+    status = { provider: 'proxy', freeTierNotice: false, limits: { perMinute: 6, perDay: 50 } };
+    renderWith(<Coach />, { route: '/coach' });
+    expect(await screen.findByTestId('provider-label')).toHaveTextContent(/^AI coach$/);
+    expect(screen.getByRole('heading', { level: 1, name: 'Coach' })).toBeInTheDocument();
   });
   it('a suggested prompt creates a thread and sends the message with the UI language', async () => {
     renderWith(<Coach />, { route: '/coach' });
@@ -141,7 +147,7 @@ describe('Coach', () => {
     renderWith(<Coach />, { route: '/coach', lang: 'he' });
     const user = userEvent.setup();
     expect(await screen.findByTestId('provider-label')).toHaveTextContent('מאמן מבוסס כללים');
-    await user.click(screen.getByRole('button', { name: 'מה כדאי להתאמן היום?' }));
-    await waitFor(() => expect(sends()[0]?.b).toEqual({ text: 'מה כדאי להתאמן היום?', lang: 'he' }));
+    await user.click(screen.getByRole('button', { name: 'על מה כדאי להתאמן היום?' }));
+    await waitFor(() => expect(sends()[0]?.b).toEqual({ text: 'על מה כדאי להתאמן היום?', lang: 'he' }));
   });
 });

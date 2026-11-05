@@ -56,6 +56,13 @@ describe('pre-LLM safety interceptor', () => {
     expect(safetyResponse('self_harm', 'he')).toContain('1201');
     expect(safetyResponse('self_harm', 'en')).toContain('988');
   });
+  it('the eating-disorder reply names the same helplines in Hebrew and English, and no unverified one', () => {
+    const numbers = (s: string) => [...new Set(s.match(/\b\d{3,4}\b/g) ?? [])].sort();
+    expect(numbers(safetyResponse('eating_disorder', 'he'))).toEqual(['1201', '988']);
+    expect(numbers(safetyResponse('eating_disorder', 'en'))).toEqual(['1201', '988']);
+    expect(safetyResponse('eating_disorder', 'en')).not.toMatch(/NEDA/);
+    expect(safetyResponse('eating_disorder', 'he')).not.toMatch(/אנוריקסיה|ע״ר/);
+  });
   it('empty input is safe', () => expect(classifySafety('   ')).toBeNull());
 });
 
@@ -91,5 +98,20 @@ describe('rules coach', () => {
   });
   it('respects readiness', () => {
     expect(rulesCoachReply('today workout', { ...snap, readiness: 'rest' }, 'en')).toMatch(/rest day/i);
+  });
+  it('without an active plan it says so instead of claiming the plan has nothing today', () => {
+    const none: CoachSnapshot = { ...snap, hasActivePlan: false, todayWorkout: null };
+    expect(rulesCoachReply('what should I train today', none, 'en')).toBe('You have no active plan. You can pick a ready workout in the Workouts tab.');
+    expect(rulesCoachReply('על מה כדאי להתאמן היום', none, 'he')).toBe('אין תוכנית פעילה. אפשר לבחור אימון מוכן בלשונית האימונים.');
+  });
+  it('uses the app\'s Hebrew terms (readiness check, plural address) and states units and windows honestly', () => {
+    const he = (q: string, s2: CoachSnapshot = snap) => rulesCoachReply(q, s2, 'he');
+    expect(he('על מה כדאי להתאמן היום', { ...snap, readiness: 'easier' })).toMatch(/^לפי בדיקת המוכנות של היום כדאי אימון קל יותר\. /);
+    expect(he('על מה כדאי להתאמן היום', { ...snap, readiness: 'rest' })).toMatch(/^לפי בדיקת המוכנות של היום כדאי יום מנוחה/);
+    for (const q of ['על מה כדאי להתאמן היום', 'מנוחה', 'השיא שלי', 'קלוריות']) expect(he(q, { ...snap, readiness: 'rest' })).not.toMatch(/צ׳ק-אין|שלך(?![\u0590-\u05FF])/);
+    expect(he('כמה קלוריות')).toContain('מול יעד של 2600 קק״ל.');
+    expect(rulesCoachReply('how is my protein?', snap, 'en')).toMatch(/^In the last 7 days you logged 5 days/);
+    expect(rulesCoachReply('hello', { ...snap, workouts30d: 9 }, 'en')).toMatch(/^Workouts logged in the last 30 days: 9\./);
+    expect(he('שלום', { ...snap, workouts30d: 9 })).toMatch(/^אימונים שתועדו ב-30 הימים האחרונים: 9\./);
   });
 });

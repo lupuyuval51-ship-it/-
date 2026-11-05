@@ -2,7 +2,7 @@ import { defineFeature } from '../core.ts';
 
 export default defineFeature({
   legal: {
-    updated: 'Last updated: November 2026',
+    updated: 'Last updated: 5 November 2026',
     navLabel: 'Legal pages',
     contact: {
       h: 'Contact', withEmail: 'Questions or requests about your data can be sent to:',
@@ -23,7 +23,7 @@ export default defineFeature({
         b2: 'Workouts: sessions, exercises, sets, reps, weights, effort ratings and personal records.',
         b3: 'Food log: meals and foods you log, with their calories and macros.',
         b4: 'Body weight entries.',
-        b5: 'Coach chats: only if you choose to use the optional AI coach.',
+        b5: 'Coach chats: the questions you ask the coach and its replies.',
         b6: 'Account details (Hosted only): the username you chose and a salted hash of your password. No e-mail address or phone number is collected. The password itself is never stored, and because there is no e-mail there is no password recovery.',
       },
       s3: {
@@ -37,7 +37,7 @@ export default defineFeature({
       },
       s5: {
         h: 'The AI coach',
-        p1: 'The coach is optional. When you send a message, only an anonymised snapshot of your data is sent to the AI provider: an age bracket instead of your exact age, plus training and nutrition context. Your name, username and password are never sent.',
+        p1: 'The coach is optional. When you send a message, your message and the recent messages of that chat are sent to the AI provider, together with an anonymised snapshot: an age bracket instead of your exact age, your goal, and recent training, nutrition and weight-trend numbers. Your name, username and password are not sent. If the app has no AI provider configured, a built-in rules coach answers and nothing is sent to an AI provider.',
         p2: 'Depending on how the operator configured the app, the coach uses Google Gemini or Anthropic Claude. On the free tier of Gemini, Google may use prompts to improve its products. Requests sent to Claude are handled privately under the provider API terms. If you do not want this, do not use the coach.',
       },
       s6: {
@@ -51,7 +51,7 @@ export default defineFeature({
       },
       s8: {
         h: 'How long data is kept',
-        p1: 'Your data is kept until you delete it or delete your account. Deleting your account is immediate and removes your profile, workouts, food log, weight entries and coach chats from the app database. Password reset links expire after one hour, and sign-in sessions expire after a limited time.',
+        p1: 'Your data is kept until you delete it or delete your account. Deleting your account is immediate and removes your profile, workouts, food log, weight entries and coach chats from the app database. There is no password reset. In Hosted mode a sign-in session ends after 30 days, or after at most 12 hours if “Keep me signed in on this device” is off.',
       },
       s9: {
         h: 'Your rights',
@@ -135,7 +135,7 @@ export default defineFeature({
   },
 }, {
   legal: {
-    updated: 'עודכן לאחרונה: נובמבר 2026',
+    updated: 'עודכן לאחרונה: 5 בנובמבר 2026',
     navLabel: 'דפים משפטיים',
     contact: {
       h: 'יצירת קשר', withEmail: 'שאלות או בקשות בנוגע למידע אפשר לשלוח אל:',
@@ -156,7 +156,7 @@ export default defineFeature({
         b2: 'אימונים: אימונים, תרגילים, סטים, חזרות, משקלים, דירוגי מאמץ ושיאים אישיים.',
         b3: 'יומן אוכל: ארוחות ומזונות שנרשמו, עם הקלוריות והמקרו שלהם.',
         b4: 'רישומי משקל גוף.',
-        b5: 'שיחות עם המאמן: רק אם בוחרים להשתמש במאמן ה-AI האופציונלי.',
+        b5: 'שיחות עם המאמן: השאלות שנשלחות למאמן והתשובות שלו.',
         b6: 'פרטי חשבון (במצב מתארח בלבד): שם המשתמש שבחרתם ותקציר מומלח (hash) של הסיסמה. לא נאספת כתובת אימייל או מספר טלפון. הסיסמה עצמה אינה נשמרת לעולם, ומכיוון שאין אימייל אין גם שחזור סיסמה.',
       },
       s3: {
@@ -170,7 +170,7 @@ export default defineFeature({
       },
       s5: {
         h: 'מאמן ה-AI',
-        p1: 'המאמן הוא אופציונלי. בעת שליחת הודעה נשלח לספק ה-AI רק תקציר אנונימי של הנתונים: טווח גילאים במקום הגיל המדויק, יחד עם הקשר של אימון ותזונה. השם, שם המשתמש והסיסמה אינם נשלחים לעולם.',
+        p1: 'המאמן הוא אופציונלי. בעת שליחת הודעה נשלחות לספק ה-AI ההודעה וההודעות האחרונות באותה שיחה, יחד עם תקציר אנונימי: טווח גילאים במקום הגיל המדויק, המטרה ונתונים אחרונים של אימון, תזונה ומגמת משקל. השם, שם המשתמש והסיסמה אינם נשלחים. כשלא מוגדר ספק AI, מאמן מובנה מבוסס כללים עונה ושום דבר לא נשלח לספק AI.',
         p2: 'בהתאם להגדרת המפעיל, המאמן משתמש ב-Google Gemini או ב-Anthropic Claude. במסלול החינמי של Gemini, גוגל עשויה להשתמש בהנחיות לשיפור המוצרים שלה. בקשות שנשלחות ל-Claude מטופלות באופן פרטי לפי תנאי ה-API של הספק. מי שאינם מעוניינים בכך יכולים שלא להשתמש במאמן.',
       },
       s6: {
@@ -184,7 +184,7 @@ export default defineFeature({
       },
       s8: {
         h: 'כמה זמן המידע נשמר',
-        p1: 'המידע נשמר עד שמוחקים אותו או מוחקים את החשבון. מחיקת חשבון היא מיידית ומסירה ממסד הנתונים של האפליקציה את הפרופיל, האימונים, יומן האוכל, רישומי המשקל ושיחות המאמן. קישורי איפוס סיסמה פגים אחרי שעה, והפעלות כניסה פגות אחרי זמן מוגבל.',
+        p1: 'המידע נשמר עד שמוחקים אותו או מוחקים את החשבון. מחיקת חשבון היא מיידית ומסירה ממסד הנתונים של האפליקציה את הפרופיל, האימונים, יומן האוכל, רישומי המשקל ושיחות המאמן. אין איפוס סיסמה. במצב מתארח הפעלת כניסה מסתיימת אחרי 30 יום, או אחרי 12 שעות לכל היותר כשהאפשרות ”להישאר מחוברים במכשיר הזה“ כבויה.',
       },
       s9: {
         h: 'הזכויות שלכם',

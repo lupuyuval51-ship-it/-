@@ -2,7 +2,10 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { ApiApp } from '../core/app.ts';
+import { BoundedRateLimiter, rateLimitAddress } from '../core/rateLimit.ts';
 import { staticGzip } from './staticGzip.ts';
+
+export { BoundedRateLimiter };
 
 export interface ExpressOpts {
   /** Express `trust proxy` value. Production behind one proxy: 1. Local/device: false. */
@@ -12,6 +15,30 @@ export interface ExpressOpts {
   assetLinksFile?: string;
   /** requests per minute per client IP */
   globalLimitPerMin?: number;
+  /** request bodies above the default 100 KB being read at once: per large route (photo, restore, admin media each have their own pool) / per user (default 4 / 1) */
+  largeBodies?: { global: number; perUser: number };
+  /** how long a large body may take to arrive: baseMs plus perMbMs per declared MB (default 15 s + 8 s/MB, about 1 Mbit/s) */
+  bodyDeadline?: { baseMs: number; perMbMs: number };
+  /** requests per minute per client IP outside /api (static files, the app shell); default 2x globalLimitPerMin */
+  staticLimitPerMin?: number;
+}
+
+/** Default deadline for reading a large request body (a trickling upload must not hold its slot for Node's 5-minute request timeout). */
+export const BODY_DEADLINE = { baseMs: 15_000, perMbMs: 8_000 } as const;
+
+/**
+ * TRUST_PROXY: a hop count, `false`, or a list of proxy addresses/CIDRs. `true` (trust every hop) makes the leftmost, client-written
+ * X-Forwarded-For the client address, so every per-address limit could be dodged: refused in production.
+ */
+export function parseTrustProxy(raw: string | undefined, production: boolean): number | boolean | string {
+  if (raw === undefined || raw === '') return production ? 1 : false;
+  if (/^\d+$/.test(raw)) return Number(raw);
+  if (raw === 'false') return false;
+  if (raw === 'true') {
+    if (production) throw new Error('TRUST_PROXY=true trusts every X-Forwarded-For hop; set the number of proxies in front (e.g. 1) or their addresses');
+    return true;
+  }
+  return raw;
 }
 
 /**
@@ -40,29 +67,8 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
 /** Build output that does not exist must be a 404, never the app shell: a missing script or clip answered with index.html (200) gets cached as if it were that file. */
 const ASSET_PATH = /^\/(?:assets|media|fonts|icons)\/|\.(?:js|mjs|css|map|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|mp4|webm|json|webmanifest|txt|xml)$/i;
 
-export const LIMITS = { json: '100kb', photo: '8mb', restoreHosted: '8mb', restoreDevice: '200mb' } as const;
-
-/** Per-IP fixed-window limiter whose memory can never grow without bound (periodic sweep + hard size cap with LRU eviction). */
-export class BoundedRateLimiter {
-  private readonly map = new Map<string, { count: number; resetAt: number }>();
-  constructor(private readonly limit: number, private readonly windowMs = 60_000, private readonly maxKeys = 10_000) {}
-  hit(key: string, now = Date.now()): boolean {
-    this.sweep(now);
-    let e = this.map.get(key);
-    if (!e || e.resetAt <= now) e = { count: 0, resetAt: now + this.windowMs };
-    e.count++;
-    this.map.delete(key); this.map.set(key, e); // re-insert = most recently used
-    while (this.map.size > this.maxKeys) { const oldest = this.map.keys().next().value as string | undefined; if (oldest === undefined) break; this.map.delete(oldest); }
-    return e.count <= this.limit;
-  }
-  get size(): number { return this.map.size; }
-  private lastSweep = 0;
-  private sweep(now: number): void {
-    if (now - this.lastSweep < this.windowMs / 2) return;
-    this.lastSweep = now;
-    for (const [k, v] of this.map) if (v.resetAt <= now) this.map.delete(k);
-  }
-}
+/** Body cap of a request that matches no route (it is answered 404/405 anyway). Each route's own cap is its `maxBodyBytes`. */
+export const DEFAULT_BODY_LIMIT = 100 * 1024;
 
 export function createExpressApp(api: ApiApp, o: ExpressOpts): express.Express {
   const app = express();
@@ -70,6 +76,13 @@ export function createExpressApp(api: ApiApp, o: ExpressOpts): express.Express {
   app.set('trust proxy', o.trustProxy);
   app.use(securityHeaders);
   const limiter = new BoundedRateLimiter(o.globalLimitPerMin ?? 600);
+  // Everything outside /api (static files, the app shell, malformed paths) has its own per-IP budget too.
+  const staticLimiter = new BoundedRateLimiter(o.staticLimitPerMin ?? (o.globalLimitPerMin ?? 600) * 2);
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/api/') || req.path === '/api') { next(); return; }
+    if (!staticLimiter.hit(rateLimitAddress(req.ip ?? 'unknown'))) { res.set('Retry-After', '60').status(429).type('text/plain').send('Too many requests'); return; }
+    next();
+  });
 
   app.get('/health', (_req, res) => { res.json({ ok: true, mode: o.mode }); });
   if (o.assetLinksFile) {
@@ -82,19 +95,61 @@ export function createExpressApp(api: ApiApp, o: ExpressOpts): express.Express {
   // API answers are per user and per session: never stored by the browser, a proxy or a CDN (the service worker keeps its own, explicit copy).
   app.use('/api', (_req: Request, res: Response, next: NextFunction) => { res.setHeader('Cache-Control', 'no-store'); next(); });
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
-    if (!limiter.hit(req.ip ?? 'unknown')) { res.set('Retry-After', '60').status(429).json({ error: 'rate_limited' }); return; }
+    if (!limiter.hit(rateLimitAddress(req.ip ?? 'unknown'))) { res.set('Retry-After', '60').status(429).json({ error: 'rate_limited' }); return; }
     next();
   });
 
-  const json = (limit: string) => express.json({ limit });
-  const parsers = {
-    default: json(LIMITS.json), photo: json(LIMITS.photo),
-    restore: json(o.mode === 'device' ? LIMITS.restoreDevice : LIMITS.restoreHosted),
+  // One source of truth for body caps: the parser limit IS the matched route's maxBodyBytes (the core checks the same number).
+  // inflate:false: a compressed body could otherwise expand past the cap the core sees in Content-Length.
+  const parsers = new Map<number, express.RequestHandler>();
+  const parserFor = (limit: number): express.RequestHandler => {
+    let p = parsers.get(limit);
+    if (!p) { p = express.json({ limit, inflate: false }); parsers.set(limit, p); }
+    return p;
   };
-  app.use('/api', (req, res, next) => {
-    const p = req.path;
-    const parser = p === '/device/restore' ? parsers.restore : p === '/nutrition/photo-estimate' ? parsers.photo : parsers.default;
-    parser(req, res, next);
+  const large = o.largeBodies ?? { global: 4, perUser: 1 };
+  const deadline = o.bodyDeadline ?? BODY_DEADLINE;
+  // One pool per large route: slow restores cannot use up the slots photo estimates need, and the other way round.
+  const largeInFlight = new Map<string, number>(); const largeByUser = new Map<string, number>();
+  const hasBody = (req: Request) => req.headers['transfer-encoding'] !== undefined || Number(req.headers['content-length'] ?? 0) > 0;
+  /** Answer without parsing: the rest of the body is drained and discarded, never buffered. */
+  const refuse = (req: Request, res: Response, status: number, error: string, headers: Record<string, string> = {}) => {
+    req.resume();
+    res.set({ connection: 'close', ...headers }).status(status).json({ error });
+  };
+
+  app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+    const m = api.router.match(req.method.toUpperCase(), `/api${req.path}`);
+    const limit = 'route' in m ? (m.route.opts.maxBodyBytes ?? DEFAULT_BODY_LIMIT) : DEFAULT_BODY_LIMIT;
+    const pool = 'route' in m ? `${m.route.method} ${m.route.pattern}` : '';
+    if (limit <= DEFAULT_BODY_LIMIT || !hasBody(req)) { parserFor(Math.min(limit, DEFAULT_BODY_LIMIT))(req, res, next); return; }
+    if (Number(req.headers['content-length'] ?? 0) > limit) { refuse(req, res, 413, 'payload_too_large'); return; }
+    // A large body is read only for a signed-in session with its CSRF header, and only a few at a time: parsing megabytes of JSON
+    // costs far more memory than the bytes themselves, so an anonymous flood must be refused before the parser ever sees it.
+    void (async () => {
+      const auth = await api.authenticate(Object.fromEntries(Object.entries(req.headers).filter((e): e is [string, string] => typeof e[1] === 'string')));
+      if (!auth) { refuse(req, res, 401, 'unauthorized'); return; }
+      if (req.headers['x-csrf-token'] !== auth.session.csrf) { refuse(req, res, 403, 'csrf_invalid'); return; }
+      const uid = auth.user.id; const mine = largeByUser.get(uid) ?? 0; const inPool = largeInFlight.get(pool) ?? 0;
+      if (inPool >= large.global || mine >= large.perUser) { refuse(req, res, 503, 'rate_limited', { 'retry-after': '5' }); return; }
+      largeInFlight.set(pool, inPool + 1); largeByUser.set(uid, mine + 1);
+      let done = false;
+      const release = () => {
+        if (done) return; done = true; clearTimeout(timer);
+        const p = (largeInFlight.get(pool) ?? 1) - 1; if (p > 0) largeInFlight.set(pool, p); else largeInFlight.delete(pool);
+        const n = (largeByUser.get(uid) ?? 1) - 1; if (n > 0) largeByUser.set(uid, n); else largeByUser.delete(uid);
+      };
+      // The body must arrive within its deadline (scaled by the declared size); a trickling upload is cut off and its slot freed.
+      const declared = Number(req.headers['content-length'] ?? limit);
+      const timer = setTimeout(() => {
+        release();
+        if (!res.headersSent) res.set('connection', 'close').status(408).json({ error: 'request_timeout' });
+        req.destroy();
+      }, deadline.baseMs + Math.ceil((Number.isFinite(declared) ? declared : limit) / (1024 * 1024) * deadline.perMbMs));
+      req.on('end', () => clearTimeout(timer)); // fully received: the handler may take its time (the slot is still held until the answer)
+      res.on('close', release);
+      parserFor(limit)(req, res, next);
+    })().catch(next);
   });
 
   app.use('/api', async (req: Request, res: Response) => {
@@ -110,10 +165,13 @@ export function createExpressApp(api: ApiApp, o: ExpressOpts): express.Express {
     if (out.body === undefined) res.end(); else res.json(out.body);
   });
 
-  // body-parser errors (too large, malformed JSON) become structured JSON, never HTML stack traces
+  // body-parser errors (too large, malformed JSON, unsupported encoding/charset, aborted) become structured JSON with their own 4xx
   app.use('/api', (err: { type?: string; status?: number }, _req: Request, res: Response, _next: NextFunction) => {
+    if (res.headersSent) { res.end(); return; } // e.g. a body cut off at its deadline: the 408 is already on its way
     if (err.type === 'entity.too.large') res.status(413).json({ error: 'payload_too_large' });
     else if (err.type === 'entity.parse.failed') res.status(400).json({ error: 'invalid_json' });
+    else if (err.type === 'encoding.unsupported' || err.type === 'charset.unsupported') res.status(415).json({ error: 'bad_request' });
+    else if (typeof err.status === 'number' && err.status >= 400 && err.status < 500) res.status(err.status).json({ error: 'bad_request' });
     else res.status(500).json({ error: 'internal_error' });
   });
 
@@ -126,5 +184,14 @@ export function createExpressApp(api: ApiApp, o: ExpressOpts): express.Express {
       res.sendFile(join(o.staticDir as string, 'index.html'));
     });
   }
+  // Last handler for everything else (a malformed %-escape in a static path, a failed sendFile): a short plain answer, never Express's
+  // HTML page with a stack trace. Client-caused errors (4xx) are not logged, so they cannot flood the log; 5xx logs the message only.
+  app.use((err: { status?: number; statusCode?: number; message?: string }, _req: Request, res: Response, _next: NextFunction) => {
+    const raw = err.status ?? err.statusCode;
+    const status = typeof raw === 'number' && raw >= 400 && raw < 600 ? raw : 500;
+    if (status >= 500) console.error('[http]', err.message ?? 'error');
+    if (res.headersSent) { res.end(); return; }
+    res.status(status).type('text/plain').send(status >= 500 ? 'Internal error' : 'Bad request');
+  });
   return app;
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ensureBackupSince, markBackupDone, markCheckinSeen, readBackupState, readCheckinSeen, shouldShowBackup, shouldShowCheckin, snoozeBackup, summarizeLastWeek } from './checkin.ts';
+import { ensureBackupSince, hasHistoryBeforeWeek, markBackupDone, markCheckinSeen, readBackupState, readCheckinSeen, shouldShowBackup, shouldShowCheckin, snoozeBackup, summarizeLastWeek } from './checkin.ts';
 
 const s = (...d: string[]) => d.map((localDate) => ({ localDate }));
 beforeEach(() => localStorage.clear());
@@ -46,6 +46,14 @@ describe('shouldShowCheckin', () => {
   it('is hidden when disabled or when there is nothing to summarise', () => {
     expect(shouldShowCheckin({ ...base, enabled: false })).toBe(false);
     expect(shouldShowCheckin({ ...base, hasHistory: false })).toBe(false);
+  });
+  it('needs data from before this week: a person who joined this week has no last week to report', () => {
+    const w = (loggedDate: string) => [{ loggedDate, weightKg: 70 }];
+    expect(hasHistoryBeforeWeek({ today: '2026-11-04', lang: 'he', sessions: s('2026-11-01', '2026-11-04'), weights: w('2026-11-02') })).toBe(false);
+    expect(hasHistoryBeforeWeek({ today: '2026-11-04', lang: 'he', sessions: s('2026-10-31'), weights: [] })).toBe(true);
+    expect(hasHistoryBeforeWeek({ today: '2026-11-04', lang: 'he', sessions: [], weights: w('2026-10-20') })).toBe(true);
+    // Sunday 11-01 is this week in Hebrew but last week in English
+    expect(hasHistoryBeforeWeek({ today: '2026-11-04', lang: 'en', sessions: s('2026-11-01'), weights: [] })).toBe(true);
   });
   it('persists the seen week', () => { expect(readCheckinSeen()).toBeNull(); markCheckinSeen('2026-11-01'); expect(readCheckinSeen()).toBe('2026-11-01'); });
 });

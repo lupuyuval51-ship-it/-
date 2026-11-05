@@ -33,6 +33,16 @@ describe('Progress', () => {
     expect(screen.getByText('לא תועדו אימונים בטווח הזה.')).toBeInTheDocument();
     expect(screen.getAllByText('נעול').length).toBe(13);
   });
+  it('a new user sees the next three achievements and the rest behind "Show all", not a wall of locked tiles', async () => {
+    handlers['GET /api/stats'] = () => ({ ...stats, achievements: [] });
+    const { container } = open('en');
+    expect(await screen.findByTestId('ach-none')).toHaveTextContent('No achievements unlocked yet. The next three to aim for:');
+    const [first, rest] = [...container.querySelectorAll('ul.ach-grid')] as HTMLElement[];
+    expect(first!.querySelectorAll('li')).toHaveLength(3);
+    expect(rest!.querySelectorAll('li')).toHaveLength(11);
+    expect(rest).not.toBeVisible(); // inside the closed disclosure
+    expect(screen.getByText('Show all (14)')).toBeInTheDocument();
+  });
   it('requests the range from the URL and switches it', async () => {
     open('en', '/progress?range=90d');
     await screen.findByText('Consistency');

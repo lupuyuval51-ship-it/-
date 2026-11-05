@@ -3,8 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { useProfile } from '../app/session.ts';
-import { postFoodLog } from '../components/nutrition/data.ts';
-import { addDaysIso, dishLogPayload, groupShopping, isIsoDate, menuFor, roundGrams, shoppingFor, shoppingText, spanDates, todayIso, type MenuChoice } from '../components/nutrition/logic.ts';
+import { postFoodLog, useFoodDay } from '../components/nutrition/data.ts';
+import { addDaysIso, dishLogPayload, groupShopping, isIsoDate, loggedFromDay, menuFor, roundGrams, shoppingFor, shoppingText, spanDates, todayIso, type MenuChoice } from '../components/nutrition/logic.ts';
 import { loadChecked, loadChoice, saveChecked, saveChoice } from '../components/nutrition/menuStore.ts';
 import { DISHES, DISH_BY_ID, FOOD_BY_ID } from '../data/content.ts';
 import { DishPhoto } from '../components/nutrition/DishPhoto.tsx';
@@ -24,8 +24,10 @@ export default function NutritionMenu(): ReactNode {
   const qd = sp.get('date');
   const date = isIsoDate(qd) ? qd : todayIso();
   const profile = useProfile();
+  const day = useFoodDay(date);
   const [choice, setChoice] = useState<MenuChoice>(() => loadChoice(date));
-  const [loggedIdx, setLoggedIdx] = useState<ReadonlySet<number>>(new Set());
+  // Logged in this visit (also covers entries queued offline, which the day log does not show yet).
+  const [sessionLogged, setLoggedIdx] = useState<ReadonlySet<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [span, setSpan] = useState<Span>('3');
   const [checked, setChecked] = useState<ReadonlySet<string>>(() => loadChecked());
@@ -36,6 +38,9 @@ export default function NutritionMenu(): ReactNode {
   const p = profile.data?.profile; const targets = profile.data?.targets;
   const base = useMemo(() => (p ? { diet: p.diet, restrictions: p.restrictions, allergies: p.allergies } : null), [p]);
   const menu = useMemo(() => (base && targets ? menuFor(DISHES, targets.kcal, date, choice, base) : null), [base, targets, date, choice]);
+
+  const fromLog = useMemo(() => (menu ? loggedFromDay(menu.items, day.data?.entries ?? []) : new Set<number>()), [menu, day.data]);
+  const loggedIdx: ReadonlySet<number> = useMemo(() => new Set([...sessionLogged, ...fromLog]), [sessionLogged, fromLog]);
 
   const dishName = (d: Dish) => (lang === 'he' ? d.nameHe : d.nameEn);
   const go = (d: string) => setSp({ date: d }, { replace: true });
@@ -101,7 +106,7 @@ export default function NutritionMenu(): ReactNode {
 
   const groups = groupShopping(shopping, (k) => FOOD_BY_ID.get(k)?.category);
   const doneCount = shopping.filter((l) => checked.has(l.key)).length;
-  const allLogged = !!menu && menu.items.length > 0 && loggedIdx.size === menu.items.length;
+  const allLogged = !!menu && menu.items.length > 0 && menu.items.every((_, i) => loggedIdx.has(i));
 
   return (
     <div className="stack nutrition-page nu-menu">
@@ -137,7 +142,7 @@ export default function NutritionMenu(): ReactNode {
             <>
               <p className="small muted">{t('nutrition.menu.engineNote')}</p>
               <StickyAction>
-                <Button variant="primary" block disabled={busy || allLogged} onClick={() => void logItems(menu.items.map((_, i) => i).filter((i) => !loggedIdx.has(i)))}>{allLogged ? <><IconCheck aria-hidden="true" /> {t('nutrition.menu.loggedOne')}</> : t('nutrition.menu.logAll')}</Button>
+                <Button variant="primary" block disabled={busy || allLogged || day.isPending} onClick={() => void logItems(menu.items.map((_, i) => i).filter((i) => !loggedIdx.has(i)))}>{allLogged ? <><IconCheck aria-hidden="true" /> {t('nutrition.menu.loggedOne')}</> : t('nutrition.menu.logAll')}</Button>
               </StickyAction>
             </>
           ) : null}

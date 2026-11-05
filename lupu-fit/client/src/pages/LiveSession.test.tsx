@@ -58,6 +58,8 @@ function view(lang: Language = 'he') {
 }
 const setOnline = (v: boolean) => { onlineManager.setOnline(v); Object.defineProperty(navigator, 'onLine', { value: v, configurable: true }); act(() => { window.dispatchEvent(new Event(v ? 'online' : 'offline')); }); };
 const finishSet = () => screen.findByRole('button', { name: 'סיום סט' });
+/** While sets remain, "Finish workout" lives in the "More" sheet, away from the thumb-zone "Finish set" button. */
+const finishFromMenu = async () => { fireEvent.click(await screen.findByRole('button', { name: 'עוד' })); fireEvent.click(await screen.findByRole('button', { name: 'סיום אימון' })); };
 
 beforeEach(async () => { calls.length = 0; localStorage.clear(); setOnline(true); for (const i of outbox.list()) await outbox.remove(i.id); vi.spyOn(window, 'confirm').mockReturnValue(true); });
 afterEach(() => { vi.restoreAllMocks(); });
@@ -250,8 +252,9 @@ describe('LiveSession', () => {
   it('refuses to finish offline with a clear message and keeps the session open', async () => {
     setup(); view();
     await finishSet(); setOnline(false);
-    fireEvent.click(screen.getByRole('button', { name: 'סיום אימון' }));
+    await finishFromMenu();
     expect(await screen.findByText('החיבור נדרש לסיום האימון')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument(); // the sheet closes so the message is visible
     expect(calls.some((c) => c.path.endsWith('/finish'))).toBe(false);
     expect(screen.getByTestId('exercise-panel')).toBeInTheDocument();
   });
@@ -260,14 +263,37 @@ describe('LiveSession', () => {
     const res = { sessionId: 's1', totalSets: 1, xpTotal: 20 };
     setup({ session: mkSession({}, [{ id: 'x', sessionExerciseId: 'e1', setNo: 1, reps: 8, weightKg: 60, durationSec: null, rpe: 8 }]), extra: (c) => (c.path === '/api/sessions/s1/finish' ? res : undefined) });
     view();
-    fireEvent.click(await screen.findByRole('button', { name: 'סיום אימון' }));
+    await finishFromMenu();
+    expect(window.confirm).toHaveBeenCalledWith('נשארו 8 סטים. לסיים בכל זאת?');
     await waitFor(() => expect(screen.getByTestId('where').textContent).toBe(`/workouts/sessions/s1|${JSON.stringify(res)}`));
     expect(calls.filter((c) => c.path === '/api/sessions/s1/finish')).toHaveLength(1);
   });
 
+  it('keeps an early finish out of the thumb zone and confirms it with the number of sets left', async () => {
+    setup({ session: mkSession({}, [{ id: 'x', sessionExerciseId: 'e1', setNo: 1, reps: 8, weightKg: 60, durationSec: null, rpe: 8 }]) });
+    view(); vi.mocked(window.confirm).mockReturnValue(false);
+    await finishSet();
+    expect(screen.queryByRole('button', { name: 'סיום אימון' })).toBeNull(); // only "Finish set" sits in the dock
+    await finishFromMenu();
+    expect(window.confirm).toHaveBeenCalledWith('נשארו 8 סטים. לסיים בכל זאת?');
+    expect(calls.some((c) => c.path.endsWith('/finish'))).toBe(false);
+    expect(screen.getByTestId('exercise-panel')).toBeInTheDocument();
+  });
+
+  it('says "one set left" in English when a single set remains', async () => {
+    const sets = (id: string, n: number) => Array.from({ length: n }, (_, i) => ({ id: `${id}${i}`, sessionExerciseId: id, setNo: i + 1, reps: 8, weightKg: null, durationSec: null, rpe: 8 }));
+    const base = mkSession();
+    const exercises = base.exercises.map((e) => ({ ...e, sets: sets(e.id, e.id === 'e3' ? e.planned.sets - 1 : e.planned.sets) }));
+    setup({ session: mkSession({ exercises }) }); view('en'); vi.mocked(window.confirm).mockReturnValue(false);
+    fireEvent.click(await screen.findByRole('button', { name: 'More' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Finish workout' }));
+    expect(window.confirm).toHaveBeenCalledWith('One set left. Finish anyway?');
+    expect(calls.some((c) => c.path.endsWith('/finish'))).toBe(false);
+  });
+
   it('asks for confirmation when finishing with zero sets and aborts on cancel', async () => {
     setup(); view(); vi.mocked(window.confirm).mockReturnValue(false);
-    fireEvent.click(await screen.findByRole('button', { name: 'סיום אימון' }));
+    await finishFromMenu();
     expect(window.confirm).toHaveBeenCalledWith('לא נרשמו סטים. לסיים בכל זאת?');
     expect(calls.some((c) => c.path.endsWith('/finish'))).toBe(false);
   });
@@ -288,6 +314,21 @@ describe('LiveSession', () => {
     expect(await screen.findByRole('button', { name: 'החלפת תרגיל' })).toBeDisabled();
     expect(screen.getByTestId('replace-locked')).toHaveTextContent('אפשר להחליף רק לפני הסט הראשון.');
     expect(calls.some((c) => c.method === 'PATCH')).toBe(false);
+  });
+
+  it('keeps reorder/remove out of the exercise list until "Edit list" is on, so names get the full row', async () => {
+    setup(); view();
+    fireEvent.click(await screen.findByRole('button', { name: 'עוד' }));
+    const dlg = await screen.findByRole('dialog');
+    expect(within(dlg).queryByRole('button', { name: 'הסרת התרגיל' })).toBeNull();
+    expect(within(dlg).queryByRole('button', { name: 'הזזה למטה' })).toBeNull();
+    const edit = within(dlg).getByRole('button', { name: 'עריכת הרשימה' });
+    expect(edit).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(edit);
+    expect(within(dlg).getAllByRole('button', { name: 'הסרת התרגיל' }).length).toBeGreaterThan(0);
+    expect(within(dlg).getAllByRole('button', { name: 'הזזה למעלה' })[0]).toBeDisabled();
+    fireEvent.click(within(dlg).getByRole('button', { name: 'סיום עריכה' }));
+    expect(within(dlg).queryByRole('button', { name: 'הסרת התרגיל' })).toBeNull();
   });
 
   it('lists rejected outbox items and lets the user discard them', async () => {

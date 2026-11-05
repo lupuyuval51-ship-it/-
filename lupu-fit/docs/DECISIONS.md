@@ -121,7 +121,8 @@ Settings > Language keeps Hebrew (RTL, default) and English as the only built-in
 
 ## D19 - On-device model removed; AI is cloud only and automatic
 - **Decision (user request)**: the optional on-device Gemma 4 (LiteRT-LM) feature of D18 is removed end to end (JS `client/src/ai/local`, Profile AI card, `ai.mode` and "translate locally" settings, `LocalAiPlugin.kt`, the LiteRT-LM dependency, the Kotlin Gradle plugin, `ACCESS_NETWORK_STATE`, `VITE_LOCAL_MODEL_*`). Git history keeps D18 for reference.
-- **AI now**: no user-facing AI settings. The hosted server uses the Gemma 4 -> Gemini fallback chain configured by `GEMINI_MODELS` / `GEMINI_API_KEY` (D17). Device Mode uses the optional `VITE_AI_PROXY_URL` proxy exactly as before D18. When no AI is configured the existing `aiAvailable` / `ai_unavailable` handling shows an honest message and the deterministic rules coach answers. Coach safety shields and the "more languages" translation (D16) are unchanged.
+- **AI now**: no user-facing AI settings. The hosted server uses Claude when `ANTHROPIC_API_KEY` is set, otherwise the Gemma 4 -> Gemini fallback chain configured by `GEMINI_MODELS` / `GEMINI_API_KEY` (D17) (`server/src/ai/providers.ts`). Device Mode uses the optional `VITE_AI_PROXY_URL` proxy exactly as before D18. When no AI is configured the existing `aiAvailable` / `ai_unavailable` handling shows an honest message and the deterministic rules coach answers. Coach safety shields and the "more languages" translation (D16) are unchanged.
+- **Proxy requirements (hard, not met yet)**: no proxy is implemented in this repository and `VITE_AI_PROXY_URL` must not be set for a public release until one meets all of these. The proxy URL ships as a plain string in the APK, the client sends the full provider input with no credential, and the quotas (D16), the 600-token cap, the minors clause and the safety shield run on the phone, so without them the proxy is an open relay for the operator's provider keys. The proxy must (a) enforce its own per-install and global rate and budget limits, (b) ignore client-supplied `system` and `maxTokens` and use fixed server-side prompts and caps per route, (c) cap input and photo size, and (d) verify a Play Integrity token; `client/src/device/proxyAi.ts` must send that token and use `redirect: 'error'`. Details: docs/ANDROID.md "Optional: AI coach proxy".
 - **Size**: the AAB no longer carries the ~49 MB of LiteRT-LM JNI libraries and the Kotlin runtime, so it is smaller.
 
 ## D20 - Local automations: opt-in reminders and small in-app helpers
@@ -135,7 +136,7 @@ Settings > Language keeps Hebrew (RTL, default) and English as the only built-in
 - **Shared files touched (additively)**: `App.tsx` (mounts `AutomationRuntime`), `Profile.tsx` (one import + one card), `Home.tsx` (one import + one banner line), `LiveSession.tsx` (reads the toggle), `BackupPanel.tsx` (records a successful export), `restTimer.ts` (uses the shared notifier).
 - **Unverified on a device**: see docs/ANDROID.md.
 
-## D20 - Real E2E suite, dev-server proxy switch
+## D20b - Real E2E suite, dev-server proxy switch
 `e2e/` (Playwright) covers the main flows in he-RTL mobile, en-LTR mobile and en desktop (docs/E2E.md). `server/src/devServer.ts` (dev/E2E only) gained `TRUST_PROXY=1` so each test can present its own client IP; the production per-IP registration limit is unchanged. The suite fails on unexpected browser console errors.
 
 ## D21 - Final hardening pass (release review)

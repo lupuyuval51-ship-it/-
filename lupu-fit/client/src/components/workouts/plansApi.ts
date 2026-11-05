@@ -9,8 +9,6 @@ export function usePlans() {
   return useQuery({ queryKey: PLANS_KEY, queryFn: async (): Promise<PlanRow[]> => (await api.get<{ plans: PlanRow[] }>('/api/plans')).plans });
 }
 
-export const splitDayKey = (d: string): string => `workouts.day.${d}`;
-
 export interface WeekSession { id: string; name: string; localDate: string; finishedAt: string | null; source?: string; sourceId?: string | null }
 /**
  * Was this plan day finished this week? Sessions started from a plan day carry `sourceId = "<planId>:<dayIndex>"`, which is

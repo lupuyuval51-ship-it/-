@@ -1,6 +1,6 @@
 /** Pure logic for the two in-app banners (weekly check-in, monthly backup reminder) plus their localStorage state. */
 import type { Language } from '@lupu-fit/shared';
-import { addDaysIso } from '../components/home/dates.ts';
+import { addDaysIso, localIso } from '../components/home/dates.ts';
 import { weekEndOf, weekStartOf } from '../components/workouts/weekUtil.ts';
 
 export interface DatedRow { localDate: string }
@@ -25,7 +25,16 @@ export function summarizeLastWeek(a: { today: string; lang: Language; goal: numb
   return { weekStart: start, done, goal: a.goal, weightDeltaKg };
 }
 
-/** First open of a new week: show once per week, only when the account has any history to summarise. */
+/**
+ * Whether there is anything dated before the current week (sessions or weigh-ins). Someone who joined this week has no "last week":
+ * telling them "0 of 4" would report a failed week that never existed.
+ */
+export function hasHistoryBeforeWeek(a: { today: string; lang: Language; sessions: readonly DatedRow[]; weights: readonly WeightRow[] }): boolean {
+  const thisStart = weekStartOf(a.today, a.lang);
+  return a.sessions.some((s) => s.localDate < thisStart) || a.weights.some((w) => w.loggedDate < thisStart);
+}
+
+/** First open of a new week: show once per week, only when there is history from before this week to summarise (`hasHistoryBeforeWeek`). */
 export function shouldShowCheckin(a: { enabled: boolean; today: string; lang: Language; seenWeek: string | null; hasHistory: boolean }): boolean {
   return a.enabled && a.hasHistory && a.seenWeek !== weekStartOf(a.today, a.lang);
 }
@@ -58,9 +67,8 @@ export function readBackupState(): BackupState {
   } catch { return { since: null, lastDone: null, snoozed: null }; }
 }
 function writeBackup(patch: Partial<BackupState>): void { put(BACKUP_KEY, JSON.stringify({ ...readBackupState(), ...patch })); }
-const todayLocal = (): string => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 /** Remember the first open so the first reminder comes a month later. */
 export function ensureBackupSince(today: string): void { if (!readBackupState().since) writeBackup({ since: today }); }
 export const snoozeBackup = (today: string): void => writeBackup({ snoozed: today });
 /** Called after a successful export/share from the Backup panel. */
-export const markBackupDone = (): void => writeBackup({ lastDone: todayLocal() });
+export const markBackupDone = (): void => writeBackup({ lastDone: localIso() });

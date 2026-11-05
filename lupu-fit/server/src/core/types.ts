@@ -32,8 +32,13 @@ export interface Deps {
   secureCookies: boolean;
   sessionTtlDays: number;
   ai?: AiProvider;
-  /** usernames that register as admin (hosted: ADMIN_USERNAMES env) */
+  /**
+   * Usernames that hold the admin role (hosted: ADMIN_USERNAMES env). Checked on every request, not only at registration: taking a
+   * name out of the list (and redeploying) revokes it, even for an account that already has role 'admin' stored.
+   */
   adminUsernames?: string[];
+  /** SHA-256 hex of a session token. Hosted: synchronous node:crypto (no libuv thread pool, so a PBKDF2 burst cannot delay it); default WebCrypto. */
+  sha256?: (text: string) => string | Promise<string>;
   /** injectable for tests; defaults to global fetch */
   fetch?: typeof fetch;
 }
@@ -59,6 +64,12 @@ export interface RouteOpts {
   csrf?: boolean;
   /** default true: honour Idempotency-Key on mutating calls */
   idempotent?: boolean;
+  /**
+   * default true: keep the response body for replays of the same Idempotency-Key (the offline outbox replays food log, weights and
+   * set calls and needs the answer). false: only the status is kept (a replay answers that status with no body), so private text such
+   * as coach chats, the health profile or photo estimates is never copied into the replay table.
+   */
+  replayBody?: boolean;
   body?: ZodType;
   /** default 100 KB */
   maxBodyBytes?: number;

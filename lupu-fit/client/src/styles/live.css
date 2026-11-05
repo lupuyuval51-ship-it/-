@@ -118,7 +118,8 @@
 .lv-undo { inline-size: 3.5rem; block-size: auto; min-block-size: 3.5rem; border: 1px solid var(--border); background: var(--surface-2); }
 .lv-finish { min-block-size: 3.5rem; font-size: var(--fs-18); }
 .lv-finish svg { inline-size: 1.5rem; block-size: 1.5rem; }
-.lv-end { margin-block-start: 0.5rem; }
+.lv-menu-finish { margin-block-start: 0.75rem; min-block-size: 3.5rem; }
+.lv-menu-finish svg { inline-size: 1.25rem; block-size: 1.25rem; }
 
 /* short phones (360x640): fold the header into one row and drop secondary chips so the logger stays above the fold */
 @media (max-height: 46rem) {
@@ -147,7 +148,11 @@
 .lv-menu-row svg { inline-size: 1.375rem; block-size: 1.375rem; flex: none; }
 .lv-menu-row:disabled { opacity: 0.5; }
 .lv-menu-hint { padding-inline: 0.25rem; }
-.lv-menu-h { font-size: var(--fs-14); color: var(--text-muted); margin-block-start: 0.5rem; }
+.lv-menu-h { font-size: var(--fs-14); color: var(--text-muted); }
+.lv-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-block-start: 0.5rem; }
+.lv-edit-toggle[aria-pressed='true'] { color: var(--text); }
+.lv-list-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; }
+.lv-list-tools { display: flex; flex: none; align-items: center; }
 .lv-discard { margin-block-start: 0.5rem; min-block-size: 3.5rem; }
 
 /* ---- finisher: calm outline card ---- */

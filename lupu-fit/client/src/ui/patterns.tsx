@@ -1,11 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { cx } from './kit.tsx';
 import { IconChevron } from './icons.tsx';
 import { useT } from '../i18n/index.tsx';
 
-/** Page title row: one H1, optional subtitle and a single trailing action. Every screen starts with this. */
-export function PageHeader({ title, subtitle, action, back }: { title: string; subtitle?: string; action?: ReactNode; back?: string }): ReactNode {
+/** Page title row: one H1, optional subtitle (text or a tag) and a single trailing action. Every screen starts with this. */
+export function PageHeader({ title, subtitle, action, back }: { title: string; subtitle?: ReactNode; action?: ReactNode; back?: string }): ReactNode {
   const nav = useNavigate(); const t = useT();
   return (
     <header className="page-head">
@@ -30,7 +30,8 @@ export function StatTile({ label, value, unit, hint, tone }: { label: string; va
   return (
     <div className="stat-tile">
       <span className="tiny muted">{label}</span>
-      <span className={cx('num-lg', tone)}>{value}{unit ? <small className="muted small"> {unit}</small> : null}</span>
+      {/* Only the digits are an LTR isolate; the unit follows in the page direction (1 דק׳ in Hebrew, 1 min in English). */}
+      <span className="stat-val"><span className={cx('num-lg', tone)}>{value}</span>{unit ? <small className="muted small"> {unit}</small> : null}</span>
       {hint ? <span className="tiny muted">{hint}</span> : null}
     </div>
   );
@@ -47,11 +48,4 @@ export function StepDots({ current, total, label }: { current: number; total: nu
 /** Collapsible detail so dense screens stay scannable (native <details>: keyboard + screen-reader friendly). */
 export function Disclosure({ summary, children, open }: { summary: string; children: ReactNode; open?: boolean }): ReactNode {
   return <details className="disclosure" {...(open ? { open: true } : {})}><summary>{summary}</summary><div className="stack" style={{ marginBlockStart: '0.75rem' }}>{children}</div></details>;
-}
-
-/** Shows `children` only after `ms`, so fast requests never flash a loader. */
-export function Delayed({ ms = 200, children }: { ms?: number; children: ReactNode }): ReactNode {
-  const [on, setOn] = useState(false);
-  useEffect(() => { const id = setTimeout(() => setOn(true), ms); return () => clearTimeout(id); }, [ms]);
-  return on ? children : null;
 }

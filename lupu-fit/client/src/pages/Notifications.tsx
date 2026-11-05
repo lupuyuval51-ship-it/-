@@ -30,8 +30,8 @@ export default function Notifications(): ReactNode {
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['notifications'] }); },
     onError: (e) => toast(errorMessage(e, t), 'error'),
   });
-  if (q.isLoading) return <SkeletonList rows={3} />;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
+  if (q.isLoading) return <div className="stack"><PageHeader title={t('nav.notifications')} /><SkeletonList rows={3} /></div>;
+  if (q.isError) return <div className="stack"><PageHeader title={t('nav.notifications')} /><ErrorState error={q.error} onRetry={() => void q.refetch()} /></div>;
   const list = q.data?.notifications ?? [];
   const unread = list.filter((n) => !n.read).length;
   const today = localIso(); const weekAgo = addDaysIso(today, -7);

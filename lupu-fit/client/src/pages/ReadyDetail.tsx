@@ -9,9 +9,8 @@ import { useLang } from '../i18n/index.tsx';
 import {
   buildSessionPayload, defaultVariant, localDateStr, lastWorkingLoad, missingFinisherGear, personProfile, pickFinisher, type ExerciseHistory,
 } from '../lib/workoutCompose.ts';
-import { Banner, Button, Card, ErrorState, LinkButton, Loading, Tag, errorMessage } from '../ui/kit.tsx';
-import { Disclosure, StatTile, StickyAction } from '../ui/patterns.tsx';
-import { IconChevron } from '../ui/icons.tsx';
+import { Banner, Button, Card, ErrorState, LinkButton, Tag, errorMessage } from '../ui/kit.tsx';
+import { Disclosure, PageHeader, SkeletonCard, SkeletonList, StatTile, StickyAction } from '../ui/patterns.tsx';
 import { useToast } from '../ui/toast.tsx';
 import { ExerciseLine, PrescriptionLine } from '../components/workouts/ExerciseLine.tsx';
 import { FinisherPicker, readSport, writeSport } from '../components/workouts/FinisherPicker.tsx';
@@ -87,20 +86,22 @@ export default function ReadyDetail(): ReactNode {
     },
   });
 
-  if (!workout) return <div className="stack"><Link to="/workouts?tab=ready">{t('workouts.detail.back')}</Link><ErrorState error={{ code: 'not_found' }} /></div>;
-  if (prof.isLoading || me.isLoading) return <Loading />;
-  if (prof.isError) return <ErrorState error={prof.error} onRetry={() => void prof.refetch()} />;
+  const BACK = '/workouts?tab=ready';
+  if (!workout) return <div className="stack"><PageHeader back={BACK} title={t('workouts.tabs.ready')} /><ErrorState error={{ code: 'not_found' }} /></div>;
   const name = lang === 'he' ? workout.nameHe : workout.nameEn;
+  // The name is static content, so the header is there from the first frame; the skeleton mirrors the stat row and exercise list.
+  const header = <PageHeader back={BACK} title={name} />;
+  if (prof.isLoading || me.isLoading) return <div className="stack">{header}<SkeletonCard /><SkeletonList rows={4} /></div>;
+  if (prof.isError) return <div className="stack">{header}<ErrorState error={prof.error} onRetry={() => void prof.refetch()} /></div>;
   if (!profile || !personal) {
-    return <div className="stack"><Link to="/workouts?tab=ready">{t('workouts.detail.back')}</Link><h1>{name}</h1><Banner tone="warn">{t('workouts.detail.noProfile')}</Banner></div>;
+    return <div className="stack">{header}<Banner tone="warn">{t('workouts.detail.noProfile')}</Banner></div>;
   }
   const bucket = ageBucket(profile.age);
 
   if (!personal.visible) {
     return (
       <div className="stack">
-        <Link to="/workouts?tab=ready">{t('workouts.detail.back')}</Link>
-        <h1>{name}</h1>
+        {header}
         <Banner tone="warn"><strong>{t('workouts.detail.notVisibleTitle')}</strong><div>{t('workouts.detail.notVisibleHint')}</div><span className="small muted">{t(`label.ageBucket.${bucket}`)}{profile.injuries.length ? ` · ${profile.injuries.map((i) => t(`label.injury.${i}`)).join(', ')}` : ''}</span></Banner>
         <div><LinkButton to="/workouts?tab=ready">{t('workouts.detail.notVisibleLink')}</LinkButton></div>
       </div>
@@ -120,11 +121,10 @@ export default function ReadyDetail(): ReactNode {
 
   return (
     <div className="stack">
-      <Link to="/workouts?tab=ready" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.detail.back')}</Link>
+      {header}
 
-      <section className="card hero-card wk-hero stack">
+      <section className="card hero-card wk-hero stack" aria-label={name}>
         <div className="wk-tags"><Tag>{t(`label.focus.${workout.focus}`)}</Tag><Tag>{t(`label.difficulty.${workout.level}`)}</Tag><Tag>{t(`label.style.${workout.style}`)}</Tag></div>
-        <h1>{name}</h1>
         <div className="grid-stats wk-hero-stats">
           <StatTile label={t('workouts.detail.statTime')} value={<span className="num">{totalMin}</span>} unit={t('unit.min')} hint={finisherMinutes > 0 ? t('workouts.detail.statFinisher', { n: finisherMinutes }) : t('workouts.detail.estimate')} />
           <StatTile label={t('workouts.detail.exercises')} value={<span className="num">{personal.items.length}</span>} />

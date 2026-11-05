@@ -22,15 +22,18 @@ function MiniMacro({ label, value, target }: { label: string; value: number; tar
 export function DayHero({ totals, targets, plan }: { totals: Totals; targets: Targets | undefined; plan?: boolean }): ReactNode {
   const t = useT();
   const rem = targets ? Math.round(targets.kcal - totals.kcal) : null;
-  const over = rem !== null && rem < 0;
   const tone = targets ? barTone(totals.kcal, targets.kcal, true) : undefined;
+  // Same tolerance as the bar: only more than 10% above the target is "over" (warning). Up to 10% above is on target
+  // (neutral label, exact surplus shown as "+N"), so the number never contradicts a green bar.
+  const over = tone === 'over';
+  const above = rem !== null && rem < 0 && !over;
   return (
     <section className="card hero-card nu-hero stack" aria-label={plan ? t('nutrition.menu.dayTotals') : t('nutrition.hub.todayVs')}>
       <div className="nu-hero-top">
         <div className="stack-sm">
-          <span className="small muted">{plan ? t('nutrition.menu.dayTotals') : rem === null ? t('nutrition.nu.eaten') : over ? t('nutrition.nu.over') : t('nutrition.nu.remaining')}</span>
+          <span className="small muted">{plan ? t('nutrition.menu.dayTotals') : rem === null ? t('nutrition.nu.eaten') : over ? t('nutrition.nu.over') : above ? t('final.nutrition.onTarget') : t('nutrition.nu.remaining')}</span>
           <span className="nu-hero-num">
-            <span className={`num-hero${over && !plan ? ' warning' : ''}`} data-testid="remaining-kcal">{plan || rem === null ? fmt.num(totals.kcal) : fmt.num(Math.abs(rem))}</span>
+            <span className={`num-hero${over && !plan ? ' warning' : ''}`} data-testid="remaining-kcal">{plan || rem === null ? fmt.num(totals.kcal) : above ? `+${fmt.num(-rem)}` : fmt.num(Math.abs(rem))}</span>
             <span className="muted small"> {t('unit.kcal')}</span>
           </span>
         </div>

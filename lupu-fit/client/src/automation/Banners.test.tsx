@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWith } from '../components/nutrition/testHarness.tsx';
 
 const h = vi.hoisted(() => ({ device: false, sessions: [] as { localDate: string }[], weights: [] as { loggedDate: string; weightKg: number }[] }));
-vi.mock('../env.ts', () => ({ get IS_DEVICE() { return h.device; }, RUN_MODE: 'hosted', AI_PROXY_URL: undefined }));
+vi.mock('../env.ts', () => ({ get IS_DEVICE() { return h.device; }, RUN_MODE: 'hosted' }));
 vi.mock('../api/client.ts', async (orig) => {
   const real = await orig<typeof import('../api/client.ts')>();
   return { ...real, api: { get: async (p: string) => { if (p === '/api/sessions') return { sessions: h.sessions }; if (p === '/api/weights') return { entries: h.weights }; if (p === '/api/auth/me') return { user: { id: 'u1', username: 'x', role: 'user' }, csrfToken: 'x', onboarded: true, mode: 'hosted' }; throw new Error(p); } } };
@@ -49,6 +49,12 @@ describe('weekly check-in banner', () => {
     vi.setSystemTime(new Date(2026, 10, 8, 9, 0)); // next Sunday
     view(adult, 'he');
     expect(await screen.findByTestId('weekly-checkin')).toBeInTheDocument();
+  });
+  it('is hidden for someone who joined this week, even after a first workout and weigh-in (no "0 of 3" for a week that never existed)', async () => {
+    h.sessions = [{ localDate: '2026-11-04' }]; h.weights = [{ loggedDate: '2026-11-03', weightKg: 70 }];
+    view(adult, 'en');
+    await new Promise((r) => setTimeout(r, 60)); // let both queries resolve
+    expect(screen.queryByTestId('weekly-checkin')).toBeNull();
   });
   it('is hidden for a brand-new account with no history, and when switched off', async () => {
     const { unmount } = view();

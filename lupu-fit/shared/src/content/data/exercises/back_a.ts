@@ -422,7 +422,7 @@ export const BACK_A_EXERCISES: ExerciseContent[] = [
     cuesEn: ['Chest to the bar', 'Lower with control instead of dropping'],
     mistakesHe: ['מתיחת הצוואר קדימה כדי להגיע למוט', 'נעילה מלאה של המרפקים בתחתית עם תנופה'],
     mistakesEn: ['Reaching the chin forward with the neck to clear the bar', 'Hard elbow lockout with a bounce at the bottom'],
-    safetyHe: 'האחיזה ההפוכה מעמיסה יותר על הביספס והמרפק, ולכן בכאב במרפק עדיף לעבור לאחיזה ניטרלית או לפולי עליון.',
+    safetyHe: 'האחיזה ההפוכה מעמיסה יותר על הביצפס והמרפק, ולכן בכאב במרפק עדיף לעבור לאחיזה ניטרלית או לפולי עליון.',
     safetyEn: 'The underhand grip loads the biceps and elbow more, so with elbow pain use a neutral grip or a lat pulldown.',
     videoPriority: 'A',
   },

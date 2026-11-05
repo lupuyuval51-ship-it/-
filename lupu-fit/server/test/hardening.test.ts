@@ -151,7 +151,10 @@ describe('brute-force counters under concurrency', () => {
   it('a correct password that arrives inside a burst of guesses gets no session and is indistinguishable from the wrong ones', async () => {
     const t = await makeApp(); await register(t, 'guessed', '10.7.0.1'); const app = overNetwork(t);
     const rs = await Promise.all(ok(30).map((i) => hit(app, anon('10.7.0.2'), '/api/auth/login', { username: 'guessed', password: i === 25 ? 'correct-horse-battery' : `wrong-guess-${i}` })));
-    expect(rs[25]!.status).toBe(401); expect(rs[25]!.body).toEqual(rs[24]!.body);
+    // Attempts are counted before hashing, so the guesses past the threshold are refused without ever being checked: the right
+    // password gets the same answer as the wrong one next to it, and no session.
+    expect(rs[25]!.status).toBe(rs[24]!.status); expect((rs[25]!.body as { error: string }).error).toBe((rs[24]!.body as { error: string }).error);
+    expect(rs.filter((r) => r.status === 401).length).toBe(5); expect(rs.filter((r) => r.status === 429).length).toBe(25);
     expect(rs.some((r) => r.setCookies?.length)).toBe(false);
     const lock = (await t.db.query<{ locked_until: string | null }>("SELECT locked_until FROM auth_attempts WHERE scope = 'login:username'"))[0]!;
     expect(lock.locked_until).not.toBeNull();
@@ -177,7 +180,7 @@ describe('AI quota is charged atomically', () => {
   it('parallel photo estimates never exceed the limit and a failing provider still costs a charge', async () => {
     const t = await makeApp(); const c = await onboard(t);
     const app = overNetwork(t, { ai: { name: 'v', complete: async () => '', describeImage: async () => { throw new Error('down'); } } });
-    const rs = await Promise.all(ok(12).map(() => hit(app, c, '/api/nutrition/photo-estimate', { jpegBase64: 'A'.repeat(200) })));
+    const rs = await Promise.all(ok(12).map(() => hit(app, c, '/api/nutrition/photo-estimate', { jpegBase64: `/9j/${'A'.repeat(200)}` })));
     expect(rs.filter((r) => r.status === 502).length).toBe(6);
     expect(rs.filter((r) => r.status === 429).length).toBe(6);
   });

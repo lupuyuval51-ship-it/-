@@ -2,7 +2,6 @@ import { defineFeature } from '../core.ts';
 
 export default defineFeature({
   live: {
-    title: 'Live workout',
     empty: { title: 'No active workout', hint: 'Start a workout from the workouts page.', cta: 'To workouts' },
     exerciseOf: 'Exercise {n} of {total}',
     more: { title: 'More' },
@@ -24,7 +23,7 @@ export default defineFeature({
       minorReps: 'Add a rep per set (up to {max})',
       minorKeep: 'Top of the range: keep clean form',
     },
-    set: { n: 'Set {n}', of: 'Set {n} of {total}', extra: 'Extra set {n}', target: 'Target: {target}', planned: 'Planned', pending: 'Waiting to sync', weight: 'Weight', reps: 'Reps', seconds: 'Seconds', rpe: 'RPE', finish: 'Finish set', undo: 'Undo last set', logged: 'Set saved', repsValue: '{reps} reps', secValue: '{sec} sec', plannedReps: '{reps} reps', plannedSec: '{sec} sec' },
+    set: { n: 'Set {n}', of: 'Set {n} of {total}', extra: 'Extra set {n}', target: 'Target: {target}', pending: 'Waiting to sync', weight: 'Weight', reps: 'Reps', seconds: 'Seconds', rpe: 'RPE', finish: 'Finish set', undo: 'Undo last set', plannedReps: '{reps} reps', plannedSec: '{sec} sec' },
     plates: { open: 'Plate calculator', title: 'Plate calculator', target: 'Target weight', bar: 'Bar', perSide: 'Plates per side', barOnly: 'Bar only', achieved: 'Achieved weight', remainder: 'Remainder', apply: 'Apply' },
     rest: { title: 'Rest', next: 'Up next', minus: '−15 sec', plus: '+15 sec', skip: 'Skip rest', started: 'Rest: {sec} seconds', over: 'Rest is over. Next set.', notifTitle: 'Rest is over', notifBody: 'Time for the next set' },
     offline: { banner: 'You are offline. Sets are saved on this device and will sync later.', pending: '{n} waiting to sync', rejectedTitle: 'Not accepted by the server', queuedSet: 'Set: {name} {summary}' },
@@ -34,19 +33,17 @@ export default defineFeature({
     confirmDiscard: 'Discard this workout and all its sets?',
     confirmFinishEmpty: 'No sets were logged. Finish anyway?',
     finishNeedsConnection: 'A connection is required to finish the workout',
-    finishFailed: 'Could not finish the workout.',
     discarded: 'Workout discarded',
-    finisher: { header: 'Sport finisher: {sport} (about {min} min)', start: 'Start timer', stop: 'Stop timer', round: 'Round {n} of {total}', work: 'Work', done: 'Finisher complete', roundsDone: '{done} of {total} rounds', idle: 'Ready', plan: 'Work {work} sec · rest {rest} sec' },
+    finisher: { header: 'Sport finisher: {sport} (about {min} min)', start: 'Start timer', stop: 'Stop timer', round: 'Round {n} of {total}', work: 'Work', done: 'Finisher complete', roundsDone: '{done} of {total} rounds', plan: 'Work {work} sec · rest {rest} sec' },
     structure: {
       queuedOrder: 'Reorder exercises', queuedRemove: 'Remove exercise', queuedReplace: 'Replace exercise',
       add: 'Add exercise', remove: 'Remove exercise', replace: 'Replace exercise', replaceLocked: 'Replacing is possible only before the first set.',
       replaceNone: 'No safe alternatives for this profile.', replaceHint: 'Alternatives that fit your injuries, equipment and age.', moveUp: 'Move up', moveDown: 'Move down',
-      search: 'Search exercise', none: 'No matching exercises', confirmRemove: 'Remove this exercise from the workout?', menu: 'Edit workout', failed: 'The change could not be saved.',
+      search: 'Search exercise', none: 'No matching exercises', confirmRemove: 'Remove this exercise from the workout?',
     },
   },
 }, {
   live: {
-    title: 'אימון פעיל',
     empty: { title: 'אין אימון פעיל', hint: 'אפשר להתחיל אימון מעמוד האימונים.', cta: 'לעמוד האימונים' },
     exerciseOf: 'תרגיל {n} מתוך {total}',
     more: { title: 'עוד' },
@@ -68,7 +65,7 @@ export default defineFeature({
       minorReps: 'להוסיף חזרה בכל סט (עד {max})',
       minorKeep: 'בראש הטווח: לשמור על טכניקה נקייה',
     },
-    set: { n: 'סט {n}', of: 'סט {n} מתוך {total}', extra: 'סט נוסף {n}', target: 'יעד: {target}', planned: 'מתוכנן', pending: 'ממתין לסנכרון', weight: 'משקל', reps: 'חזרות', seconds: 'שניות', rpe: 'RPE', finish: 'סיום סט', undo: 'ביטול הסט האחרון', logged: 'הסט נשמר', repsValue: '{reps} חזרות', secValue: '{sec} שנ׳', plannedReps: '{reps} חזרות', plannedSec: '{sec} שנ׳' },
+    set: { n: 'סט {n}', of: 'סט {n} מתוך {total}', extra: 'סט נוסף {n}', target: 'יעד: {target}', pending: 'ממתין לסנכרון', weight: 'משקל', reps: 'חזרות', seconds: 'שניות', rpe: 'RPE', finish: 'סיום סט', undo: 'ביטול הסט האחרון', plannedReps: '{reps} חזרות', plannedSec: '{sec} שנ׳' },
     plates: { open: 'מחשבון פלטות', title: 'מחשבון פלטות', target: 'משקל יעד', bar: 'מוט', perSide: 'פלטות לכל צד', barOnly: 'המוט בלבד', achieved: 'משקל בפועל', remainder: 'שארית', apply: 'החלה' },
     rest: { title: 'מנוחה', next: 'הבא', minus: '−15 שנ׳', plus: '+15 שנ׳', skip: 'דילוג על המנוחה', started: 'מנוחה: {sec} שניות', over: 'המנוחה הסתיימה. הסט הבא.', notifTitle: 'המנוחה הסתיימה', notifBody: 'הגיע הזמן לסט הבא' },
     offline: { banner: 'אין חיבור. הסטים נשמרים במכשיר ויסונכרנו בהמשך.', pending: '{n} ממתינים לסנכרון', rejectedTitle: 'לא התקבלו בשרת', queuedSet: 'סט: {name} {summary}' },
@@ -78,14 +75,13 @@ export default defineFeature({
     confirmDiscard: 'לבטל את האימון ולמחוק את כל הסטים שלו?',
     confirmFinishEmpty: 'לא נרשמו סטים. לסיים בכל זאת?',
     finishNeedsConnection: 'החיבור נדרש לסיום האימון',
-    finishFailed: 'לא ניתן היה לסיים את האימון.',
     discarded: 'האימון בוטל',
-    finisher: { header: 'סיומת ספורט: {sport} (כ-{min} דק׳)', start: 'הפעלת טיימר', stop: 'עצירת הטיימר', round: 'סבב {n} מתוך {total}', work: 'עבודה', done: 'הסיומת הושלמה', roundsDone: '{done} מתוך {total} סבבים', idle: 'מוכנים', plan: 'עבודה {work} שנ׳ · מנוחה {rest} שנ׳' },
+    finisher: { header: 'סיומת ספורט: {sport} (כ-{min} דק׳)', start: 'הפעלת טיימר', stop: 'עצירת הטיימר', round: 'סבב {n} מתוך {total}', work: 'עבודה', done: 'הסיומת הושלמה', roundsDone: '{done} מתוך {total} סבבים', plan: 'עבודה {work} שנ׳ · מנוחה {rest} שנ׳' },
     structure: {
       queuedOrder: 'שינוי סדר התרגילים', queuedRemove: 'הסרת תרגיל', queuedReplace: 'החלפת תרגיל',
       add: 'הוספת תרגיל', remove: 'הסרת התרגיל', replace: 'החלפת תרגיל', replaceLocked: 'אפשר להחליף רק לפני הסט הראשון.',
       replaceNone: 'אין חלופות בטוחות לפרופיל הזה.', replaceHint: 'חלופות שמתאימות לפציעות, לציוד ולגיל.', moveUp: 'הזזה למעלה', moveDown: 'הזזה למטה',
-      search: 'חיפוש תרגיל', none: 'אין תרגילים מתאימים', confirmRemove: 'להסיר את התרגיל הזה מהאימון?', menu: 'עריכת האימון', failed: 'לא ניתן היה לשמור את השינוי.',
+      search: 'חיפוש תרגיל', none: 'אין תרגילים מתאימים', confirmRemove: 'להסיר את התרגיל הזה מהאימון?',
     },
   },
 });

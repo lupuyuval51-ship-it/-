@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type ChangeEvent, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { Link, type LinkProps } from 'react-router';
 import { useT } from '../i18n/index.tsx';
 import { IconInfo, IconMinus, IconPlus, IconWarn, IconX } from './icons.tsx';
@@ -40,18 +40,45 @@ export function Select({ label, hint, error, options, ...p }: SelectHTMLAttribut
   return <Field label={label} {...(hint ? { hint } : {})} error={error}>{(id, d) => <select {...p} id={id} aria-describedby={d} className={cx('select', p.className)}>{options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>}</Field>;
 }
 
+/**
+ * Shared number-field logic for NumberStepper and the live-session stepper. While the field is focused a raw text draft is
+ * kept, so "62." and "62.5" can be typed without the dot being eaten; the value is clamped and rounded on blur and on ±.
+ */
+export function useNumberDraft({ value, onChange, step = 1, min = 0, max = 9999, decimals = 0 }: { value: number | null; onChange: (v: number | null) => void; step?: number; min?: number; max?: number; decimals?: number }): {
+  bump: (dir: -1 | 1) => void;
+  input: { value: string; onFocus: () => void; onBlur: () => void; onChange: (e: ChangeEvent<HTMLInputElement>) => void };
+} {
+  const [draft, setDraft] = useState<string | null>(null);
+  const round = (n: number): number => Math.round(n * 10 ** decimals) / 10 ** decimals;
+  const clamp = (n: number): number => Math.min(max, Math.max(min, round(n)));
+  return {
+    bump: (dir) => { setDraft(null); onChange(clamp((value ?? min) + dir * step)); },
+    input: {
+      value: draft ?? (value === null ? '' : String(value)),
+      onFocus: () => setDraft(value === null ? '' : String(value)),
+      onBlur: () => { setDraft(null); if (value !== null) onChange(clamp(value)); },
+      onChange: (e) => {
+        const raw = e.target.value.replace(',', '.');
+        if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return;
+        setDraft(raw);
+        if (raw === '') onChange(null);
+        else if (raw !== '.') onChange(Math.min(max, Math.max(min, Number(raw))));
+      },
+    },
+  };
+}
+
 /** Numeric stepper with hold-free ± buttons. `value` null = empty. Always shows Latin digits (.num). */
 export function NumberStepper({ label, value, onChange, step = 1, min = 0, max = 9999, decimals = 0, suffix, large, msgId, invalid }: { msgId?: string; invalid?: boolean; label: string; value: number | null; onChange: (v: number | null) => void; step?: number; min?: number; max?: number; decimals?: number; suffix?: string; large?: boolean }): ReactNode {
   const t = useT();
-  const round = (n: number) => Math.round(n * 10 ** decimals) / 10 ** decimals;
-  const clamp = (n: number) => Math.min(max, Math.max(min, round(n)));
+  const { bump, input } = useNumberDraft({ value, onChange, step, min, max, decimals });
   return (
     <div className="field">
       <span className="field-label">{label}{suffix ? <span className="muted"> ({suffix})</span> : null}</span>
       <div className={cx('stepper', large && 'stepper-lg')} role="group" aria-label={label}>
-        <button type="button" aria-label={`${label} −`} onClick={() => onChange(clamp((value ?? min) - step))}><IconMinus aria-label={t('action.remove')} /></button>
-        <input className="num" inputMode="decimal" aria-label={label} aria-describedby={msgId} aria-invalid={invalid ? true : undefined} value={value ?? ''} onChange={(e) => { const v = e.target.value.replace(',', '.'); if (v === '') onChange(null); else if (!Number.isNaN(Number(v))) onChange(Math.min(max, Math.max(min, Number(v)))); }} />
-        <button type="button" aria-label={`${label} +`} onClick={() => onChange(clamp((value ?? min) + step))}><IconPlus aria-label={t('action.add')} /></button>
+        <button type="button" aria-label={`${label} −`} onClick={() => bump(-1)}><IconMinus aria-label={t('action.remove')} /></button>
+        <input className="num" inputMode="decimal" aria-label={label} aria-describedby={msgId} aria-invalid={invalid ? true : undefined} {...input} />
+        <button type="button" aria-label={`${label} +`} onClick={() => bump(1)}><IconPlus aria-label={t('action.add')} /></button>
       </div>
     </div>
   );
@@ -63,11 +90,10 @@ export function Segmented<T extends string>({ label, value, options, onChange }:
 export function Chip({ pressed, onClick, children, count }: { pressed?: boolean; onClick?: () => void; children: ReactNode; count?: number }): ReactNode {
   return <button type="button" className="chip" aria-pressed={pressed ?? false} onClick={onClick}>{children}{count !== undefined ? <span className="count">{count}</span> : null}</button>;
 }
-export function ChipGroup<T extends string>({ label, options, selected, onToggle, single }: { label: string; options: { value: T; label: string; count?: number; disabled?: boolean }[]; selected: readonly T[]; onToggle: (v: T) => void; single?: boolean }): ReactNode {
+export function ChipGroup<T extends string>({ label, options, selected, onToggle }: { label: string; options: { value: T; label: string; count?: number; disabled?: boolean }[]; selected: readonly T[]; onToggle: (v: T) => void }): ReactNode {
   return (
     <div className="row-wrap" role="group" aria-label={label}>
       {options.map((o) => <button type="button" key={o.value} disabled={o.disabled} className="chip" aria-pressed={selected.includes(o.value)} onClick={() => onToggle(o.value)}>{o.label}{o.count !== undefined ? <span className="count">{o.count}</span> : null}</button>)}
-      {single ? null : null}
     </div>
   );
 }

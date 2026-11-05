@@ -2,7 +2,7 @@
 import { add, clamp, fromDown, fromUp, ik, lerp, mul, norm, sub, v, type V } from './geom.ts';
 import { ANKLE_H, FOOT_FLAT, L, frontRig, sideRig, type Leg, type Rig, type Seg } from './rig.ts';
 import { hinge, HIP0, type Implement, type Motion } from './motions.ts';
-import { band, barbell, bench, box, cable, dumbbell, hangBar, kettlebell, medBall, wheel, type Frame, type Prop } from './scene.ts';
+import { band, barbell, bench, box, cable, dumbbell, hangBar, kettlebell, medBall, wheel, type Prop } from './scene.ts';
 
 const LEG = L.thigh + L.shank;
 const PREF_FWD: V = v(1, 0); const PREF_BACK: V = v(-1, 0); const PREF_DOWN: V = v(0, -1);

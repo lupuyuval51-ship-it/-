@@ -220,7 +220,7 @@ Path: `/media/exercises/<id>.mp4`, `/media/exercises/<id>.jpg`.
 | `sled_push` | דחיפת מזחלת | Sled Push | sled |  | specific |
 | `slider_hamstring_curl` | כפיפת ברכיים בשכיבה עם מגבת | Slider Hamstring Curl | none |  | specific |
 | `smith_machine_squat` | סקווט במכונת סמית | Smith Machine Squat | machine |  | specific |
-| `spanish_squat` | סקווט ספרדי עם גומיה | Banded Spanish Squat | resistance_band |  | specific |
+| `spanish_squat` | סקווט ספרדי עם גומייה | Banded Spanish Squat | resistance_band |  | specific |
 | `standing_side_bend` | מתיחת צד בעמידה | Standing Side Bend Stretch | none |  | specific |
 | `straight_arm_pulldown` | פולי עליון בידיים ישרות | Straight-Arm Pulldown | cable |  | specific |
 | `sumo_deadlift` | דדליפט סומו | Sumo Deadlift | barbell | yes | specific |

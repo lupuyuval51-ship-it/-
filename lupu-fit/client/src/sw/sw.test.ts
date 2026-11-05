@@ -165,6 +165,14 @@ describe('last-known identity cache', () => {
     expect((await seen(sb, '/api/profile'))?.status).toBe(200);
   });
 
+  it('registering with "keep me signed in" off keeps no offline copy either', async () => {
+    online(sb, { '/api/auth/register': () => meOf('A'), '/api/auth/me': () => meOf('A'), '/api/profile': () => profileOf(30) });
+    await sb.fire(post('/api/auth/register', { username: 'a', password: 'x', remember: false }));
+    await seen(sb, '/api/auth/me'); await seen(sb, '/api/profile');
+    offline(sb);
+    expect((await seen(sb, '/api/profile'))?.status).toBe(503);
+  });
+
   it('other API calls are never intercepted or cached', async () => {
     online(sb, { '/api/sessions': () => json({ sessions: [] }) });
     expect(await sb.fire(get('/api/sessions'))).toBeNull();
@@ -233,6 +241,18 @@ describe('app shell', () => {
     offline(sb);
     const off = await sb.fire(nav('/workouts'));
     expect(off?.status).toBe(200); expect(await off?.text()).toContain('id="root"');
+  });
+
+  it('keeps the HTML shell when a JSON file or an image is opened in the app window, and never serves a non-page as the shell', async () => {
+    online(sb, { '/': () => page(), '/manifest.webmanifest': () => new Response('{"name":"LUPU-FIT"}', { status: 200, headers: { 'content-type': 'application/manifest+json' } }), '/icons/a.png': () => new Response('png', { status: 200, headers: { 'content-type': 'image/png' } }) });
+    await sb.fire(nav('/'));
+    await sb.fire(nav('/manifest.webmanifest')); await sb.fire(nav('/icons/a.png'));
+    offline(sb);
+    const off = await sb.fire(nav('/'));
+    expect(off?.headers.get('content-type')).toContain('text/html'); expect(await off?.text()).toContain('id="root"');
+    // an older build stored JSON as the shell: answer 503 rather than raw JSON
+    (await sb.caches.open('lupu-shell-v2')).entries.set(abs('/'), new Response('{"name":"LUPU-FIT"}', { headers: { 'content-type': 'application/manifest+json' } }));
+    expect((await sb.fire(nav('/')))?.status).toBe(503);
   });
 
   it('does not store an HTML page under a script or style URL', async () => {

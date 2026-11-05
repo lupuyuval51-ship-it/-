@@ -64,7 +64,6 @@ for (const f of dictFiles) {
   scan(`${f.replace(ROOT + '/', '')}#en`, d.en);
   if (d.he) { const a = new Set(keysOf(d.en)), b = new Set(keysOf(d.he)); for (const k of a) if (!b.has(k)) missing.push(`${f}: he missing ${k}`); for (const k of b) if (!a.has(k)) missing.push(`${f}: en missing ${k}`); }
   mergeInto(clientEn, structuredClone(d.en) as Record<string, unknown>);
-  for (const [, v] of Object.entries(d.en as Record<string, unknown>)) void v;
 }
 // empty English strings
 for (const k of keysOf(clientEn)) { const v = lookup(clientEn, k); if (typeof v === 'string' && v.trim() === '' && !/\.(none|sep|empty)$/.test(k)) missing.push(`empty en string: ${k}`); }

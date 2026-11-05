@@ -22,5 +22,5 @@ export function profileRoutes(r: Router, _d: Deps): void {
       [uid(ctx), p.displayName ?? null, p.language, p.theme, p.units, p.sex, p.age, p.heightCm, p.weightKg, p.goal, p.experience, p.place, JSON.stringify(p.equipment), JSON.stringify(p.injuries), p.daysPerWeek, p.sessionMinutes, p.activityLevel, p.diet, JSON.stringify(p.allergies), JSON.stringify(p.restrictions), p.customKcal ?? null, ctx.now.toISOString()]);
     const saved = await requireProfile(ctx.db, uid(ctx));
     return { json: { profile: saved, targets: targetsFor(saved) } };
-  }, { body: ProfileInputSchema });
+  }, { body: ProfileInputSchema, replayBody: false }); // the answer is the whole health profile: never kept for replay
 }

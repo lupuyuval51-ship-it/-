@@ -6,6 +6,7 @@
  * serious categories never reach an external model unreviewed, and always get a human-resource response.
  */
 import type { AgeBucket, Goal, Language, ReadinessState } from './enums.js';
+import type { SplitDay } from './training.js';
 
 export type SafetyCategory = 'self_harm' | 'medical_emergency' | 'eating_disorder' | 'ped_dosing';
 export interface SafetyHit { category: SafetyCategory; matched: string }
@@ -145,16 +146,16 @@ export function classifySafety(input: string): SafetyHit | null {
 
 const RESPONSES: Record<SafetyCategory, Record<Language, string>> = {
   self_harm: {
-    he: 'מה שנכתב כאן חשוב לי, ואין סיבה להישאר לבד. אם יש סכנה מיידית, חייגו עכשיו 101 (מד״א) או 100 (משטרה). אפשר לדבר גם עם ער״ן בטלפון 1201 (24/7, אנונימי), או בווטסאפ בחיפוש "ער״ן". מחוץ לישראל: 988 (ארה״ב) או שירותי החירום המקומיים. כדאי לפנות עכשיו לאדם קרוב ולא להישאר לבד. אני מערכת אימון ממוחשבת ולא תחליף לאיש מקצוע, אבל אני כאן.',
+    he: 'מה שנכתב כאן חשוב לי, ואין צורך להתמודד עם זה לבד. אם יש סכנה מיידית, חייגו עכשיו 101 (מד״א) או 100 (משטרה). אפשר לדבר גם עם ער״ן בטלפון 1201 (24/7, אנונימי), או בווטסאפ בחיפוש "ער״ן". מחוץ לישראל: 988 (ארה״ב) או שירותי החירום המקומיים. כדאי לפנות עכשיו לאדם קרוב ולא להישאר לבד. אני מערכת אימון ממוחשבת ולא תחליף לאיש מקצוע, אבל אני כאן.',
     en: 'What you wrote matters, and you are not alone. If you are in immediate danger, call your local emergency number now (101 in Israel, 911 in the US, 112 in the EU). You can also reach ERAN in Israel at 1201 (24/7, anonymous) or call/text 988 in the US. Please reach out to someone close to you right now rather than staying alone. I am an automated fitness coach, not a replacement for a professional, but I am here.',
   },
   medical_emergency: {
-    he: 'עצרו את האימון עכשיו. תסמינים כמו כאב בחזה, כאב שמקרין לזרוע או ללסת, התעלפות, קוצר נשימה חמור או פגיעה חדה דורשים בדיקה רפואית דחופה. חייגו 101 (מד״א) או פנו למיון. אל תמשיכו להתאמן ואל תנהגו לבד אם אתם לא חשים בטוב. המערכת אינה יכולה לאבחן, ואין תחליף לאיש רפואה.',
+    he: 'עצרו את האימון עכשיו. תסמינים כמו כאב בחזה, כאב שמקרין לזרוע או ללסת, התעלפות, קוצר נשימה חמור או פציעה פתאומית דורשים בדיקה רפואית דחופה. חייגו 101 (מד״א) או פנו למיון. אל תמשיכו להתאמן ואל תנהגו לבד אם אתם לא חשים בטוב. המערכת אינה יכולה לאבחן, ואין תחליף לאיש רפואה.',
     en: 'Stop training now. Symptoms like chest pain, pain radiating to the arm or jaw, fainting, severe shortness of breath or an acute injury need urgent medical evaluation. Call your local emergency number (101 in Israel, 911 in the US) or go to the ER. Do not keep exercising, and do not drive yourself if you feel unwell. I cannot diagnose, and I am no substitute for medical care.',
   },
   eating_disorder: {
-    he: 'תודה על השיתוף, וזה לא קל לכתוב. מה שתיארת עלול לפגוע בגוף ובנפש, ואין בזה בושה לבקש עזרה. לא אספק תוכנית שמרחיקה מאוכל מספק. כדאי לפנות לרופאת משפחה, לרופא משפחה או לאיש מקצוע בתחום הפרעות אכילה. בישראל: ער״ן 1201, או קו התמיכה של אנוריקסיה ובולימיה (ע״ר). אפשר לדבר איתי על הרגלים בריאים, אבל לא על הרעבה או הקאה.',
-    en: 'Thank you for sharing, that is not easy to write. What you described can seriously harm body and mind, and there is no shame in asking for help. I will not give a plan that moves you away from adequate food. Please consider talking to your doctor or an eating-disorder professional. In Israel you can call ERAN at 1201; in the US, the NEDA-affiliated helplines or 988. I am happy to talk about healthy habits, but not about starving or purging.',
+    he: 'תודה על השיתוף, זה לא קל לכתוב. מה שתואר כאן עלול לפגוע בגוף ובנפש, ואין שום בושה בבקשת עזרה. לא אתן תוכנית שמובילה לאכילה מועטה מדי. כדאי לפנות לרופא המשפחה או לאיש מקצוע בתחום הפרעות האכילה. בישראל אפשר לפנות לער״ן בטלפון 1201 (24/7). מחוץ לישראל: 988 (ארה״ב). אפשר לדבר איתי על הרגלים בריאים, אבל לא על הרעבה או הקאה.',
+    en: 'Thank you for sharing, that is not easy to write. What you described can seriously harm body and mind, and there is no shame in asking for help. I will not give a plan that moves you away from adequate food. Please consider talking to your doctor or an eating-disorder professional. In Israel you can call ERAN at 1201 (24/7); in the US, call or text 988. I am happy to talk about healthy habits, but not about starving or purging.',
   },
   ped_dosing: {
     he: 'לא אספק מינונים, קורסים או הנחיות לשימוש בסטרואידים אנבוליים, SARMs, הורמון גדילה או חומרים דומים. הם עלולים לפגוע בלב, בכבד, בהורמונים ובמצב הנפשי, ושימוש ללא פיקוח רפואי מסוכן, במיוחד מתחת לגיל 18. אשמח לעזור באימון, בתזונה, בשינה ובהתאוששות כדי להתקדם בצורה בטוחה, ואם יש שאלה רפואית כדאי לפנות לרפואת ספורט.',
@@ -168,11 +169,24 @@ export function safetyResponse(category: SafetyCategory, lang: Language): string
 
 /* ===================================================== rules-based coach */
 
+/** Plan day names (same wording as the app's split-day labels), for the coach's "today's workout" line. */
+export const SPLIT_DAY_LABEL: Record<SplitDay, Record<Language, string>> = {
+  full_a: { he: 'כל הגוף א׳', en: 'Full body A' }, full_b: { he: 'כל הגוף ב׳', en: 'Full body B' }, full_c: { he: 'כל הגוף ג׳', en: 'Full body C' },
+  upper: { he: 'פלג גוף עליון', en: 'Upper body' }, lower: { he: 'פלג גוף תחתון', en: 'Lower body' },
+  push: { he: 'דחיפה', en: 'Push' }, pull: { he: 'משיכה', en: 'Pull' }, legs: { he: 'רגליים', en: 'Legs' },
+};
+
 export interface CoachSnapshot {
   ageBucket: AgeBucket;
   goal: Goal;
+  /** false when the person has no active plan; then todayWorkout is null too. Absent (older callers): treated as an active plan. */
+  hasActivePlan?: boolean;
+  /** Today's day of the active plan (the same day Home shows), or null. */
   todayWorkout: { name: string; exerciseCount: number } | null;
+  /** The last few finished workouts (at most 5): a sample, not a total. */
   recentWorkouts: { date: string; sets: number }[];
+  /** Finished workouts in the last 30 days (a real count). */
+  workouts30d?: number;
   prs: { exerciseName: string; est1rmKg: number }[];
   nutrition7d: { loggedDays: number; avgKcal: number | null; avgProteinG: number | null };
   targets: { kcal: number; proteinG: number } | null;
@@ -219,7 +233,8 @@ export function rulesCoachReply(question: string, s: CoachSnapshot, lang: Langua
   }
   switch (intent) {
     case 'workout': {
-      const lead = s.readiness === 'rest' ? (he ? 'לפי הצ׳ק-אין שלך כדאי יום מנוחה או תנועה קלה. ' : 'Your check-in suggests a rest day or light movement. ') : s.readiness === 'easier' ? (he ? 'לפי הצ׳ק-אין שלך כדאי אימון קל יותר היום. ' : 'Your check-in suggests an easier session today. ') : '';
+      const lead = s.readiness === 'rest' ? (he ? 'לפי בדיקת המוכנות של היום כדאי יום מנוחה או תנועה קלה. ' : 'Your check-in suggests a rest day or light movement. ') : s.readiness === 'easier' ? (he ? 'לפי בדיקת המוכנות של היום כדאי אימון קל יותר. ' : 'Your check-in suggests an easier session today. ') : '';
+      if (s.hasActivePlan === false) return `${lead}${he ? 'אין תוכנית פעילה. אפשר לבחור אימון מוכן בלשונית האימונים.' : 'You have no active plan. You can pick a ready workout in the Workouts tab.'}`;
       if (!s.todayWorkout) return `${lead}${he ? 'אין אימון מתוכנן להיום בתוכנית הפעילה. אפשר לבחור אימון מוכן בלשונית האימונים.' : 'There is no workout scheduled for today in your active plan. You can pick a ready workout in the Workouts tab.'}`;
       return `${lead}${he ? `האימון של היום: ${s.todayWorkout.name} (${s.todayWorkout.exerciseCount} תרגילים).` : `Today's workout: ${s.todayWorkout.name} (${s.todayWorkout.exerciseCount} exercises).`}`;
     }
@@ -227,12 +242,12 @@ export function rulesCoachReply(question: string, s: CoachSnapshot, lang: Langua
       const { avgProteinG, loggedDays } = s.nutrition7d;
       if (avgProteinG === null || loggedDays === 0 || !s.targets) return NO_DATA[lang];
       const pct = Math.round((avgProteinG / s.targets.proteinG) * 100);
-      return he ? `ב-${loggedDays} ימים שתועדו בשבוע האחרון, ממוצע החלבון הוא ${Math.round(avgProteinG)} ג׳ ביום, ${pct}% מהיעד (${s.targets.proteinG} ג׳).` : `Over ${loggedDays} logged days this week you averaged ${Math.round(avgProteinG)} g protein per day, ${pct}% of your ${s.targets.proteinG} g target.`;
+      return he ? `ב-${loggedDays} ימים שתועדו בשבוע האחרון, ממוצע החלבון הוא ${Math.round(avgProteinG)} ג׳ ביום, ${pct}% מהיעד (${s.targets.proteinG} ג׳).` : `In the last 7 days you logged ${loggedDays} days and averaged ${Math.round(avgProteinG)} g protein per day, ${pct}% of your ${s.targets.proteinG} g target.`;
     }
     case 'calories': {
       const { avgKcal, loggedDays } = s.nutrition7d;
       if (avgKcal === null || loggedDays === 0 || !s.targets) return NO_DATA[lang];
-      return he ? `ממוצע הקלוריות ב-${loggedDays} ימים שתועדו: ${Math.round(avgKcal)} קק״ל ביום, מול יעד של ${s.targets.kcal}.` : `Across ${loggedDays} logged days your average is ${Math.round(avgKcal)} kcal per day against a ${s.targets.kcal} kcal target.`;
+      return he ? `ממוצע הקלוריות ב-${loggedDays} ימים שתועדו: ${Math.round(avgKcal)} קק״ל ביום, מול יעד של ${s.targets.kcal} קק״ל.` : `Across ${loggedDays} logged days your average is ${Math.round(avgKcal)} kcal per day against a ${s.targets.kcal} kcal target.`;
     }
     case 'weight': {
       if (!s.weightTrendKg || s.weightTrendKg.days < 14) return NO_DATA[lang];
@@ -244,14 +259,15 @@ export function rulesCoachReply(question: string, s: CoachSnapshot, lang: Langua
       if (s.prs.length === 0) return NO_DATA[lang];
       const top = s.prs[0];
       if (!top) return NO_DATA[lang];
-      return he ? `השיא המוערך האחרון שלך: ${top.exerciseName}, 1RM מוערך ${top.est1rmKg.toFixed(1)} ק״ג.` : `Your latest estimated PR: ${top.exerciseName}, estimated 1RM ${top.est1rmKg.toFixed(1)} kg.`;
+      return he ? `השיא המוערך האחרון: ${top.exerciseName}, 1RM מוערך ${top.est1rmKg.toFixed(1)} ק״ג.` : `Your latest estimated PR: ${top.exerciseName}, estimated 1RM ${top.est1rmKg.toFixed(1)} kg.`;
     }
     case 'recovery':
-      return he ? 'להתאוששות: שינה של 7–9 שעות, חלבון מספק, והפחתת עצימות כשהצ׳ק-אין מראה עייפות. כאב חד או כאב מפרק מחייב עצירה ובדיקה.' : 'For recovery: 7–9 hours of sleep, enough protein, and lower intensity when your check-in shows fatigue. Sharp or joint pain means stop and get it checked.';
+      return he ? 'להתאוששות: שינה של 7–9 שעות, חלבון מספק, והפחתת עצימות כשבדיקת המוכנות מראה עייפות. כאב חד או כאב מפרק מחייב עצירה ובדיקה.' : 'For recovery: 7–9 hours of sleep, enough protein, and lower intensity when your check-in shows fatigue. Sharp or joint pain means stop and get it checked.';
     case 'general': {
-      const n = s.recentWorkouts.length;
+      // A real count over a stated window: recentWorkouts is only a sample of the last few and must not read as a total.
+      const n = s.workouts30d ?? 0;
       if (n === 0) return NO_DATA[lang];
-      return he ? `תועדו ${n} אימונים לאחרונה. אפשר לשאול אותי על אימון היום, חלבון, קלוריות, משקל או שיאים.` : `${n} recent workouts are logged. You can ask me about today's workout, protein, calories, weight or PRs.`;
+      return he ? `אימונים שתועדו ב-30 הימים האחרונים: ${n}. אפשר לשאול אותי על אימון היום, חלבון, קלוריות, משקל או שיאים.` : `Workouts logged in the last 30 days: ${n}. You can ask me about today's workout, protein, calories, weight or PRs.`;
     }
   }
 }

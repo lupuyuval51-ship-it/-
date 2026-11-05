@@ -1,7 +1,8 @@
 import { PORTION_MAX, PORTION_MIN, SNACK_KCAL_CAP } from '@lupu-fit/shared';
 import { describe, expect, it } from 'vitest';
 import { DISHES, DISH_BY_ID } from '../../data/content.ts';
-import { addDaysIso, adherenceOf, barTone, DEFAULT_CHOICE, dishLogPayload, dishTotalGrams, groupBySlot, menuFor, menuSeed, roundGrams, shoppingFor, shoppingText, spanDates, type FoodEntry } from './logic.ts';
+import { dishGrams } from '../../lib/foodSearch.ts';
+import { addDaysIso, adherenceOf, barTone, DEFAULT_CHOICE, dishLogPayload, groupBySlot, menuFor, menuSeed, roundGrams, shoppingFor, shoppingText, spanDates, type FoodEntry } from './logic.ts';
 
 const base = { diet: 'omnivore', restrictions: [], allergies: [] } as const;
 
@@ -54,7 +55,7 @@ describe('dish logging payload', () => {
     const m = menuFor(DISHES, 2500, '2026-05-01', DEFAULT_CHOICE, base);
     const item = m.items[0]!; const dish = DISH_BY_ID.get(item.dishId)!;
     const p = dishLogPayload(item, dish, '2026-05-01', 'x');
-    expect(p.grams).toBeCloseTo(dishTotalGrams(dish) * item.portion, 0);
+    expect(p.grams).toBeCloseTo(dishGrams(dish) * item.portion, 0);
     expect(p).toMatchObject({ dishId: dish.id, slot: item.slot, kcal: item.kcal, proteinG: item.proteinG, loggedDate: '2026-05-01', estimated: false });
   });
 });

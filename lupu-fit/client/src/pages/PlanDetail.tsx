@@ -11,7 +11,7 @@ import {
   type ExerciseHistory, type ProgressionChange,
 } from '../lib/workoutCompose.ts';
 import { Banner, Button, Card, EmptyState, ErrorState, IconButton, Tag, errorMessage } from '../ui/kit.tsx';
-import { Disclosure, SkeletonList, StickyAction } from '../ui/patterns.tsx';
+import { Disclosure, PageHeader, SkeletonList, StickyAction } from '../ui/patterns.tsx';
 import { IconCheck, IconChevron, IconTrash } from '../ui/icons.tsx';
 import { useToast } from '../ui/toast.tsx';
 import { ExerciseLine, PrescriptionLine } from '../components/workouts/ExerciseLine.tsx';
@@ -96,9 +96,10 @@ export default function PlanDetail(): ReactNode {
     onError: (e) => { if (e instanceof ApiRequestError && e.status === 409 && e.code === 'session_in_progress') setConflict(true); else toast(errorMessage(e, t), 'error'); },
   });
 
-  if (plans.isLoading || prof.isLoading) return <SkeletonList rows={3} />;
-  if (plans.isError) return <ErrorState error={plans.error} onRetry={() => void plans.refetch()} />;
-  if (!row || !plan) return <div className="stack"><Link to="/workouts">{t('workouts.plan.back')}</Link><ErrorState error={{ code: 'not_found' }} /></div>;
+  const placeholderHeader = <PageHeader back="/workouts" title={t('workouts.tabs.plans')} />;
+  if (plans.isLoading || prof.isLoading) return <div className="stack">{placeholderHeader}<SkeletonList rows={3} /></div>;
+  if (plans.isError) return <div className="stack">{placeholderHeader}<ErrorState error={plans.error} onRetry={() => void plans.refetch()} /></div>;
+  if (!row || !plan) return <div className="stack">{placeholderHeader}<ErrorState error={{ code: 'not_found' }} /></div>;
 
   const day = plan.days[Math.min(dayIdx, plan.days.length - 1)]!;
   const di = Math.min(dayIdx, plan.days.length - 1);
@@ -113,10 +114,9 @@ export default function PlanDetail(): ReactNode {
 
   return (
     <div className="stack">
-      <Link to="/workouts" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.plan.back')}</Link>
-      <section className={`card stack${row.active ? ' hero-card' : ''}`}>
-        <div className="row-wrap">{row.active ? <Tag tone="success">{t('workouts.plan.activeBadge')}</Tag> : null}{row.archived ? <Tag>{t('workouts.plan.archivedBadge')}</Tag> : null}</div>
-        <h1>{row.name}</h1>
+      <PageHeader back="/workouts" title={row.name} />
+      <section className={`card stack${row.active ? ' hero-card' : ''}`} aria-label={row.name}>
+        {row.active || row.archived ? <div className="row-wrap">{row.active ? <Tag tone="success">{t('workouts.plan.activeBadge')}</Tag> : null}{row.archived ? <Tag>{t('workouts.plan.archivedBadge')}</Tag> : null}</div> : null}
         {recent.data ? <span className="small muted">{t('workouts.plans.weekProgress', { done: doneCount, total: plan.days.length })}</span> : null}
         <div className="wk-actions wk-actions-quiet">
           {row.archived ? <Button size="sm" disabled={act.isPending} onClick={() => act.mutate('restore')}>{t('workouts.plan.restore')}</Button> : (

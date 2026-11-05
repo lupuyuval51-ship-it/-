@@ -1,6 +1,8 @@
 import type { AiProvider } from '../core/types.ts';
 
 type Env = Record<string, string | undefined>;
+/** Upper bound for one provider call: a stalled AI host must not hold the request (the coach then falls back to the rules reply). */
+export const AI_TIMEOUT_MS = 30_000;
 /** Google Gemma 4 first (documented IDs on the Gemini API), Gemini as fallback when Gemma is rate limited/unavailable. */
 const DEFAULT_GEMINI_MODELS = ['gemma-4-31b-it', 'gemma-4-26b-a4b-it', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 /** Gemma's docs do not list JSON mode, so for gemma-* the responseMimeType hint is dropped (the prompt + server validation enforce JSON). */
@@ -23,7 +25,7 @@ export class GeminiProvider implements AiProvider {
   private cooldown = new Map<string, number>();
   constructor(private readonly key: string, private readonly f: typeof fetch = fetch, private readonly models: string[] = DEFAULT_GEMINI_MODELS) {}
   private async call(model: string, body: unknown): Promise<string> {
-    const r = await this.f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': this.key }, body: JSON.stringify(forModel(model, body)) });
+    const r = await this.f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': this.key }, body: JSON.stringify(forModel(model, body)), signal: AbortSignal.timeout(AI_TIMEOUT_MS) });
     if (r.status === 429 || r.status === 503) { this.cooldown.set(model, Date.now() + 60_000); throw new Error(`gemini_busy_${r.status}`); }
     if (!r.ok) throw new Error(`gemini_http_${r.status}`);
     const j = (await r.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
@@ -33,7 +35,10 @@ export class GeminiProvider implements AiProvider {
     let last: unknown;
     for (const m of this.models) {
       if ((this.cooldown.get(m) ?? 0) > Date.now()) continue;
-      try { return await this.call(m, body); } catch (e) { last = e; }
+      try { return await this.call(m, body); } catch (e) {
+        last = e;
+        if (e instanceof Error && e.name === 'TimeoutError') break; // the host itself is not answering: do not wait another 30 s per model
+      }
     }
     throw last instanceof Error ? last : new Error('gemini_unavailable');
   }
@@ -49,7 +54,7 @@ export class ClaudeProvider implements AiProvider {
   readonly name = 'claude';
   constructor(private readonly key: string, private readonly model = process.env['ANTHROPIC_MODEL'] ?? 'claude-haiku-4-5', private readonly f: typeof fetch = fetch) {}
   private async call(body: unknown): Promise<string> {
-    const r = await this.f('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': this.key, 'anthropic-version': '2023-06-01' }, body: JSON.stringify(body) });
+    const r = await this.f('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': this.key, 'anthropic-version': '2023-06-01' }, body: JSON.stringify(body), signal: AbortSignal.timeout(AI_TIMEOUT_MS) });
     if (!r.ok) throw new Error(`claude_http_${r.status}`);
     const j = (await r.json()) as { content?: { type: string; text?: string }[] };
     return (j.content ?? []).filter((c) => c.type === 'text').map((c) => c.text ?? '').join('');

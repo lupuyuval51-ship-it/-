@@ -30,8 +30,5 @@ export const IconCamera = base(<><path d="M4 8h3l2-3h6l2 3h3v12H4z" /><circle cx
 export const IconBarcode = base(<path d="M4 5v14M7 5v14M11 5v14M14 5v14M18 5v14M21 5v14" />);
 export const IconTrash = base(<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />);
 export const IconCopy = base(<><rect x="8" y="8" width="12" height="12" /><path d="M4 16V4h12" /></>);
-export const IconTimer = base(<><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M9 2h6" /></>);
-export const IconFlame = base(<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z" />);
 export const IconStar = base(<path d="M12 3l3 6 6 1-4.500 4.500 1 6.500L12 18l-5.500 3 1-6.500L3 10l6-1z" />);
 export const IconShield = base(<><path d="M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z" /><path d="M9 12l2 2 4-4" /></>);
-export const IconSettings = base(<><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></>);

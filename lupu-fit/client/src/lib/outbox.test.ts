@@ -87,4 +87,46 @@ describe('outbox on a shared device', () => {
     await outbox.flush();
     expect(outbox.list().map((i) => i.status)).toEqual(['pending']);
   });
+
+  it('a stale CSRF token (csrf_invalid) leaves the entry pending instead of rejecting it', async () => {
+    await signIn('A');
+    behaviour = () => new NetworkError();
+    await callOrQueue({ method: 'POST', path: '/api/food-log', body: {}, label: 'rice' });
+    behaviour = () => new ApiRequestError(403, 'csrf_invalid', null);
+    await outbox.flush();
+    expect(outbox.list().map((i) => i.status)).toEqual(['pending']);
+  });
+
+  it('a flush that is still running stops before the next item when someone else signs in', async () => {
+    await signIn('A');
+    behaviour = () => new NetworkError();
+    let tick = Date.now(); const clock = vi.spyOn(Date, 'now').mockImplementation(() => ++tick); // distinct createdAt: replay order is by time
+    for (const p of ['/api/a1', '/api/a2', '/api/a3']) await callOrQueue({ method: 'POST', path: p, body: {}, label: p });
+    clock.mockRestore();
+    let release!: () => void; const gate = new Promise<void>((r) => { release = r; });
+    calls.length = 0;
+    behaviour = (p) => (p === '/api/a1' ? gate.then(() => ({ ok: true })) : { ok: true });
+    const running = outbox.flush();
+    await new Promise((r) => setTimeout(r, 5));
+    await signIn('B'); // A signed out, B signed in while A's first replay hung
+    release(); await running;
+    expect(calls.map((c) => c.path)).toEqual(['/api/a1']); // nothing more of A's went out with B's session
+    await signIn('A');
+    expect(outbox.list().map((i) => i.path)).toEqual(['/api/a2', '/api/a3']);
+  });
+
+  it('an ended "this browser session only" sign-in drops that person\'s entries older than the session lifetime', async () => {
+    const real = await vi.importActual<typeof import('../api/client.ts')>('../api/client.ts');
+    real.setTransport({ request: async () => asUser('A') });
+    await real.api.post('/api/auth/login', { username: 'A', password: 'x', remember: false });
+    behaviour = () => new NetworkError();
+    const now = Date.now();
+    const spy = vi.spyOn(Date, 'now').mockReturnValue(now - 13 * 3600_000);
+    await callOrQueue({ method: 'POST', path: '/api/old', body: {}, label: 'old' });
+    spy.mockRestore();
+    await callOrQueue({ method: 'POST', path: '/api/new', body: {}, label: 'new' });
+    real.setTransport({ request: async () => ({ status: 401, body: { error: 'unauthorized' }, headers: {} }) });
+    await real.api.get('/api/auth/me').catch(() => undefined);
+    await vi.waitFor(async () => { await signIn('A'); expect(outbox.list().map((i) => i.path)).toEqual(['/api/new']); });
+  });
 });

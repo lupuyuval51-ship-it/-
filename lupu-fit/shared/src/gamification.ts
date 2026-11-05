@@ -29,9 +29,12 @@ export const XP = {
 
 export interface XpAward { sourceType: string; sourceKey: string; amount: number }
 
+/** What counts as a real workout, for workout XP and for the weekly goal alike (an empty "start then finish" is neither). */
+export const WORKOUT_BAR = { minMinutes: 10, minSets: 3 } as const;
+
 /** Workout XP: ≥10 min and ≥3 sets, max 1/day, capped at weeklyGoal+1 per week. */
 export function workoutXp(i: { date: string; durationMin: number; sets: number; workoutXpAlreadyToday: boolean; workoutXpThisWeek: number; weeklyGoal: number }): XpAward | null {
-  if (i.durationMin < 10 || i.sets < 3 || i.workoutXpAlreadyToday) return null;
+  if (i.durationMin < WORKOUT_BAR.minMinutes || i.sets < WORKOUT_BAR.minSets || i.workoutXpAlreadyToday) return null;
   if (i.workoutXpThisWeek >= i.weeklyGoal + 1) return null;
   return { sourceType: 'workout', sourceKey: i.date, amount: XP.workout };
 }
@@ -51,15 +54,18 @@ export function dayOffset(todayIso: string, dayIso: string): number {
   return Math.round((Date.parse(`${todayIso}T00:00:00Z`) - Date.parse(`${dayIso}T00:00:00Z`)) / DAY_MS);
 }
 
+/** Day-based rewards pay only for today and the 2 days before it: a back-filled or future-dated entry is logged but earns nothing. */
+export const isRewardDay = (todayIso: string, dayIso: string): boolean => { const off = dayOffset(todayIso, dayIso); return off >= 0 && off <= 2; };
+
 /** Food-log day: ≥2 meals, window = today + 2 past days. */
 export function foodDayXp(todayIso: string, dayIso: string, mealsLogged: number): XpAward | null {
-  const off = dayOffset(todayIso, dayIso);
-  if (mealsLogged < 2 || off < 0 || off > 2) return null;
+  if (mealsLogged < 2 || !isRewardDay(todayIso, dayIso)) return null;
   return { sourceType: 'food_day', sourceKey: dayIso, amount: XP.foodDay };
 }
 
-/** Protein day: ≥90% of protein target AND ≥80% of kcal target (never rewards undereating). */
-export function proteinDayXp(dayIso: string, i: { proteinG: number; targetProteinG: number; kcal: number; targetKcal: number }): XpAward | null {
+/** Protein day: ≥90% of protein target AND ≥80% of kcal target (never rewards undereating); same window as the food day. */
+export function proteinDayXp(dayIso: string, i: { proteinG: number; targetProteinG: number; kcal: number; targetKcal: number }, todayIso: string): XpAward | null {
+  if (!isRewardDay(todayIso, dayIso)) return null;
   if (i.targetProteinG <= 0 || i.targetKcal <= 0) return null;
   if (i.proteinG < 0.9 * i.targetProteinG || i.kcal < 0.8 * i.targetKcal) return null;
   return { sourceType: 'protein_day', sourceKey: dayIso, amount: XP.proteinDay };
@@ -75,8 +81,9 @@ export function isoWeekKey(dateIso: string): string {
   return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
 }
 
-export function weighInXp(dateIso: string, alreadyThisWeek: boolean): XpAward | null {
-  return alreadyThisWeek ? null : { sourceType: 'weigh_in', sourceKey: isoWeekKey(dateIso), amount: XP.weighIn };
+/** Weigh-in: once per ISO week, and only for a weigh-in dated in the reward window (a far-future date must not open new weeks). */
+export function weighInXp(dateIso: string, alreadyThisWeek: boolean, todayIso: string): XpAward | null {
+  return alreadyThisWeek || !isRewardDay(todayIso, dateIso) ? null : { sourceType: 'weigh_in', sourceKey: isoWeekKey(dateIso), amount: XP.weighIn };
 }
 
 export function weeklyGoalXp(dateIso: string, workoutsThisWeek: number, weeklyGoal: number): XpAward | null {

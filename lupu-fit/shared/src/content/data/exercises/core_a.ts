@@ -339,7 +339,7 @@ export const CORE_A_EXERCISES: ExerciseContent[] = [
       'Brace the abs and glutes so the body forms a straight line from head to heels',
       'Hold the position with normal breathing, looking at the floor with the neck neutral',
     ],
-    cuesHe: ['גוף קשוח כמו קרש', 'ללחוץ את האמות לרצפה ולדחוף את הרצפה ממך'],
+    cuesHe: ['גוף קשיח כמו קרש', 'ללחוץ את האמות לרצפה ולדחוף את הרצפה ממך'],
     cuesEn: ['Stiff as a plank', 'Press the forearms into the floor and push the floor away'],
     mistakesHe: [
       'צניחת האגן והגב התחתון מטה',
@@ -401,7 +401,7 @@ export const CORE_A_EXERCISES: ExerciseContent[] = [
     externallyLoaded: false, unilateral: false,
     stepsHe: [
       'להתחיל בפלאנק על האמות ואז להזיז את המרפקים קדימה, כ-10 עד 20 ס״מ לפני קו הכתפיים',
-      'להרים את הגוף על קצות הבהונות ולישר את הרגליים',
+      'להרים את הגוף על קצות הבהונות וליישר את הרגליים',
       'להטות את האגן מעט לאחור ולכווץ חזק את הבטן והישבן, כך שהמנוף הארוך לא מקמר את הגב',
       'להחזיק זמן קצר יותר מפלאנק רגיל, בנשימה קצרה ושקטה',
     ],

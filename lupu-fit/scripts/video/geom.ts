@@ -7,7 +7,6 @@ export const len = (a: V): number => Math.hypot(a[0], a[1]);
 export const norm = (a: V): V => { const l = len(a) || 1; return [a[0] / l, a[1] / l]; };
 export const dot = (a: V, b: V): number => a[0] * b[0] + a[1] * b[1];
 export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
-export const lerpV = (a: V, b: V, t: number): V => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 export const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
 export const rad = (deg: number): number => (deg * Math.PI) / 180;
 

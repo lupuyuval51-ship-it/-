@@ -57,7 +57,7 @@ export default function Profile(): ReactNode {
   const name = form.displayName?.trim();
 
   return (
-    <form className="stack profile-page" onSubmit={(e) => { e.preventDefault(); save(); }} noValidate>
+    <div className="stack profile-page">
       <PageHeader title={t('profile.title')} subtitle={name || undefined} />
 
       {clamped ? <Banner tone="warn"><span data-testid="clamp-note">{t('profile.clamped', { asked: fmt.num(notes.requested!), got: fmt.num(notes.effective) })}</span></Banner> : null}
@@ -67,19 +67,31 @@ export default function Profile(): ReactNode {
         <h2 className="section-title">{t('profile.targets')}</h2>
         <div className="pf-kcal"><span className="num-hero" data-testid="target-kcal">{fmt.num(tg.kcal)}</span><span className="muted small"> {t('unit.kcal')} / {t('profile.nu.day')}</span></div>
         <div className="grid-3 pf-macros">
-          <div className="kpi"><span className="label">{t('nutrition.nu.protein')}</span><span className="num-lg">{fmt.num(tg.proteinG)}<small className="muted small"> {t('unit.g')}</small></span></div>
-          <div className="kpi"><span className="label">{t('nutrition.nu.carbs')}</span><span className="num-lg">{fmt.num(tg.carbsG)}<small className="muted small"> {t('unit.g')}</small></span></div>
-          <div className="kpi"><span className="label">{t('nutrition.nu.fat')}</span><span className="num-lg">{fmt.num(tg.fatG)}<small className="muted small"> {t('unit.g')}</small></span></div>
+          <div className="kpi"><span className="label">{t('nutrition.nu.protein')}</span><span className="stat-val"><span className="num-lg">{fmt.num(tg.proteinG)}</span><small className="muted small"> {t('unit.g')}</small></span></div>
+          <div className="kpi"><span className="label">{t('nutrition.nu.carbs')}</span><span className="stat-val"><span className="num-lg">{fmt.num(tg.carbsG)}</span><small className="muted small"> {t('unit.g')}</small></span></div>
+          <div className="kpi"><span className="label">{t('nutrition.nu.fat')}</span><span className="stat-val"><span className="num-lg">{fmt.num(tg.fatG)}</span><small className="muted small"> {t('unit.g')}</small></span></div>
         </div>
         <div className="row-wrap small muted pf-meta"><span>{t('profile.bmr')}: <span className="num">{fmt.num(tg.bmr)}</span></span><span>{t('profile.tdee')}: <span className="num">{fmt.num(tg.tdee)}</span></span></div>
         <span className="small muted">{t('profile.targetsNote')}</span>
       </section>
 
-      <Card className="stack pf-section">
-        <h2 className="section-title">{t('profile.nu.body')}</h2>
-        <BodyGoalsFields value={form} onChange={setForm} errors={errors} />
-        <Link className="list-link pf-redo" to="/onboarding"><span className="grow"><strong>{t('profile.redo')}</strong><br /><span className="small muted">{t('profile.nu.redoHint')}</span></span><IconChevron className="chev" /></Link>
-      </Card>
+      {/* Only the saved fields live in this form. Panels with their own forms or sheets (language, backup, account) stay outside,
+          so their submits and Enter keys never trigger (or nest inside) the profile save. */}
+      <form className="stack" onSubmit={(e) => { e.preventDefault(); save(); }} noValidate>
+        <Card className="stack pf-section">
+          <h2 className="section-title">{t('profile.nu.body')}</h2>
+          <BodyGoalsFields value={form} onChange={setForm} errors={errors} />
+          <Link className="list-link pf-redo" to="/onboarding"><span className="grow"><strong>{t('profile.redo')}</strong><br /><span className="small muted">{t('profile.nu.redoHint')}</span></span><IconChevron className="chev" /></Link>
+        </Card>
+
+        <Card className="stack pf-section">
+          <h2 className="section-title">{t('profile.nu.prefs')}</h2>
+          <PreferenceFields value={form} onChange={setForm} errors={errors}
+            onTheme={(th) => { setTheme(th); persistPref({ theme: th }); }} />
+        </Card>
+
+        <div className={dirty ? 'sticky-cta' : undefined}><Button type="submit" variant="primary" block disabled={put.isPending || !dirty}>{put.isPending ? t('profile.saving') : dirty ? t('action.save') : t('profile.nu.saved')}</Button></div>
+      </form>
 
       <Card className="stack pf-section">
         <h2 className="section-title">{t('profile.ml.title')}</h2>
@@ -87,19 +99,11 @@ export default function Profile(): ReactNode {
         <LanguagePanel onBuiltIn={(l) => { setLang(l); persistPref({ language: l }); }} onCustomActivated={() => persistPref({ language: 'en' })} />
       </Card>
 
-      <Card className="stack pf-section">
-        <h2 className="section-title">{t('profile.nu.prefs')}</h2>
-        <PreferenceFields value={form} onChange={setForm} errors={errors}
-          onTheme={(th) => { setTheme(th); persistPref({ theme: th }); }} />
-      </Card>
-
-      <div className={dirty ? 'sticky-cta' : undefined}><Button type="submit" variant="primary" block disabled={put.isPending || !dirty}>{put.isPending ? t('profile.saving') : dirty ? t('action.save') : t('profile.nu.saved')}</Button></div>
-
       <Card className="stack pf-section"><h2 className="section-title">{t('automation.title')}</h2><AutomationCard profile={q.data.profile} /></Card>
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.nu.storage')}</h2><VideoPanel /><OutboxPanel /></Card>
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.backup.title')}</h2><BackupPanel /></Card>
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.account.title')}</h2><AccountPanel /></Card>
       <p className="small muted">{t('disclaimer.health')}</p>
-    </form>
+    </div>
   );
 }

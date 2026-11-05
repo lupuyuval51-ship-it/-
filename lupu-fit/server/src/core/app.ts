@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { randomHex, randomId, sha256Hex } from '../crypto/portableCrypto.ts';
 import { ApiError } from './errors.ts';
 import { Router } from './router.ts';
@@ -36,9 +35,35 @@ function normalise(r: HandlerResult): ApiResponse {
   return r;
 }
 
-export interface ApiApp { handle(req: ApiRequest): Promise<ApiResponse>; router: Router; deps: Deps }
+export interface ApiApp {
+  handle(req: ApiRequest): Promise<ApiResponse>;
+  /** The session behind a request's cookie, or null (one indexed SELECT). Lets a transport refuse before it reads a large body. */
+  authenticate(headers: Record<string, string>): Promise<{ user: NonNullable<Ctx['user']>; session: NonNullable<Ctx['session']> } | null>;
+  router: Router; deps: Deps;
+}
+
+/** An Idempotency-Key claimed less than this long ago is still being worked on; an older unfinished claim (crashed request) is taken over. */
+export const IDEMPOTENCY_CLAIM_MS = 60_000;
+
+/** The admin list is the single source of truth: a stored role 'admin' counts only while the username is still listed. */
+export function effectiveRole(deps: Deps, username: string, stored: 'user' | 'admin'): 'user' | 'admin' {
+  return stored === 'admin' && (deps.adminUsernames ?? []).some((n) => n.toLowerCase() === username.toLowerCase()) ? 'admin' : 'user';
+}
+
+/** SHA-256 hex of a session token, through the injected synchronous hash when the host provides one. */
+export const tokenHash = async (deps: Deps, token: string): Promise<string> => (deps.sha256 ? deps.sha256(token) : sha256Hex(token));
 
 export function createApiApp(deps: Deps, router: Router): ApiApp {
+  async function authenticate(headers: Record<string, string>) {
+    const token = parseCookies(headers['cookie'])[SESSION_COOKIE];
+    if (!token || !/^[0-9a-f]{64}$/.test(token)) return null;
+    const rows = await deps.db.query<{ sid: string; csrf: string; uid: string; username: string; role: 'user' | 'admin' }>(
+      'SELECT s.id AS sid, s.csrf_token AS csrf, u.id AS uid, u.username, u.role FROM auth_sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > $2',
+      [await tokenHash(deps, token), deps.clock().toISOString()]);
+    const r = rows[0];
+    return r ? { user: { id: r.uid, username: r.username, role: effectiveRole(deps, r.username, r.role) }, session: { id: r.sid, csrf: r.csrf } } : null;
+  }
+
   async function handle(req: ApiRequest): Promise<ApiResponse> {
     try { return await dispatch(req); }
     catch (e) {
@@ -65,15 +90,8 @@ export function createApiApp(deps: Deps, router: Router): ApiApp {
     if (req.bodyBytes !== undefined && req.bodyBytes > limit) throw new ApiError(413, 'payload_too_large');
 
     // --- session
-    let user: Ctx['user'] = null; let session: Ctx['session'] = null;
-    const token = parseCookies(req.headers['cookie'])[SESSION_COOKIE];
-    if (token && /^[0-9a-f]{64}$/.test(token)) {
-      const rows = await deps.db.query<{ sid: string; csrf: string; uid: string; username: string; role: 'user' | 'admin' }>(
-        'SELECT s.id AS sid, s.csrf_token AS csrf, u.id AS uid, u.username, u.role FROM auth_sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > $2',
-        [await sha256Hex(token), now.toISOString()]);
-      const r = rows[0];
-      if (r) { user = { id: r.uid, username: r.username, role: r.role }; session = { id: r.sid, csrf: r.csrf }; }
-    }
+    const auth = await authenticate(req.headers);
+    const user: Ctx['user'] = auth?.user ?? null; const session: Ctx['session'] = auth?.session ?? null;
     if (needsAuth && !user) throw new ApiError(401, 'unauthorized');
 
     // --- CSRF (only meaningful with a session cookie)
@@ -91,30 +109,42 @@ export function createApiApp(deps: Deps, router: Router): ApiApp {
 
     const ctx: Ctx = { req, deps, db: deps.db, params: m.params, body, now, user, session };
 
-    // --- idempotency
+    // --- idempotency: the key is CLAIMED before the handler runs, so parallel replays of one key (two tabs flushing the same offline
+    // outbox) cannot both run it. A claim is a row with status_code 0; it becomes the stored answer on success and is removed otherwise.
     const idemKey = req.headers['idempotency-key'];
     const useIdem = !!idemKey && !!user && MUTATING.has(method) && route.opts.idempotent !== false && idemKey.length <= 128;
+    let claimed = false;
     if (useIdem && user && idemKey) {
-      const prev = await deps.db.query<{ method: string; path: string; status_code: number; response_body: unknown }>('SELECT method, path, status_code, response_body FROM idempotency_keys WHERE user_id = $1 AND key = $2', [user.id, idemKey]);
-      const p = prev[0];
-      if (p) {
-        if (p.method !== method || p.path !== req.path) throw new ApiError(422, 'idempotency_key_reused');
-        return { status: p.status_code, body: p.response_body ?? undefined, headers: { 'idempotent-replay': 'true' } };
+      claimed = (await deps.db.query('INSERT INTO idempotency_keys (user_id, key, method, path, status_code, response_body, created_at) VALUES ($1,$2,$3,$4,0,NULL,$5) ON CONFLICT DO NOTHING RETURNING 1', [user.id, idemKey, method, req.path, now.toISOString()])).length > 0;
+      if (!claimed) {
+        const p = (await deps.db.query<{ method: string; path: string; status_code: number; response_body: unknown; created_at: Date | string }>('SELECT method, path, status_code, response_body, created_at FROM idempotency_keys WHERE user_id = $1 AND key = $2', [user.id, idemKey]))[0];
+        if (p && (p.method !== method || p.path !== req.path)) throw new ApiError(422, 'idempotency_key_reused');
+        if (p && p.status_code !== 0) return { status: p.status_code, body: p.response_body ?? undefined, headers: { 'idempotent-replay': 'true' } };
+        // Still running elsewhere (or the claim vanished a moment ago): ask the client to retry shortly. A stale claim is taken over.
+        const stale = new Date(now.getTime() - IDEMPOTENCY_CLAIM_MS).toISOString();
+        if (p) claimed = (await deps.db.query('UPDATE idempotency_keys SET created_at = $3 WHERE user_id = $1 AND key = $2 AND status_code = 0 AND created_at < $4 RETURNING 1', [user.id, idemKey, now.toISOString(), stale])).length > 0;
+        if (!claimed) throw new ApiError(429, 'rate_limited', { reason: 'idempotency_in_progress' }, { 'retry-after': '1' });
       }
     }
+    const release = () => (user && idemKey ? deps.db.query('DELETE FROM idempotency_keys WHERE user_id = $1 AND key = $2 AND status_code = 0', [user.id, idemKey]).catch(() => undefined) : undefined);
 
-    const res = normalise(await route.handler(ctx));
-    // Canonical JSON (Dates -> ISO strings): every transport (HTTP, device worker, tests) sees byte-identical bodies.
-    if (res.body !== undefined) res.body = JSON.parse(JSON.stringify(res.body)) as unknown;
-    if (useIdem && user && idemKey && res.status >= 200 && res.status < 300) {
-      // The user row may be gone by now (DELETE /api/account): storing the replay record must not turn a successful deletion into a 500.
-      await deps.db.query('INSERT INTO idempotency_keys (user_id, key, method, path, status_code, response_body) SELECT $1::text, $2::text, $3::text, $4::text, $5::int, $6::jsonb WHERE EXISTS (SELECT 1 FROM users WHERE id = $1::text) ON CONFLICT DO NOTHING', [user.id, idemKey, method, req.path, res.status, JSON.stringify(res.body ?? null)]);
+    let res: ApiResponse;
+    try {
+      res = normalise(await route.handler(ctx));
+      // Canonical JSON (Dates -> ISO strings): every transport (HTTP, device worker, tests) sees byte-identical bodies.
+      if (res.body !== undefined) res.body = JSON.parse(JSON.stringify(res.body)) as unknown;
+    } catch (e) { if (claimed) await release(); throw e; }
+    if (claimed && user && idemKey) {
+      // After DELETE /api/account the claim has cascaded away with the user: updating 0 rows is fine.
+      // replayBody:false routes keep only the status: their answers (coach chats, the profile, photo estimates) hold private text.
+      const stored = route.opts.replayBody === false ? null : JSON.stringify(res.body ?? null);
+      if (res.status >= 200 && res.status < 300) await deps.db.query('UPDATE idempotency_keys SET status_code = $3, response_body = $4::jsonb WHERE user_id = $1 AND key = $2', [user.id, idemKey, res.status, stored]);
+      else await release();
     }
     return res;
   }
 
-  return { handle, router, deps };
+  return { handle, authenticate, router, deps };
 }
 
-export const idSchema = z.string().min(1).max(80);
 export { randomId, randomHex };

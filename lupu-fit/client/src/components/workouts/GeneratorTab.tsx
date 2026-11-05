@@ -12,7 +12,7 @@ import { Disclosure, SkeletonList, StickyAction } from '../../ui/patterns.tsx';
 import { ChoiceCards } from './ChoiceCards.tsx';
 import { IconBody, IconKettle } from './wkIcons.tsx';
 import { useToast } from '../../ui/toast.tsx';
-import { PLANS_KEY } from './plansApi.ts';
+import { PLANS_KEY, usePlans } from './plansApi.ts';
 import { PlanNotes, PlanPreview } from './PlanPreview.tsx';
 
 export function GeneratorTab(): ReactNode {
@@ -39,7 +39,11 @@ function GeneratorForm({ defaults }: { defaults: { days: number; minutes: number
   const [seed, setSeed] = useState(1);
   const [generated, setGenerated] = useState<{ plan: GeneratedPlan; key: string; seed: number } | null>(null);
   const [name, setName] = useState('');
-  const [activate, setActivate] = useState(false);
+  // A first plan is activated by default so it reaches Home; with an active plan already, saving keeps that one unless switched on.
+  const plans = usePlans();
+  const hasActive = (plans.data ?? []).some((p) => p.active && !p.archived);
+  const [activateChoice, setActivate] = useState<boolean | null>(null);
+  const activate = activateChoice ?? (plans.isSuccess && !hasActive);
 
   const parsed = useMemo(() => parsePreferences(prefs, EXERCISES), [prefs]);
   const merged = useMemo(() => mergeAvoidIds(avoid, parsed.avoidIds), [avoid, parsed.avoidIds]);

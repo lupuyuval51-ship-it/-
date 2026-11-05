@@ -86,6 +86,24 @@ describe('Profile basics', () => {
     await waitFor(() => expect(h.calls.find((c) => c.m === 'PUT')?.b).toMatchObject({ theme: 'light' }));
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
+  it('"Other language" submits its own request and never the profile form (no nested forms)', async () => {
+    const base = h.handler;
+    h.handler = (m, p, b, q) => (p === '/api/i18n/translate' ? new ApiRequestError(503, 'ai_unavailable', {}) : base(m, p, b, q));
+    view();
+    const user = userEvent.setup();
+    await screen.findByText('Daily targets');
+    await user.click(screen.getByRole('button', { name: /Translate the app to another language/ }));
+    const sheet = await screen.findByRole('dialog');
+    expect(document.querySelectorAll('form form')).toHaveLength(0);
+    await user.type(within(sheet).getByLabelText('Other language'), 'Klingon');
+    await user.click(within(sheet).getByRole('button', { name: 'Translate' }));
+    await waitFor(() => expect(h.calls.some((c) => c.m === 'POST' && c.p === '/api/i18n/translate')).toBe(true));
+    expect(await within(sheet).findByTestId('ml-error')).toHaveTextContent('Translation needs an internet connection and an AI service.');
+    const posts = h.calls.filter((c) => c.m === 'POST' && c.p === '/api/i18n/translate').length;
+    await user.type(within(sheet).getByLabelText('Other language'), '{Enter}');
+    await waitFor(() => expect(h.calls.filter((c) => c.m === 'POST' && c.p === '/api/i18n/translate').length).toBeGreaterThan(posts));
+    expect(h.calls.some((c) => c.m === 'PUT' && c.p === '/api/profile')).toBe(false); // the profile save never fired
+  });
 });
 
 describe('Videos and outbox', () => {

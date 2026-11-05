@@ -183,7 +183,26 @@ describe('Generator tab', () => {
     await u.click(screen.getByRole('button', { name: 'Regenerate' }));
     await waitFor(() => expect(calls.filter((c) => c.path === '/api/plans/generate')).toHaveLength(2));
     expect((calls.filter((c) => c.path === '/api/plans/generate')[1]!.body as { seed: number }).seed).toBe(2);
-    await u.click(screen.getByRole('switch', { name: 'Activate after saving' }));
+    // No active plan yet: the first plan is activated by default so it reaches Home.
+    expect(screen.getByRole('switch', { name: 'Activate after saving' })).toBeChecked();
+    await u.click(screen.getByRole('button', { name: 'Save plan' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.path === '/api/plans')).toBe(true));
+    expect((calls.find((c) => c.method === 'POST' && c.path === '/api/plans')!.body as { activate: boolean }).activate).toBe(true);
+  });
+  it('keeps an existing active plan by default, and the toggle still activates the new one on request', async () => {
+    const plan = { days: [{ day: 'full_a', estimatedMinutes: 40, exercises: [{ exerciseId: 'push_up', prescription: { sets: 3, repsMin: 8, repsMax: 12, rpe: 7, restSec: 60, loadKg: null, durationSec: null } }] }], notes: [] };
+    routes.set('GET /api/plans', () => ({ plans: [{ id: 'p1', name: 'Mine', active: true, archived: false, createdAt: '2026-10-01T10:00:00Z', plan }] }));
+    routes.set('POST /api/plans/generate', () => ({ plan }));
+    routes.set('POST /api/plans', () => ({ id: 'new1' }));
+    const { default: Hub } = await import('../../pages/WorkoutsHub.tsx');
+    const u = userEvent.setup();
+    await mount(<Hub />, '/workouts?tab=generator', 'en');
+    await u.click(await screen.findByRole('button', { name: 'Generate plan' }));
+    await screen.findByText('Plan preview');
+    const toggle = screen.getByRole('switch', { name: 'Activate after saving' });
+    expect(toggle).not.toBeChecked();
+    await u.click(toggle);
+    expect(toggle).toBeChecked();
     await u.click(screen.getByRole('button', { name: 'Save plan' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.path === '/api/plans')).toBe(true));
     expect((calls.find((c) => c.method === 'POST' && c.path === '/api/plans')!.body as { activate: boolean }).activate).toBe(true);
@@ -201,6 +220,15 @@ describe('Generator tab', () => {
 describe('ReadyDetail', () => {
   const w = READY_WORKOUTS.find((x) => x.place === 'gym' && x.mode === 'weights')!;
   const open = async (lang: 'he' | 'en' = 'he') => { const { default: Ready } = await import('../../pages/ReadyDetail.tsx'); return mount(<Ready />, `/workouts/ready/${w.id}`, lang, '/workouts/ready/:readyId'); };
+
+  it('shows the page header and a content-shaped skeleton (no bare spinner) while the profile loads', async () => {
+    routes.set('GET /api/profile', () => new Promise(() => undefined));
+    const { container } = await open('en');
+    expect(await screen.findByRole('heading', { level: 1, name: w.nameEn })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(container.querySelector('.spinner')).toBeNull();
+    expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
+  });
 
   it('shows the exact finisher label, defaults to bodyweight, disables gear when not owned, remembers the sport', async () => {
     profile = { ...PROFILE, place: 'home', equipment: [] };
@@ -297,6 +325,14 @@ describe('History', () => {
     await u.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'מחיקה' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'DELETE' && c.path === '/api/sessions/b')).toBe(true));
   });
+  it('keeps the page header (title + back) while the history loads', async () => {
+    routes.set('GET /api/sessions', () => new Promise(() => undefined));
+    const { default: History } = await import('../../pages/History.tsx');
+    await mount(<History />, '/workouts/history', 'en');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Workout history' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+  });
   it('shows an honest empty state', async () => {
     const { default: History } = await import('../../pages/History.tsx');
     await mount(<History />, '/workouts/history', 'en');
@@ -310,8 +346,8 @@ describe('SessionSummary', () => {
     { id: 'e2', position: 1, exerciseId: 'high_knees', isFinisher: true, sport: 'soccer', sets: [{ id: 't3', setNo: 1, reps: null, weightKg: null, durationSec: 30, rpe: null }] },
   ] };
   const finish = { sessionId: 's1', durationSec: 3000, totalSets: 3, volumeKg: 960, prs: [{ exerciseId: 'barbell_bench_press', kind: 'weight', value: 62.5, previous: 60 }], xp: [{ type: 'workout', amount: 50 }, { type: 'sets', amount: 6 }], xpTotal: 56, achievements: ['first_workout'], levelBefore: 1, levelAfter: 2, sport: 'soccer', finisherCount: 1 };
-  const open = async (state?: unknown) => {
-    routes.set('GET /api/sessions/s1', () => session);
+  const open = async (state?: unknown, body: unknown = session) => {
+    routes.set('GET /api/sessions/s1', () => body);
     const { default: Summary } = await import('../../pages/SessionSummary.tsx');
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     return render(<LangProvider initialLang="en"><QueryClientProvider client={qc}><ToastProvider><MemoryRouter initialEntries={[{ pathname: '/workouts/sessions/s1', state }]}><Routes><Route path="/workouts/sessions/:id" element={<Summary />} /></Routes></MemoryRouter></ToastProvider></QueryClientProvider></LangProvider>);
@@ -342,6 +378,26 @@ describe('SessionSummary', () => {
     await waitFor(() => expect(writeText).toHaveBeenCalled());
     const text = writeText.mock.calls[0]![0] as string;
     expect(text).toContain('Chest day'); expect(text).toContain('960 kg'); expect(text).toContain('60 to 62.5');
+  });
+  it('bodyweight sessions show total reps instead of a "0 kg" volume, in the tiles and the copied text', async () => {
+    const bw = { ...session, exercises: [{ id: 'e1', position: 0, exerciseId: 'push_up', isFinisher: false, sport: null, sets: [{ id: 't1', setNo: 1, reps: 10, weightKg: null, durationSec: null, rpe: 7 }, { id: 't2', setNo: 2, reps: 12, weightKg: null, durationSec: null, rpe: 8 }] }] };
+    const u = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText');
+    await open(undefined, bw);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Chest day' })).toBeInTheDocument();
+    expect(screen.queryByText('Volume')).toBeNull();
+    expect(screen.getByText('Total reps')).toBeInTheDocument();
+    expect(screen.getByText('22')).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: /Copy summary/ }));
+    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    const text = writeText.mock.calls.at(-1)![0] as string;
+    expect(text).toContain('2 sets, 22 reps'); expect(text).not.toContain('kg');
+  });
+  it('keeps the page header (title + back) while the session loads', async () => {
+    await open(undefined, new Promise(() => undefined));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Workout summary' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
   });
 });
 
@@ -380,7 +436,7 @@ describe('PlanDetail', () => {
     const u = userEvent.setup();
     await open();
     await u.click(await screen.findByRole('button', { name: 'Apply progression' }));
-    expect(await screen.findByText('1 weights updated from your history.')).toBeInTheDocument();
+    expect(await screen.findByText('1 weight updated from your history.')).toBeInTheDocument();
     const sent = calls.find((c) => c.method === 'PUT')!.body as { plan: { days: { exercises: { prescription: { loadKg: number | null } }[] }[] } };
     expect(sent.plan.days[0]!.exercises[0]!.prescription.loadKg).toBe(62.5);
   });

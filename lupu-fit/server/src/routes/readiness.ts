@@ -3,11 +3,12 @@ import { z } from 'zod';
 import { randomId } from '../crypto/portableCrypto.ts';
 import type { Router } from '../core/router.ts';
 import type { Deps } from '../core/types.ts';
-import { uid } from './util.ts';
+import { assertPlausibleDay, uid } from './util.ts';
 
 export function readinessRoutes(r: Router, _d: Deps): void {
   r.post('/api/readiness', async (ctx) => {
     const b = ctx.body as z.infer<typeof ReadinessBodySchema>;
+    assertPlausibleDay(ctx, b.localDate, 'today', 'localDate'); // a check-in is about today
     const state = readinessState({ sleep: b.sleep as 1, energy: b.energy as 1, soreness: b.soreness as 1, pain: b.pain });
     await ctx.db.query(`INSERT INTO readiness_checkins (id, user_id, local_date, sleep, energy, soreness, pain, state) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
       ON CONFLICT (user_id, local_date) DO UPDATE SET sleep=EXCLUDED.sleep, energy=EXCLUDED.energy, soreness=EXCLUDED.soreness, pain=EXCLUDED.pain, state=EXCLUDED.state`, [randomId(), uid(ctx), b.localDate, b.sleep, b.energy, b.soreness, b.pain, state]);

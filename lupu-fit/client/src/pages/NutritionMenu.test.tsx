@@ -3,7 +3,8 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { profileResponse, renderWith } from '../components/nutrition/testHarness.tsx';
-import { DISH_BY_ID } from '../data/content.ts';
+import { DISHES, DISH_BY_ID } from '../data/content.ts';
+import { DEFAULT_CHOICE, loggedFromDay, menuFor } from '../components/nutrition/logic.ts';
 
 const h = vi.hoisted(() => ({ handler: (_m: string, _p: string, _b?: unknown, _q?: unknown): unknown => ({}), calls: [] as { m: string; p: string; b?: unknown; q?: unknown }[] }));
 vi.mock('../api/client.ts', async (orig) => {
@@ -84,6 +85,38 @@ describe('NutritionMenu', () => {
     expect(JSON.parse(localStorage.getItem('lf_shop_checked_v1')!)).toHaveLength(1);
     await user.click(screen.getByRole('button', { name: /Copy list/ }));
     await waitFor(async () => expect(await navigator.clipboard.readText()).toMatch(/^- .+: \d+ g/m));
+  });
+  it('marks dishes already in the day log (coming back later) and logs only the rest, never the same day twice', async () => {
+    const p = profile.profile;
+    const menu = menuFor(DISHES, profile.targets.kcal, '2026-05-01', DEFAULT_CHOICE, { diet: p.diet, restrictions: p.restrictions, allergies: p.allergies });
+    const logged = menu.items.slice(0, 2).map((it, i) => ({ id: `x${i}`, dishId: it.dishId, slot: it.slot, loggedDate: '2026-05-01' }));
+    h.handler = (m, path, b) => (path === '/api/profile' ? profile : path === '/api/food-log' && m === 'GET' ? { date: '2026-05-01', entries: logged, totals: {} } : path === '/api/food-log' && m === 'POST' ? { entry: b } : {});
+    renderWith(<NutritionMenu />, { route: ROUTE });
+    const user = userEvent.setup();
+    await screen.findByText('Day totals vs targets');
+    const cards = () => screen.getAllByRole('heading', { level: 3 }).map((x) => x.closest('article')!);
+    await waitFor(() => expect(within(cards()[0]!).getByRole('button', { name: /Logged/ })).toBeDisabled());
+    expect(within(cards()[1]!).getByRole('button', { name: /Logged/ })).toBeDisabled();
+    expect(within(cards()[2]!).getByRole('button', { name: 'Log this dish' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Log the whole day' }));
+    await waitFor(() => expect(posts()).toHaveLength(2)); // only the two dishes not logged yet
+    expect(posts().map((x) => x['dishId'])).toEqual(menu.items.slice(2).map((it) => it.dishId));
+  });
+  it('disables "Log the whole day" when the day log already holds every dish', async () => {
+    const p = profile.profile;
+    const menu = menuFor(DISHES, profile.targets.kcal, '2026-05-01', DEFAULT_CHOICE, { diet: p.diet, restrictions: p.restrictions, allergies: p.allergies });
+    const logged = menu.items.map((it, i) => ({ id: `x${i}`, dishId: it.dishId, slot: it.slot }));
+    h.handler = (m, path) => (path === '/api/profile' ? profile : path === '/api/food-log' && m === 'GET' ? { entries: logged } : {});
+    renderWith(<NutritionMenu />, { route: ROUTE });
+    await screen.findByText('Day totals vs targets');
+    await waitFor(() => expect(document.querySelector('.sticky-cta .btn-primary')).toBeDisabled());
+    expect(posts()).toHaveLength(0);
+  });
+  it('matches log entries to menu items one to one (same dish and slot)', () => {
+    const items = [{ dishId: 'a', slot: 'lunch' }, { dishId: 'a', slot: 'lunch' }, { dishId: 'b', slot: 'dinner' }] as never[];
+    expect([...loggedFromDay(items, [{ dishId: 'a', slot: 'lunch' }, { dishId: 'b', slot: 'lunch' }])]).toEqual([0]);
+    expect([...loggedFromDay(items, [{ dishId: 'a', slot: 'lunch' }, { dishId: 'a', slot: 'lunch' }, { dishId: 'b', slot: 'dinner' }])]).toEqual([0, 1, 2]);
+    expect([...loggedFromDay(items, [{ dishId: null, slot: 'lunch' }])]).toEqual([]);
   });
   it('renders in Hebrew with the disclaimer', async () => {
     renderWith(<NutritionMenu />, { route: ROUTE, lang: 'he' });

@@ -207,18 +207,23 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
   /* ---- finish / discard ---- */
   async function finish(): Promise<void> {
     setFinishMsg(null);
-    if (!online) { setFinishMsg(t('live.finishNeedsConnection')); return; }
-    if (totalSets === 0 && !window.confirm(t('live.confirmFinishEmpty'))) return;
+    // The message is shown in the dock, so close the "more" sheet that may sit on top of it.
+    const fail = (m: string): void => { setFinishMsg(m); setListOpen(false); };
+    if (!online) { fail(t('live.finishNeedsConnection')); return; }
+    // A finished workout cannot be resumed: an early finish always asks first and says how much is left.
+    const left = plannedSets - doneSets;
+    if (totalSets === 0) { if (!window.confirm(t('live.confirmFinishEmpty'))) return; }
+    else if (left > 0 && !window.confirm(left === 1 ? t('final.live.confirmLeftOne') : t('final.live.confirmLeft', { n: left }))) return;
     setFinishing(true);
     try {
       await outbox.flush(); // queued sets must reach the server before it computes PRs / XP
-      if (outbox.list().some((i) => i.status === 'pending' && i.path.startsWith(`/api/sessions/${session.id}`))) { setFinishMsg(t('live.finishNeedsConnection')); return; }
+      if (outbox.list().some((i) => i.status === 'pending' && i.path.startsWith(`/api/sessions/${session.id}`))) { fail(t('live.finishNeedsConnection')); return; }
       const res = await api.post<FinishResponse>(`${base}/finish`, {});
       saveRestEnd(session.id, null); writeLiveCache({ session: null });
       nav(`/workouts/sessions/${session.id}`, { state: { finish: res } });
       void qc.invalidateQueries({ queryKey: qk.activeSession });
       void qc.invalidateQueries({ queryKey: qk.stats });
-    } catch (e) { setFinishMsg(e instanceof NetworkError ? t('live.finishNeedsConnection') : errorMessage(e, t)); } finally { setFinishing(false); }
+    } catch (e) { fail(e instanceof NetworkError ? t('live.finishNeedsConnection') : errorMessage(e, t)); } finally { setFinishing(false); }
   }
   async function discard(): Promise<void> {
     if (!window.confirm(t('live.confirmDiscard'))) return;
@@ -301,8 +306,6 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
         </section>
       ) : null}
 
-      {allDone ? null : <Button block className="lv-end" disabled={finishing} onClick={() => { void finish(); }}>{finishLabel}</Button>}
-
       <div className="lv-dock">
         {finishMsg ? <Banner tone="danger">{finishMsg}</Banner> : null}
         <div className="lv-dock-slot" ref={setDockEl} />
@@ -317,6 +320,7 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
         onReplace={() => { setListOpen(false); setReplaceOpen(true); }}
         onPlates={() => { setListOpen(false); setPlatesSignal((n) => n + 1); }}
         onDiscard={() => { void discard(); }}
+        {...(allDone ? {} : { onFinish: () => { void finish(); }, finishLabel, finishing })}
       />
       <ReplaceSheet open={replaceOpen} onClose={() => setReplaceOpen(false)} options={replaceOptions} onPick={replaceEx} />
       <AddExerciseSheet open={addOpen} onClose={() => setAddOpen(false)} candidates={addCandidates} onPick={addEx} />

@@ -20,7 +20,7 @@ export const CHEST_EXERCISES: ExerciseContent[] = [
       'Lower the chest toward the floor with elbows at about 45 degrees from the body',
       'Press the floor away back to straight arms without locking the elbows',
     ],
-    cuesHe: ['גוף קשוח כמו קרש', 'מרפקים קרובים לצלעות'],
+    cuesHe: ['גוף קשיח כמו קרש', 'מרפקים קרובים לצלעות'],
     cuesEn: ['Stiff as a plank', 'Elbows tucked toward the ribs'],
     mistakesHe: ['צניחת האגן או הרמת הישבן', 'פתיחת המרפקים לצדדים בזווית של 90 מעלות'],
     mistakesEn: ['Sagging hips or piking the glutes', 'Flaring elbows out to 90 degrees'],

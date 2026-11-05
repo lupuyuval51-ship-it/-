@@ -36,15 +36,25 @@ describe('xp rules', () => {
     expect(foodDayXp('2026-11-01', '2026-10-29', 3)).toBeNull();
     expect(foodDayXp('2026-11-01', '2026-11-02', 3)).toBeNull();
     expect(foodDayXp('2026-11-01', '2026-11-01', 1)).toBeNull();
-    expect(proteinDayXp('d', { proteinG: 150, targetProteinG: 150, kcal: 2000, targetKcal: 2400 })?.amount).toBe(10);
-    expect(proteinDayXp('d', { proteinG: 150, targetProteinG: 150, kcal: 800, targetKcal: 2400 })).toBeNull();
-    expect(proteinDayXp('d', { proteinG: 100, targetProteinG: 150, kcal: 2400, targetKcal: 2400 })).toBeNull();
-    expect(weighInXp('2026-11-01', true)).toBeNull();
-    expect(weighInXp('2026-11-01', false)?.sourceKey).toBe(isoWeekKey('2026-11-01'));
+    const T = '2026-11-01';
+    expect(proteinDayXp(T, { proteinG: 150, targetProteinG: 150, kcal: 2000, targetKcal: 2400 }, T)?.amount).toBe(10);
+    expect(proteinDayXp(T, { proteinG: 150, targetProteinG: 150, kcal: 800, targetKcal: 2400 }, T)).toBeNull();
+    expect(proteinDayXp(T, { proteinG: 100, targetProteinG: 150, kcal: 2400, targetKcal: 2400 }, T)).toBeNull();
+    expect(weighInXp(T, true, T)).toBeNull();
+    expect(weighInXp(T, false, T)?.sourceKey).toBe(isoWeekKey(T));
     expect(weeklyGoalXp('2026-11-01', 3, 3)?.amount).toBe(100);
     expect(weeklyGoalXp('2026-11-01', 2, 3)).toBeNull();
     expect(isoWeekKey('2026-01-01')).toBe('2026-W01');
     expect(isoWeekKey('2024-12-30')).toBe('2025-W01');
+  });
+  it('protein day and weigh-in pay only inside the food-day window (no XP minted from past or future dates)', () => {
+    const T = '2026-11-01'; const full = { proteinG: 150, targetProteinG: 150, kcal: 2400, targetKcal: 2400 };
+    expect(proteinDayXp('2026-10-30', full, T)?.amount).toBe(10);
+    for (const d of ['1990-01-01', '2026-10-29', '2026-11-02', '2040-01-02']) {
+      expect(proteinDayXp(d, full, T), d).toBeNull();
+      expect(weighInXp(d, false, T), d).toBeNull();
+    }
+    expect(weighInXp('2026-10-30', false, T)?.amount).toBe(5);
   });
 });
 

@@ -1,11 +1,12 @@
 /** Pure nutrition-screen logic (dates, totals, adherence, menu seeds, shopping lists). No React. */
+import { dishGrams } from '../../lib/foodSearch.ts';
+import { localIso } from '../home/dates.ts';
 import { buildDailyMenu, buildShoppingList, swapDish, type DailyMenu, type Dish, type MealSlot, type MenuItem, type MenuOptions, type ShoppingLine } from '@lupu-fit/shared';
 
 export interface Totals { kcal: number; proteinG: number; carbsG: number; fatG: number }
 export interface FoodEntry { id: string; loggedDate: string; slot: MealSlot; foodId: string | null; dishId: string | null; name: string; grams: number; kcal: number; proteinG: number; carbsG: number; fatG: number; estimated: boolean }
 
 export const SLOTS: readonly MealSlot[] = ['breakfast', 'lunch', 'dinner', 'snack'];
-export const sumTotals = (es: readonly Totals[]): Totals => es.reduce((t, e) => ({ kcal: t.kcal + e.kcal, proteinG: t.proteinG + e.proteinG, carbsG: t.carbsG + e.carbsG, fatG: t.fatG + e.fatG }), { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 });
 export const groupBySlot = (es: readonly FoodEntry[]): Record<MealSlot, FoodEntry[]> => {
   const out: Record<MealSlot, FoodEntry[]> = { breakfast: [], lunch: [], dinner: [], snack: [] };
   for (const e of es) out[e.slot].push(e);
@@ -13,13 +14,11 @@ export const groupBySlot = (es: readonly FoodEntry[]): Record<MealSlot, FoodEntr
 };
 
 /* ---- dates (local calendar, never UTC-shifted) */
-const pad = (n: number) => String(n).padStart(2, '0');
-export const toIso = (d: Date): string => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-export const todayIso = (): string => toIso(new Date());
+export const todayIso = (): string => localIso();
 export const isIsoDate = (s: string | null | undefined): s is string => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
 export function addDaysIso(iso: string, n: number): string {
   const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
-  return toIso(new Date(y, m - 1, d + n, 12));
+  return localIso(new Date(y, m - 1, d + n, 12));
 }
 
 /** Bar tone for a target: calories flag overshoot; protein/carbs/fat never flag "over". */
@@ -57,13 +56,11 @@ export function menuFor(dishes: readonly Dish[], kcal: number, date: string, cho
   return menu;
 }
 
-export const dishTotalGrams = (d: Dish): number => d.ingredients.reduce((s, i) => s + i.grams, 0);
-
 /** Payload for POST /api/food-log: grams = total ingredient grams × portion; macros are the engine's scaled values. */
 export function dishLogPayload(item: MenuItem, dish: Dish, date: string, name: string) {
   return {
     loggedDate: date, slot: item.slot, dishId: dish.id, name,
-    grams: Math.max(0.1, Math.round(dishTotalGrams(dish) * item.portion * 10) / 10),
+    grams: Math.max(0.1, Math.round(dishGrams(dish) * item.portion * 10) / 10),
     kcal: item.kcal, proteinG: item.proteinG, carbsG: item.carbsG, fatG: item.fatG, estimated: false,
   };
 }
@@ -98,4 +95,18 @@ export function groupShopping<T extends { key: string }>(lines: readonly T[], ca
   const by: Record<ShopGroup, T[]> = { produce: [], protein: [], grains: [], other: [] };
   for (const l of lines) by[shopGroupOf(categoryOf(l.key))].push(l);
   return SHOP_GROUPS.filter((g) => by[g].length > 0).map((g) => ({ group: g, lines: by[g] }));
+}
+
+/**
+ * Menu items that the day's real food log already holds (same dish in the same meal slot), so leaving and coming back never
+ * offers to log the same day twice. Each log entry covers at most one menu item.
+ */
+export function loggedFromDay(items: readonly MenuItem[], entries: readonly Pick<FoodEntry, 'dishId' | 'slot'>[]): Set<number> {
+  const left = [...entries];
+  const out = new Set<number>();
+  items.forEach((it, i) => {
+    const k = left.findIndex((e) => e.dishId === it.dishId && e.slot === it.slot);
+    if (k >= 0) { out.add(i); left.splice(k, 1); }
+  });
+  return out;
 }

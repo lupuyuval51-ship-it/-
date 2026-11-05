@@ -1,4 +1,4 @@
-import { ageBucket, classifySafety, CoachMessageBodySchema, CoachThreadBodySchema, rulesCoachReply, safetyResponse, smoothWeights, type CoachSnapshot, type Language, type UiLanguage } from '@lupu-fit/shared';
+import { ACCOUNT_LIMITS, ageBucket, classifySafety, CoachMessageBodySchema, CoachThreadBodySchema, isoWeekKey, rulesCoachReply, safetyResponse, smoothWeights, SPLIT_DAY_LABEL, type CoachSnapshot, type Language, type SplitDay, type UiLanguage } from '@lupu-fit/shared';
 import { EXERCISES } from '@lupu-fit/shared/content';
 import { z } from 'zod';
 import { randomId } from '../crypto/portableCrypto.ts';
@@ -16,6 +16,26 @@ const EX = new Map(EXERCISES.map((e) => [e.id, e]));
 export const MAX_REPLY_CHARS = 2000;
 export const clampReply = (t: string): string => (t.length > MAX_REPLY_CHARS ? `${t.slice(0, MAX_REPLY_CHARS).replace(/\s+\S*$/, '')}…` : t);
 export const COACH_LIMITS = { perMinute: 6, perDay: 50 } as const;
+/** Earlier user turns the safety shield reads together with the newest message. */
+export const CONVERSATION_TURNS = 3;
+
+/**
+ * Today's day of the active plan, worked out as Home does: the number of this plan's finished sessions in the current ISO week, wrapped
+ * around the plan length. Null when no plan is active (or it has no days).
+ */
+async function todayPlanWorkout(ctx: Ctx, lang: Language, today: string): Promise<{ active: boolean; workout: CoachSnapshot['todayWorkout'] }> {
+  const plan = (await ctx.db.query<{ id: string; name: string; plan: { days?: { day?: string; exercises?: unknown[] }[] } | null }>('SELECT id, name, plan FROM workout_plans WHERE user_id = $1 AND active AND NOT archived ORDER BY created_at DESC LIMIT 1', [uid(ctx)]))[0];
+  if (!plan) return { active: false, workout: null };
+  const days = Array.isArray(plan.plan?.days) ? plan.plan.days : [];
+  if (days.length === 0) return { active: true, workout: null };
+  const week = isoWeekKey(today);
+  const done = (await ctx.db.query<{ local_date: string }>(`SELECT local_date FROM workout_sessions WHERE user_id = $1 AND finished_at IS NOT NULL AND source = 'plan'
+    AND (source_id IS NULL OR source_id = $2 OR left(source_id, length($2) + 1) = $2 || ':') AND local_date BETWEEN $3 AND $4`, [uid(ctx), plan.id, addDays(today, -7), addDays(today, 7)]))
+    .filter((x) => isoWeekKey(x.local_date) === week).length;
+  const day = days[done % days.length];
+  const label = day?.day && day.day in SPLIT_DAY_LABEL ? SPLIT_DAY_LABEL[day.day as SplitDay][lang] : null;
+  return { active: true, workout: day ? { name: label ? `${plan.name}: ${label}` : plan.name, exerciseCount: Array.isArray(day.exercises) ? day.exercises.length : 0 } : null };
+}
 
 /** Structured, anonymised snapshot: age BRACKET (never exact age), no name/username, only numbers that exist in the DB. */
 export async function buildSnapshot(ctx: Ctx, lang: Language): Promise<CoachSnapshot | null> {
@@ -25,15 +45,18 @@ export async function buildSnapshot(ctx: Ctx, lang: Language): Promise<CoachSnap
   const recent = await ctx.db.query<{ local_date: string; sets: number }>('SELECT s.local_date, (SELECT COUNT(*)::int FROM session_sets t JOIN session_exercises e ON e.id = t.session_exercise_id WHERE e.session_id = s.id) AS sets FROM workout_sessions s WHERE s.user_id = $1 AND s.finished_at IS NOT NULL ORDER BY s.started_at DESC LIMIT 5', [uid(ctx)]);
   const prs = await ctx.db.query<{ exercise_id: string; est_1rm: number | null }>('SELECT exercise_id, est_1rm FROM personal_records WHERE user_id = $1 AND est_1rm IS NOT NULL ORDER BY updated_at DESC LIMIT 3', [uid(ctx)]);
   const food = await ctx.db.query<{ kcal: number; p: number }>('SELECT SUM(kcal) AS kcal, SUM(protein_g) AS p FROM food_log_entries WHERE user_id = $1 AND logged_date BETWEEN $2 AND $3 GROUP BY logged_date', [uid(ctx), from7, today]);
-  const w = await ctx.db.query<{ logged_date: string; weight_kg: number }>('SELECT logged_date, weight_kg FROM body_weight_entries WHERE user_id = $1 AND logged_date >= $2 ORDER BY logged_date', [uid(ctx), addDays(today, -28)]);
+  const w = await ctx.db.query<{ logged_date: string; weight_kg: number }>('SELECT logged_date, weight_kg FROM body_weight_entries WHERE user_id = $1 AND logged_date >= $2 AND logged_date <= $3 ORDER BY logged_date', [uid(ctx), addDays(today, -28), addDays(today, 1)]);
+  const n30 = Number((await ctx.db.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM workout_sessions WHERE user_id = $1 AND finished_at IS NOT NULL AND local_date BETWEEN $2 AND $3', [uid(ctx), addDays(today, -29), addDays(today, 1)]))[0]?.n ?? 0);
+  const plan = await todayPlanWorkout(ctx, lang, today);
   const rd = (await ctx.db.query<{ state: 'normal' | 'easier' | 'rest' }>('SELECT state FROM readiness_checkins WHERE user_id = $1 ORDER BY local_date DESC LIMIT 1', [uid(ctx)]))[0];
   const sm = smoothWeights(w.map((x) => ({ date: x.logged_date, weightKg: x.weight_kg })));
   const days = w.length >= 2 ? Math.round((Date.parse(`${w[w.length - 1]!.logged_date}T00:00:00Z`) - Date.parse(`${w[0]!.logged_date}T00:00:00Z`)) / 86400_000) : 0;
   const t = targetsFor(p);
   return {
-    ageBucket: ageBucket(p.age), goal: p.goal, todayWorkout: null,
-    recentWorkouts: recent.map((x) => ({ date: x.local_date, sets: x.sets })),
-    prs: prs.map((x) => ({ exerciseName: lang === 'he' ? (EX.get(x.exercise_id)?.nameHe ?? x.exercise_id) : (EX.get(x.exercise_id)?.nameEn ?? x.exercise_id), est1rmKg: x.est_1rm as number })),
+    ageBucket: ageBucket(p.age), goal: p.goal, hasActivePlan: plan.active, todayWorkout: plan.workout,
+    recentWorkouts: recent.map((x) => ({ date: x.local_date, sets: x.sets })), workouts30d: n30,
+    // Only exercises from the catalogue: a raw stored id is never written into the prompt.
+    prs: prs.flatMap((x) => { const e = EX.get(x.exercise_id); return e ? [{ exerciseName: lang === 'he' ? e.nameHe : e.nameEn, est1rmKg: x.est_1rm as number }] : []; }),
     nutrition7d: { loggedDays: food.length, avgKcal: food.length ? food.reduce((a, x) => a + Number(x.kcal), 0) / food.length : null, avgProteinG: food.length ? food.reduce((a, x) => a + Number(x.p), 0) / food.length : null },
     targets: { kcal: t.kcal, proteinG: t.proteinG },
     weightTrendKg: sm.length >= 2 ? { deltaKg: Math.round((sm[sm.length - 1]!.weightKg - sm[0]!.weightKg) * 10) / 10, days } : null,
@@ -59,8 +82,6 @@ async function checkQuota(db: DbAdapter, userId: string, now: Date, kind: QuotaK
   if (u.minute >= lim.perMinute) throw new ApiError(429, 'quota_exceeded', { window: 'minute' }, { 'retry-after': '30' });
   if (u.day >= lim.perDay) throw new ApiError(429, 'quota_exceeded', { window: 'day' }, { 'retry-after': '3600' });
 }
-export const assertQuota = (ctx: Ctx, kind: QuotaKind): Promise<void> => checkQuota(ctx.db, uid(ctx), ctx.now, kind);
-export const recordUsage = (ctx: Ctx, kind: string): Promise<unknown> => ctx.db.query('INSERT INTO coach_usage (user_id, kind, used_at) VALUES ($1,$2,$3)', [uid(ctx), kind, ctx.now.toISOString()]);
 
 /**
  * Check AND charge the quota in one transaction. The user's row is locked first (FOR NO KEY UPDATE does not block foreign-key
@@ -92,21 +113,30 @@ export function coachRoutes(r: Router, d: Deps): void {
   r.post('/api/coach/threads', async (ctx) => {
     const b = ctx.body as z.infer<typeof CoachThreadBodySchema>;
     const id = randomId();
-    await ctx.db.query('INSERT INTO coach_threads (id, user_id, title, created_at, updated_at) VALUES ($1,$2,$3,$4,$4)', [id, uid(ctx), b.title ?? 'New chat', ctx.now.toISOString()]);
+    await ctx.db.transaction(async (tx) => {
+      await tx.query('SELECT 1 FROM users WHERE id = $1 FOR NO KEY UPDATE', [uid(ctx)]); // parallel creates are counted one after the other
+      const have = Number((await tx.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM coach_threads WHERE user_id = $1', [uid(ctx)]))[0]?.n ?? 0);
+      if (have >= ACCOUNT_LIMITS.coachThreads) throw new ApiError(409, 'limit_reached', { scope: 'coach_threads', max: ACCOUNT_LIMITS.coachThreads });
+      await tx.query('INSERT INTO coach_threads (id, user_id, title, created_at, updated_at) VALUES ($1,$2,$3,$4,$4)', [id, uid(ctx), b.title ?? 'New chat', ctx.now.toISOString()]);
+    });
     await unlockAchievements(ctx.db, uid(ctx), isoDate(ctx.now));
     return { json: { id }, status: 201 };
-  }, { body: CoachThreadBodySchema });
+  }, { body: CoachThreadBodySchema, replayBody: false });
   r.patch('/api/coach/threads/:id', async (ctx) => {
     const b = ctx.body as z.infer<typeof CoachThreadBodySchema>;
     await ownThread(ctx, ctx.params['id'] as string);
     await ctx.db.query('UPDATE coach_threads SET title = COALESCE($1, title) WHERE id = $2', [b.title ?? null, ctx.params['id']]);
     return { json: { ok: true } };
-  }, { body: CoachThreadBodySchema });
+  }, { body: CoachThreadBodySchema, replayBody: false });
   r.delete('/api/coach/threads/:id', async (ctx) => {
-    const del = await ctx.db.query('DELETE FROM coach_threads WHERE id = $1 AND user_id = $2 RETURNING id', [ctx.params['id'], uid(ctx)]);
+    const id = ctx.params['id'] as string;
+    const del = await ctx.db.query('DELETE FROM coach_threads WHERE id = $1 AND user_id = $2 RETURNING id', [id, uid(ctx)]);
     if (del.length === 0) throw new ApiError(404, 'not_found');
+    // Deleted means gone: also drop the replay records of this thread's requests (older ones may still hold message text).
+    const prefix = `/api/coach/threads/${id}`;
+    await ctx.db.query("DELETE FROM idempotency_keys WHERE user_id = $1 AND (path = $2 OR left(path, length($2) + 1) = $2 || '/')", [uid(ctx), prefix]);
     return { json: { ok: true } };
-  });
+  }, { replayBody: false });
   r.get('/api/coach/threads/:id', async (ctx) => {
     const t = await ownThread(ctx, ctx.params['id'] as string);
     const msgs = await ctx.db.query<{ id: string; role: string; content: string; provider: string | null; safety_category: string | null; created_at: string }>('SELECT * FROM coach_messages WHERE thread_id = $1 ORDER BY created_at, id', [t.id]);
@@ -123,8 +153,11 @@ export function coachRoutes(r: Router, d: Deps): void {
       return { id, role, content, provider, safetyCategory: cat };
     };
 
-    // 1) deterministic safety shield BEFORE any quota check or external call; crisis responses are never rate-limited
-    const hit = classifySafety(b.text);
+    // 1) deterministic safety shield BEFORE any quota check or external call; crisis responses are never rate-limited. The newest
+    // message is checked alone AND together with the previous few unflagged user turns, so a request split across messages
+    // ("I keep thinking about tren" / "what weekly dose would you start with?") is caught as well.
+    const earlier = (await ctx.db.query<{ content: string }>("SELECT content FROM coach_messages WHERE thread_id = $1 AND role = 'user' AND safety_category IS NULL ORDER BY created_at DESC, id DESC LIMIT $2", [t.id, CONVERSATION_TURNS])).map((m) => m.content).reverse();
+    const hit = classifySafety(b.text) ?? (earlier.length ? classifySafety([...earlier, b.text].join(' ')) : null);
     if (hit) {
       const user = await save('user', b.text, null, hit.category);
       const bot = await save('assistant', safetyResponse(hit.category, b.lang), 'safety', hit.category);
@@ -136,14 +169,15 @@ export function coachRoutes(r: Router, d: Deps): void {
     let text: string | null = null; let provider = 'rules';
     if (d.ai && snap) {
       try {
-        const history = (await ctx.db.query<{ role: 'user' | 'assistant'; content: string }>('SELECT role, content FROM coach_messages WHERE thread_id = $1 ORDER BY created_at DESC, id DESC LIMIT 12', [t.id])).reverse();
+        // Flagged turns (the user message the shield caught and its safety reply both carry the category) never reach the provider.
+        const history = (await ctx.db.query<{ role: 'user' | 'assistant'; content: string }>('SELECT role, content FROM coach_messages WHERE thread_id = $1 AND safety_category IS NULL ORDER BY created_at DESC, id DESC LIMIT 12', [t.id])).reverse();
         text = await d.ai.complete({ system: `${SYSTEM(b.lang, b.uiLanguage, snap.ageBucket === 'minor')}\n\nSnapshot (JSON): ${JSON.stringify(snap)}`, messages: history, maxTokens: 600 });
         text = clampReply(text);
         provider = d.ai.name;
       } catch { text = null; } // provider down / rate limited: fall back to the deterministic coach
     }
-    if (!text?.trim()) { text = snap ? rulesCoachReply(b.text, snap, b.lang) : (b.lang === 'he' ? 'אפשר להשלים את השאלון כדי שאוכל לענות לפי הנתונים שלך.' : 'Complete onboarding so I can answer from your data.'); provider = 'rules'; }
+    if (!text?.trim()) { text = snap ? rulesCoachReply(b.text, snap, b.lang) : (b.lang === 'he' ? 'אפשר להשלים את השאלון כדי שאוכל לענות לפי הנתונים שתיעדתם.' : 'Complete onboarding so I can answer from your data.'); provider = 'rules'; }
     const bot = await save('assistant', text, provider, null);
     return { json: { user, assistant: bot }, status: 201 };
-  }, { body: CoachMessageBodySchema });
+  }, { body: CoachMessageBodySchema, replayBody: false }); // the answer holds the chat text (crisis replies too): never kept for replay
 }

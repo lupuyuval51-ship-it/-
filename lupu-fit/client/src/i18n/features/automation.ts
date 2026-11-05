@@ -5,7 +5,7 @@ export default defineFeature({
     title: 'Reminders and automations',
     intro: 'Everything here runs on this device. Nothing is sent to a server.',
     note: {
-      native: 'Reminders use approximate timing, so they can arrive a few minutes off.',
+      native: 'Android delivers reminders close to the set time, not at the exact minute. They can arrive later, sometimes by up to an hour.',
       web: 'Web reminders only work while the app is open: they cannot fire when it is closed, because there is no push server. The Android app also schedules them in the background.',
       none: 'This browser does not support notifications, so reminders are unavailable here.',
       minor: 'Meal and weigh-in reminders are not offered for profiles under 18.',
@@ -60,7 +60,7 @@ export default defineFeature({
     title: 'תזכורות ואוטומציות',
     intro: 'הכול פועל במכשיר הזה. שום דבר לא נשלח לשרת.',
     note: {
-      native: 'התזכורות מתוזמנות בקירוב, ולכן הן יכולות להגיע כמה דקות לפני או אחרי.',
+      native: 'אנדרואיד שולחת את התזכורות בסמוך לשעה שנקבעה ולא בדקה המדויקת, ולכן הן עשויות להגיע מאוחר יותר, לפעמים עד שעה.',
       web: 'תזכורות באתר פועלות רק כשהאפליקציה פתוחה, כי אין שרת התראות. אפליקציית האנדרואיד מתזמנת אותן גם ברקע.',
       none: 'הדפדפן הזה לא תומך בהתראות, ולכן תזכורות לא זמינות כאן.',
       minor: 'תזכורות לארוחות ולשקילה לא מוצעות בפרופיל מתחת לגיל 18.',

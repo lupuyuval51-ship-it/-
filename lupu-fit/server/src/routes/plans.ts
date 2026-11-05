@@ -1,4 +1,4 @@
-import { EQUIPMENT, generatePlan, GeneratePlanBodySchema, LIMITS, PlanPatchSchema, PrescriptionSchema, SavePlanBodySchema, type Equipment } from '@lupu-fit/shared';
+import { EQUIPMENT, generatePlan, GeneratePlanBodySchema, PlanPatchSchema, PlanSchema, SavePlanBodySchema, type Equipment } from '@lupu-fit/shared';
 import { EXERCISES } from '@lupu-fit/shared/content';
 import { z } from 'zod';
 import { randomId } from '../crypto/portableCrypto.ts';
@@ -8,17 +8,11 @@ import type { Deps } from '../core/types.ts';
 import { requireProfile, uid } from './util.ts';
 
 const EX_IDS = new Set(EXERCISES.map((e) => e.id));
-/** Edited plan JSON: same shape as a GeneratedPlan; every exercise must exist and every prescription must be valid. */
-export const PlanEditBodySchema = z.object({
-  plan: z.object({
-    days: z.array(z.object({
-      day: z.string().min(1).max(40),
-      exercises: z.array(z.object({ exerciseId: z.string().min(1).max(80), prescription: PrescriptionSchema })).max(LIMITS.maxExercisesPerWorkout),
-      estimatedMinutes: z.number().int().min(0).max(600),
-    })).min(1).max(LIMITS.maxDaysPerPlan),
-    notes: z.array(z.record(z.string(), z.unknown())).max(100).default([]),
-  }),
-});
+/** Edited plan JSON: the same PlanSchema a saved plan uses; every exercise must exist and every prescription must be valid. */
+export const PlanEditBodySchema = z.object({ plan: PlanSchema });
+const assertKnownExercises = (plan: z.infer<typeof PlanSchema>): void => {
+  for (const d of plan.days) for (const e of d.exercises) if (!EX_IDS.has(e.exerciseId)) throw new ApiError(400, 'unknown_exercise', { exerciseId: e.exerciseId });
+};
 
 export function planRoutes(r: Router, _d: Deps): void {
   // Deterministic rules-based generator: same profile + same seed => same plan; a new seed gives fresh valid variety.
@@ -31,7 +25,7 @@ export function planRoutes(r: Router, _d: Deps): void {
       equipment, injuries: p.injuries, avoidIds: b.avoidIds, mode: b.mode ?? (equipment.length ? 'weights' : 'bodyweight'), seed: b.seed,
     }, EXERCISES);
     return { json: { plan } };
-  }, { body: GeneratePlanBodySchema });
+  }, { body: GeneratePlanBodySchema, replayBody: false });
 
   r.get('/api/plans', async (ctx) => {
     const rows = await ctx.db.query<{ id: string; name: string; active: boolean; archived: boolean; plan: unknown; created_at: string }>('SELECT * FROM workout_plans WHERE user_id = $1 ORDER BY created_at DESC', [uid(ctx)]);
@@ -40,13 +34,14 @@ export function planRoutes(r: Router, _d: Deps): void {
 
   r.post('/api/plans', async (ctx) => {
     const b = ctx.body as z.infer<typeof SavePlanBodySchema>;
+    assertKnownExercises(b.plan);
     const id = randomId();
     await ctx.db.transaction(async (tx) => {
       if (b.activate) await tx.query('UPDATE workout_plans SET active = false WHERE user_id = $1', [uid(ctx)]);
       await tx.query('INSERT INTO workout_plans (id, user_id, name, active, plan) VALUES ($1,$2,$3,$4,$5)', [id, uid(ctx), b.name, b.activate, JSON.stringify(b.plan)]);
     });
     return { json: { id }, status: 201 };
-  }, { body: SavePlanBodySchema });
+  }, { body: SavePlanBodySchema, replayBody: false });
 
   r.post('/api/plans/:id/activate', async (ctx) => {
     await ctx.db.transaction(async (tx) => {
@@ -67,18 +62,18 @@ export function planRoutes(r: Router, _d: Deps): void {
 
   r.put('/api/plans/:id/plan', async (ctx) => {
     const b = ctx.body as z.infer<typeof PlanEditBodySchema>;
-    for (const d of b.plan.days) for (const e of d.exercises) if (!EX_IDS.has(e.exerciseId)) throw new ApiError(400, 'unknown_exercise', { exerciseId: e.exerciseId });
+    assertKnownExercises(b.plan);
     const up = await ctx.db.query('UPDATE workout_plans SET plan = $1 WHERE id = $2 AND user_id = $3 RETURNING id', [JSON.stringify(b.plan), ctx.params['id'], uid(ctx)]);
     if (up.length === 0) throw new ApiError(404, 'not_found'); // another user's plan is indistinguishable from a missing one
     return { json: { ok: true } };
-  }, { body: PlanEditBodySchema });
+  }, { body: PlanEditBodySchema, replayBody: false });
 
   r.patch('/api/plans/:id', async (ctx) => {
     const b = ctx.body as z.infer<typeof PlanPatchSchema>;
     const up = await ctx.db.query('UPDATE workout_plans SET name = COALESCE($1, name), archived = COALESCE($2, archived), active = CASE WHEN $2 = true THEN false ELSE active END WHERE id = $3 AND user_id = $4 RETURNING id', [b.name ?? null, b.archived ?? null, ctx.params['id'], uid(ctx)]);
     if (up.length === 0) throw new ApiError(404, 'not_found');
     return { json: { ok: true } };
-  }, { body: PlanPatchSchema });
+  }, { body: PlanPatchSchema, replayBody: false });
 
   r.delete('/api/plans/:id', async (ctx) => {
     const del = await ctx.db.query('DELETE FROM workout_plans WHERE id = $1 AND user_id = $2 RETURNING id', [ctx.params['id'], uid(ctx)]);

@@ -5,7 +5,7 @@ import { ErrorState } from '../ui/kit.tsx';
 import { PageHeader, SkeletonCard } from '../ui/patterns.tsx';
 import { localIso } from '../components/home/dates.ts';
 import { AutomationBanners } from '../automation/Banners.tsx';
-import { Checklist, KpiStrip, MenuTeaser, NutritionCard, QuickActions, ReadinessCard, ResumeCard, TodayWorkoutCard, XpStrip, useActiveSession, useChecklist, useSessionList } from '../components/home/HomeCards.tsx';
+import { Checklist, MenuTeaser, NutritionCard, QuickActions, ReadinessCard, ResumeCard, TodayWorkoutCard, WeekCard, XpStrip, useActiveSession, useChecklist, useSessionList } from '../components/home/HomeCards.tsx';
 import '../styles/home.css';
 
 export default function Home(): ReactNode {
@@ -22,6 +22,7 @@ export default function Home(): ReactNode {
   if (!data) return <ErrorState error={new Error('profile_required')} />;
   const { profile, targets } = data;
   const activeSession = active.data?.session ?? null;
+  const showChecklist = checklist.ready && checklist.isNew && checklist.items.some((i) => !i.done);
 
   return (
     <div className="stack">
@@ -29,16 +30,17 @@ export default function Home(): ReactNode {
       <AutomationBanners profile={profile} />
       {activeSession ? <ResumeCard session={activeSession} /> : active.isLoading ? <SkeletonCard /> : null}
       {activeSession ? null : <TodayWorkoutCard profile={profile} today={today} primary={!active.isLoading} />}
-      <KpiStrip goal={profile.daysPerWeek} sessions={sessions.data?.sessions} today={today} targets={targets} />
-      {checklist.ready && checklist.isNew ? <Checklist items={checklist.items} /> : null}
+      {showChecklist ? <Checklist items={checklist.items} /> : null}
       <div className="home-grid">
         <div className="stack">
+          <WeekCard goal={profile.daysPerWeek} sessions={sessions.data?.sessions} today={today} />
           <ReadinessCard today={today} />
           <XpStrip />
         </div>
         <div className="stack">
           <NutritionCard today={today} targets={targets}><MenuTeaser embedded today={today} profile={profile} targets={targets} /></NutritionCard>
-          <QuickActions />
+          {/* The new-user checklist already links weigh-in and coach; quick actions take over once it is gone. */}
+          {checklist.ready && !showChecklist ? <QuickActions /> : null}
         </div>
       </div>
     </div>

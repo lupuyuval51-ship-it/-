@@ -8,7 +8,7 @@ const CHECKED = 'lf_shop_checked_v1';
 const read = (k: string): string | null => { try { return localStorage.getItem(k); } catch { return null; } };
 const write = (k: string, v: string): void => { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } };
 
-export function prefMealCount(): 3 | 4 | 5 { const n = Number(read(PREF)); return n === 3 || n === 4 || n === 5 ? n : DEFAULT_CHOICE.mealCount; }
+function prefMealCount(): 3 | 4 | 5 { const n = Number(read(PREF)); return n === 3 || n === 4 || n === 5 ? n : DEFAULT_CHOICE.mealCount; }
 export function loadChoice(date: string): MenuChoice {
   const fallback: MenuChoice = { mealCount: prefMealCount(), shuffle: 0, swaps: [] };
   const raw = read(CHOICE(date));

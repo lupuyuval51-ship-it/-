@@ -1,5 +1,5 @@
 import {
-  epley1RM, isoWeekKey, levelFromXp, prXp, setXp, weeklyGoalXp, workoutXp, ageBucket, LIMITS,
+  epley1RM, isoWeekKey, levelFromXp, prXp, setXp, weeklyGoalXp, workoutXp, ageBucket, LIMITS, MAX_SESSION_EXERCISES, WORKOUT_BAR,
   SessionExerciseAddSchema, SessionExerciseReplaceSchema, SessionOrderSchema, SessionStartSchema, SetBodySchema,
   type XpAward,
 } from '@lupu-fit/shared';
@@ -11,7 +11,7 @@ import { ApiError } from '../core/errors.ts';
 import type { Router } from '../core/router.ts';
 import type { Deps } from '../core/types.ts';
 import { awardXp, totalXp, unlockAchievements } from '../services/gamification.ts';
-import { addDays, isoDate, loadProfile, uid } from './util.ts';
+import { addDays, assertPlausibleDay, isoDate, loadProfile, uid } from './util.ts';
 
 const EX = new Map(EXERCISES.map((e) => [e.id, e]));
 
@@ -42,6 +42,7 @@ async function ownedOpenSession(db: DbAdapter, userId: string, id: string): Prom
 export function sessionRoutes(r: Router, _d: Deps): void {
   r.post('/api/sessions', async (ctx) => {
     const b = ctx.body as z.infer<typeof SessionStartSchema>;
+    assertPlausibleDay(ctx, b.localDate, 'today', 'localDate'); // a workout happens today: its date drives the daily and weekly XP keys
     for (const e of b.exercises) if (!EX.has(e.exerciseId)) throw new ApiError(400, 'unknown_exercise', { exerciseId: e.exerciseId });
     const open = (await ctx.db.query<{ id: string }>('SELECT id FROM workout_sessions WHERE user_id = $1 AND finished_at IS NULL ORDER BY started_at DESC LIMIT 1', [uid(ctx)]))[0];
     if (open) throw new ApiError(409, 'session_in_progress', { sessionId: open.id });
@@ -98,7 +99,7 @@ export function sessionRoutes(r: Router, _d: Deps): void {
     await ownedOpenSession(ctx.db, uid(ctx), ctx.params['id'] as string);
     if (!EX.has(b.exerciseId)) throw new ApiError(400, 'unknown_exercise');
     const count = Number((await ctx.db.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM session_exercises WHERE session_id = $1', [ctx.params['id']]))[0]?.n ?? 0);
-    if (count >= LIMITS.maxExercisesPerWorkout + 10) throw new ApiError(400, 'too_many_exercises');
+    if (count >= MAX_SESSION_EXERCISES) throw new ApiError(400, 'too_many_exercises');
     const id = randomId();
     await ctx.db.query('INSERT INTO session_exercises (id, session_id, position, exercise_id, is_finisher, sport, planned) VALUES ($1,$2,$3,$4,$5,$6,$7)', [id, ctx.params['id'], count, b.exerciseId, b.isFinisher, b.isFinisher ? (b.sport ?? null) : null, JSON.stringify(b.planned)]);
     return { json: await loadSession(ctx.db, uid(ctx), ctx.params['id'] as string), status: 201 };
@@ -184,7 +185,10 @@ export function sessionRoutes(r: Router, _d: Deps): void {
     const p = prXp(sess.id, prs.length); if (p) awards.push(p);
     const gained: { type: string; amount: number }[] = [];
     for (const a of awards) if (await awardXp(ctx.db, uid(ctx), a)) gained.push({ type: a.sourceType, amount: a.amount });
-    const sessionsThisWeek = (await ctx.db.query<{ local_date: string }>('SELECT DISTINCT local_date FROM workout_sessions WHERE user_id = $1 AND finished_at IS NOT NULL AND local_date >= $2 AND local_date <= $3', [uid(ctx), addDays(sess.local_date, -7), addDays(sess.local_date, 7)])).filter((x) => isoWeekKey(x.local_date) === week).length;
+    // Training days toward the weekly goal: only workouts that clear the same bar as workout XP (an empty start-and-finish is not one).
+    const sessionsThisWeek = (await ctx.db.query<{ local_date: string }>(`SELECT DISTINCT s.local_date FROM workout_sessions s WHERE s.user_id = $1 AND s.finished_at IS NOT NULL AND s.local_date >= $2 AND s.local_date <= $3
+      AND s.duration_sec >= $4 AND (SELECT COUNT(*) FROM session_sets t JOIN session_exercises e ON e.id = t.session_exercise_id WHERE e.session_id = s.id) >= $5`,
+    [uid(ctx), addDays(sess.local_date, -7), addDays(sess.local_date, 7), WORKOUT_BAR.minMinutes * 60, WORKOUT_BAR.minSets])).filter((x) => isoWeekKey(x.local_date) === week).length;
     const wg = weeklyGoalXp(sess.local_date, sessionsThisWeek, goal);
     if (wg && (await awardXp(ctx.db, uid(ctx), wg))) gained.push({ type: wg.sourceType, amount: wg.amount });
     const xpTotal = gained.reduce((a, g) => a + g.amount, 0);

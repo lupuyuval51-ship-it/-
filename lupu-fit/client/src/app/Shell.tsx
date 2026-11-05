@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { useOnline } from '../components/live/OfflineBanner.tsx';
 import { api } from '../api/client.ts';
+import { useApiReachable } from '../lib/reachable.ts';
 import { useLang, useT } from '../i18n/index.tsx';
 import { Brand } from '../ui/BrandMark.tsx';
 import { IconBell, IconBook, IconChart, IconChat, IconChevron, IconDumbbell, IconFork, IconHome, IconUser } from '../ui/icons.tsx';
@@ -29,7 +29,7 @@ const navLinks = (items: readonly (typeof MAIN[number] | typeof MORE[number])[],
 
 export function Shell(): ReactNode {
   const t = useT();
-  const online = useOnline();
+  const online = useApiReachable(); // Device Mode keeps everything on the phone: there is nothing to "sync when you reconnect"
   const onLive = useLocation().pathname === '/workouts/session';
   const active = useQuery({ queryKey: qk.activeSession, queryFn: () => api.get<{ session: { id: string } | null }>('/api/sessions/active'), refetchOnWindowFocus: true, staleTime: 15_000 });
   return (

@@ -30,8 +30,8 @@ export const PROFILE: ProfileInput = {
 export const TARGETS = { bmr: 1400, tdee: 2000, kcal: 2000, proteinG: 120, carbsG: 220, fatG: 60, bucket: 'adult', notes: [] };
 export const withProfile = (p: Partial<ProfileInput> = {}) => ({ profile: { ...PROFILE, ...p }, targets: TARGETS });
 
-export function renderPage(ui: ReactElement, opts: { lang?: Language; route?: string; path?: string } = {}) {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+export function renderPage(ui: ReactElement, opts: { lang?: Language; route?: string; path?: string; client?: QueryClient } = {}) {
+  const qc = opts.client ?? new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   return render(
     <LangProvider initialLang={opts.lang ?? 'he'}>
       <QueryClientProvider client={qc}>

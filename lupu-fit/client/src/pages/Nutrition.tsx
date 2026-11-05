@@ -42,7 +42,7 @@ export default function Nutrition(): ReactNode {
   const del = useMutation({
     mutationFn: (e: FoodEntry) => api.delete(`/api/food-log/${e.id}`),
     onSuccess: (_r, e) => {
-      refresh(); setUndo(e); toast(t('nutrition.hub.deleted'), 'ok');
+      refresh(); setUndo(e); // the undo bar already says "<name> deleted": no second toast on top of the log button
       if (undoTimer.current) clearTimeout(undoTimer.current);
       undoTimer.current = setTimeout(() => setUndo(null), 8000);
     },

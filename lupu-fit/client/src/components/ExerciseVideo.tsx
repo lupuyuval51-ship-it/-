@@ -66,17 +66,19 @@ export function ExerciseVideo({ exerciseId, size = 'md', steps, alt, autoPlay = 
   return (
     <div>
       <div ref={wrapRef} className={cx('xvid', size, mirror && 'mirrored')}>
-        {hasClip && !failed ? (
-          <video ref={ref} muted loop playsInline preload="metadata" poster={posterUrl(exerciseId)} aria-label={alt} onError={() => setFailed(true)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}>
-            <source src={clipUrl(exerciseId)} type="video/mp4" />
-          </video>
-        ) : <img src={posterUrl(exerciseId)} alt={alt} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
-        {showFallback ? (
-          <div className="xvid-fallback">
-            <span>{t('video.needsNetwork')}</span>
-            <button type="button" className="btn btn-sm" onClick={retry}>{t('app.retry')}</button>
-          </div>
-        ) : null}
+        <div className="xvid-media">
+          {hasClip && !failed ? (
+            <video ref={ref} muted loop playsInline preload="metadata" poster={posterUrl(exerciseId)} aria-label={alt} onError={() => setFailed(true)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}>
+              <source src={clipUrl(exerciseId)} type="video/mp4" />
+            </video>
+          ) : <img src={posterUrl(exerciseId)} alt={alt} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+          {showFallback ? (
+            <div className="xvid-fallback">
+              <span>{t('video.needsNetwork')}</span>
+              <button type="button" className="btn btn-sm" onClick={retry}>{t('app.retry')}</button>
+            </div>
+          ) : null}
+        </div>
         {hasClip && !failed ? (
           <div className="xvid-controls">
             <button type="button" className="icon-btn" aria-label={playing ? t('video.pause') : t('video.play')} onClick={toggle}>{playing ? <IconPause /> : <IconPlay />}</button>
@@ -86,7 +88,8 @@ export function ExerciseVideo({ exerciseId, size = 'md', steps, alt, autoPlay = 
           </div>
         ) : null}
       </div>
-      {info && info.fidelity !== 'specific' ? <p className="tiny muted">{t(`label.fidelity.${info.fidelity}`)}</p> : info ? <p className="tiny muted">{t('label.fidelity.specific')}</p> : null}
+      {/* One caption: approximate/general clips say so; otherwise the plain "schematic, not filmed" note. */}
+      <p className="tiny muted">{info && info.fidelity !== 'specific' ? t(`label.fidelity.${info.fidelity}`) : t('video.illustration')}</p>
       {showFallback && steps?.length ? <ol className="small stack-sm" style={{ paddingInlineStart: '1.25rem' }}>{steps.map((s, i) => <li key={i}>{s}</li>)}</ol> : null}
     </div>
   );

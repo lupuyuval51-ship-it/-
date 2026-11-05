@@ -133,14 +133,16 @@ async function trim(cache) {
   const build = (await cache.keys()).filter((k) => new URL(k.url).pathname.startsWith('/assets/'));
   for (let i = 0; i < build.length - SHELL_MAX_BUILD_FILES; i++) await cache.delete(build[i]); // oldest first
 }
-const cacheable = (req, res) => res.ok && res.status === 200 && res.type !== 'opaque' && (req.mode === 'navigate' || req.destination === 'document' || !isHtml(res));
+const cacheable = (req, res) => res.ok && res.status === 200 && res.type !== 'opaque' && (req.destination === 'document' || !isHtml(res));
+/** The offline shell under '/' must be the app page: opening the manifest, an icon or a photo in the app window is also a navigation. */
+const shellOk = (res) => res.ok && res.status === 200 && res.type !== 'opaque' && isHtml(res);
 
 self.addEventListener('fetch', (e) => {
   const req = e.request; const url = new URL(req.url);
   const same = url.origin === self.location.origin;
   if (same && req.method === 'POST' && IDENTITY_WRITES.includes(url.pathname)) {
     // Read "remember me" from a COPY of the request now; the real request goes on to the network untouched.
-    const remember = url.pathname === '/api/auth/login' ? req.clone().json().then((b) => !(b && b.remember === false)).catch(() => true) : Promise.resolve(true);
+    const remember = url.pathname !== '/api/auth/logout' ? req.clone().json().then((b) => !(b && b.remember === false)).catch(() => true) : Promise.resolve(true);
     e.waitUntil((async () => { await wipeSession(); await setEphemeral(!(await remember)); })());
   } else if (same && req.method === 'DELETE' && url.pathname === '/api/account') e.waitUntil(wipeSession());
   if (req.method !== 'GET' || !same) return;
@@ -148,7 +150,10 @@ self.addEventListener('fetch', (e) => {
   if (url.pathname.startsWith('/api/')) return; // never cache other API calls
   if (url.pathname.startsWith('/media/exercises/') && /\.(mp4|webm)$/.test(url.pathname)) { e.respondWith(videoFetch(req)); return; }
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then((r) => { if (cacheable(req, r)) { const c = r.clone(); caches.open(SHELL).then((s) => s.put('/', c)).catch(() => undefined); } return r; }).catch(async () => (await caches.match('/')) || new Response('offline', { status: 503 })));
+    e.respondWith(fetch(req).then((r) => { if (shellOk(r)) { const c = r.clone(); caches.open(SHELL).then((s) => s.put('/', c)).catch(() => undefined); } return r; }).catch(async () => {
+      const hit = await caches.match('/');
+      return hit && isHtml(hit) ? hit : new Response('offline', { status: 503 }); // a non-page stored by an older build is never served as the app
+    }));
     return;
   }
   e.respondWith(caches.open(SHELL).then(async (cache) => {

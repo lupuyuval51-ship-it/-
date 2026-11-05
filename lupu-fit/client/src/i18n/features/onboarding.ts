@@ -3,12 +3,9 @@ import { defineFeature } from '../core.ts';
 export default defineFeature({
   welcome: {
     title: 'Welcome to LUPU-FIT', lead: 'Strength training, nutrition and progress in one app.',
-    point1: 'A workout for today that fits where you train, the gear you have and the time you have.',
-    point2: 'Daily nutrition targets calculated from your details, with safety floors built in.',
-    point3: 'Progress tracking for your weight, sets and personal records.',
     deviceData: 'Your data stays on this device. It is stored in the browser database and is not uploaded to a server.',
     cta: 'Set up my profile', legalPrefix: 'By continuing you agree to the',
-    v1: 'Today\'s workout, fitted to your gear and time', v2: 'Nutrition targets with safety floors built in', v3: 'Weight, sets and records in one place', setupTime: 'Setup takes about two minutes.', brandLabel: 'LUPU-FIT training log',
+    v1: 'Today\'s workout, fitted to your gear and time', v2: 'Nutrition targets with safety floors built in', v3: 'Weight, sets and records in one place', setupTime: 'Setup takes about two minutes.',
   },
   onboarding: {
     done: { title: 'Your plan is ready', lead: 'Taking you to your first workout.' },
@@ -54,7 +51,7 @@ export default defineFeature({
       floor: 'A target below {floor} kcal is not allowed for your profile; it is raised to the safe minimum.', floorMinor: 'Under 18 the target is never set below your maintenance calories.',
     },
     review: {
-      goal: 'Goal', place: 'Place', schedule: 'Schedule', level: 'Experience', targets: 'Daily targets', bmr: 'BMR', tdee: 'TDEE', target: 'Target', protein: 'Protein', carbs: 'Carbs', fat: 'Fat',
+      goal: 'Goal', place: 'Place', schedule: 'Schedule', level: 'Experience', targets: 'Daily targets', bmr: 'BMR', tdee: 'TDEE', protein: 'Protein', carbs: 'Carbs', fat: 'Fat',
       units: 'Energy in {kcal}, macros in {g}. BMR is resting energy, TDEE is energy with your activity.',
       plan: 'Your plan', perDay: 'a day', needBasics: 'Targets appear once age, height and weight are valid.', fixFirst: 'Some answers are not valid. Go back and fix them to save.',
     },
@@ -75,12 +72,9 @@ export default defineFeature({
 }, {
   welcome: {
     title: 'ברוכים הבאים ל-LUPU-FIT', lead: 'אימוני כוח, תזונה והתקדמות באפליקציה אחת.',
-    point1: 'אימון להיום שמתאים למקום האימון, לציוד שיש ולזמן הפנוי.',
-    point2: 'יעדי תזונה יומיים שמחושבים לפי הנתונים האישיים, עם רצפות בטיחות מובנות.',
-    point3: 'מעקב התקדמות אחר משקל, סטים ושיאים אישיים.',
     deviceData: 'הנתונים נשארים על המכשיר הזה. הם נשמרים במסד הנתונים של הדפדפן ואינם מועלים לשרת.',
     cta: 'הגדרת הפרופיל שלי', legalPrefix: 'בהמשך מאשרים את',
-    v1: 'אימון להיום, מותאם לציוד ולזמן', v2: 'יעדי תזונה עם רצפות בטיחות מובנות', v3: 'משקל, סטים ושיאים במקום אחד', setupTime: 'ההגדרה לוקחת כשתי דקות.', brandLabel: 'יומן האימונים של LUPU-FIT',
+    v1: 'אימון להיום, מותאם לציוד ולזמן', v2: 'יעדי תזונה עם מינימום בטוח מובנה', v3: 'משקל, סטים ושיאים במקום אחד', setupTime: 'ההגדרה לוקחת כשתי דקות.',
   },
   onboarding: {
     done: { title: 'התוכנית מוכנה', lead: 'עוברים לאימון הראשון.' },
@@ -107,7 +101,7 @@ export default defineFeature({
     goal: {
       title: 'מטרה עיקרית',
       desc: {
-        fat_loss: 'גירעון קלורי מתון עם חלבון גבוה לשמירה על שריר.', muscle_gain: 'עודף קלורי קטן עם אימונים מתקדמים.', strength: 'משקלים כבדים יותר עם עודף קל לצורך התאוששות.',
+        fat_loss: 'גירעון קלורי מתון עם חלבון גבוה לשמירה על שריר.', muscle_gain: 'עודף קלורי קטן ועומס שעולה בהדרגה.', strength: 'משקלים כבדים יותר עם עודף קל לצורך התאוששות.',
         general_fitness: 'שמירה על המשקל ובניית כושר כללי.', athletic_performance: 'אימונים שתומכים בענף הספורט, עם תזונה ברמת תחזוקה.',
       },
     },
@@ -123,10 +117,10 @@ export default defineFeature({
     nutrition: {
       activity: 'רמת פעילות יומית', activityDesc: { sedentary: 'עבודה מול מסך, מעט הליכה', light: 'על הרגליים חלק מהיום', moderate: 'עבודה פעילה או הליכה יומית', active: 'עבודה פיזית או ימים פעילים מאוד', very_active: 'עבודת כפיים קשה או שני אימונים ביום' }, diet: 'תפריט', allergies: 'אלרגיות', restrictions: 'הגבלות תזונה',
       custom: 'קביעת יעד קלוריות משלי', customKcal: 'יעד קלוריות', customOff: 'כבוי: היעד מחושב לפי המטרה.',
-      floor: 'יעד הנמוך מ-{floor} קק״ל אינו מותר עבור הפרופיל הזה, והוא מועלה למינימום הבטוח.', floorMinor: 'מתחת לגיל 18 היעד אף פעם לא נקבע מתחת לקלוריות התחזוקה.',
+      floor: 'יעד נמוך מ-{floor} קק״ל אינו מותר בפרופיל הזה ומועלה למינימום הבטוח.', floorMinor: 'מתחת לגיל 18 היעד אף פעם לא נקבע מתחת לקלוריות התחזוקה.',
     },
     review: {
-      goal: 'מטרה', place: 'מקום', schedule: 'לוח זמנים', level: 'ניסיון', targets: 'יעדים יומיים', bmr: 'BMR', tdee: 'TDEE', target: 'יעד', protein: 'חלבון', carbs: 'פחמימות', fat: 'שומן',
+      goal: 'מטרה', place: 'מקום', schedule: 'לוח זמנים', level: 'ניסיון', targets: 'יעדים יומיים', bmr: 'BMR', tdee: 'TDEE', protein: 'חלבון', carbs: 'פחמימות', fat: 'שומן',
       units: 'אנרגיה ב{kcal}, מקרו ב{g}. BMR היא האנרגיה במנוחה, ו-TDEE היא האנרגיה כולל הפעילות.',
       plan: 'התוכנית שלכם', perDay: 'ביום', needBasics: 'היעדים יופיעו כשהגיל, הגובה והמשקל תקינים.', fixFirst: 'חלק מהתשובות אינן תקינות. צריך לחזור ולתקן כדי לשמור.',
     },

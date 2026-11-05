@@ -73,6 +73,20 @@ export default function Progress(): ReactNode {
     return ua && ub ? ub.localeCompare(ua) : ua ? -1 : ub ? 1 : 0;
   }) : [];
 
+  const achTile = (id: string): ReactNode => {
+    const got = stats.data?.achievements.find((a) => a.id === id);
+    return (
+      <li key={id} className={got ? 'ach unlocked' : 'ach'}>
+        <span className="ach-badge" aria-hidden="true">{got ? <IconCheck /> : null}</span>
+        <span className="stack-sm">
+          <strong className="small">{t(`label.achievement.${id}`)}</strong>
+          <span className="tiny muted">{got ? fmt.date(got.unlockedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' }) : t('progress.ach.locked')}</span>
+        </span>
+        {got ? <span className="sr-only">{t('progress.ach.unlockedSr')}</span> : null}
+      </li>
+    );
+  };
+
   const strengthRows = p ? p.strength.map((s) => {
     const nm = nameOfExercise(s.exerciseId, lang);
     const first = s.points[0]?.est1rm ?? 0; const last = s.points[s.points.length - 1]?.est1rm ?? 0;
@@ -181,21 +195,14 @@ export default function Progress(): ReactNode {
             <ProgressBar value={stats.data.level.xpIntoLevel} max={stats.data.level.xpForNext} label={t('progress.xp.bar', { a: stats.data.level.xpIntoLevel, b: stats.data.level.xpForNext })} />
             <p className="small muted">{t('progress.xp.toNext', { n: Math.max(0, stats.data.level.xpForNext - stats.data.level.xpIntoLevel) })}</p>
             <div className="row-between"><h3>{t('progress.ach.title')}</h3><span className="small muted">{t('progress.unlocked', { a: stats.data.achievements.length, b: stats.data.allAchievementIds.length })}</span></div>
-            <ul className="ach-grid">
-              {sorted.map((id) => {
-                const got = stats.data?.achievements.find((a) => a.id === id);
-                return (
-                  <li key={id} className={got ? 'ach unlocked' : 'ach'}>
-                    <span className="ach-badge" aria-hidden="true">{got ? <IconCheck /> : null}</span>
-                    <span className="stack-sm">
-                      <strong className="small">{t(`label.achievement.${id}`)}</strong>
-                      <span className="tiny muted">{got ? fmt.date(got.unlockedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' }) : t('progress.ach.locked')}</span>
-                    </span>
-                    {got ? <span className="sr-only">{t('progress.ach.unlockedSr')}</span> : null}
-                  </li>
-                );
-              })}
-            </ul>
+            {stats.data.achievements.length === 0 ? <p className="small muted" data-testid="ach-none">{t('final.progress.achNone')}</p> : null}
+            {/* Nothing unlocked yet: the next three goals, with the rest one tap away, instead of a wall of locked tiles. */}
+            {stats.data.achievements.length === 0 && sorted.length > 3 ? (
+              <>
+                <ul className="ach-grid">{sorted.slice(0, 3).map(achTile)}</ul>
+                <Disclosure summary={t('progress.showAll', { n: sorted.length })}><ul className="ach-grid">{sorted.slice(3).map(achTile)}</ul></Disclosure>
+              </>
+            ) : <ul className="ach-grid">{sorted.map(achTile)}</ul>}
           </div>
         ) : null}
       </Card>

@@ -1,4 +1,4 @@
-import type { UiLanguage } from '@lupu-fit/shared';
+import { classifySafety, type UiLanguage } from '@lupu-fit/shared';
 import { z } from 'zod';
 import type { AiProvider } from '../core/types.ts';
 import { promptLanguage } from './langLabel.ts';
@@ -14,6 +14,7 @@ export function validValue(src: string, out: unknown): out is string {
   if (/[<>]/.test(out) && !/[<>]/.test(src)) return false;
   // No control characters and no bidi overrides/isolates (they can visually reverse or hide text) unless the English source already has them.
   if (CONTROL.test(out) && !CONTROL.test(src)) return false;
+  if (classifySafety(out) && !classifySafety(src)) return false; // a "translation" the coach safety shield would catch is not one
   return sameBag(placeholders(src), placeholders(out));
 }
 

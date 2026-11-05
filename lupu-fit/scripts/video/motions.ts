@@ -5,7 +5,7 @@
  */
 import { add, clamp, fromDown, fromUp, ik, lerp, mul, sub, v, type V } from './geom.ts';
 import { ANKLE_H, FOOT_FLAT, L, frontRig, sideRig, type Arm, type Leg } from './rig.ts';
-import { band, barbell, bench, box, cable, dumbbell, hangBar, kettlebell, wheel, type Frame, type Prop } from './scene.ts';
+import { band, barbell, bench, box, cable, dumbbell, hangBar, kettlebell, type Frame, type Prop } from './scene.ts';
 
 export interface Ph { s: number; u: number; side: 0 | 1 }
 export type Motion = (p: Ph) => Frame;

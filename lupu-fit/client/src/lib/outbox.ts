@@ -9,6 +9,7 @@
 import { del, entries, get, set, createStore } from 'idb-keyval';
 import { useSyncExternalStore } from 'react';
 import { api, ApiRequestError, getCurrentUserId, NetworkError, onUserChange } from '../api/client.ts';
+import { IS_DEVICE } from '../env.ts';
 
 export interface OutboxItem {
   id: string; method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'; path: string; body: unknown; idempotencyKey: string;
@@ -26,16 +27,25 @@ const refresh = (): void => { view = cache.filter(mine); };
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 let flushing: Promise<void> | null = null;
+/** Bumped on every change of person: a flush that started for someone else stops before its next item. */
+let generation = 0;
+/** Lifetime of a "keep me signed in" off session on the server (server/src/routes/auth.ts). */
+const EPHEMERAL_SESSION_MS = 12 * 3600_000;
 
 async function reload(): Promise<void> {
   try { cache = (await entries<string, OutboxItem>(store())).map(([, v]) => v).sort((a, b) => a.createdAt - b.createdAt); } catch { cache = []; }
   refresh(); emit();
 }
 void reload();
-/** Whoever is signed in changed: re-filter. A deleted account takes its queued items with it. */
+/**
+ * Whoever is signed in changed: re-filter. A deleted account takes its queued items with it; a "this browser session only" sign-in that
+ * ended (shared device) keeps nothing queued past that session's own lifetime.
+ */
 onUserChange((e) => {
-  if (e.reason === 'deleted') {
-    const doomed = cache.filter((i) => !i.userId || i.userId === e.from);
+  generation++;
+  if (e.reason === 'deleted' || e.reason === 'expired') {
+    const cutoff = Date.now() - EPHEMERAL_SESSION_MS;
+    const doomed = cache.filter((i) => (e.reason === 'deleted' ? !i.userId || i.userId === e.from : !!i.userId && i.userId === e.from && i.createdAt < cutoff));
     void Promise.all(doomed.map((i) => del(i.id, store()).catch(() => undefined))).then(reload);
   }
   refresh(); emit();
@@ -56,14 +66,21 @@ export const outbox = {
     // NOTE: reset in .finally on the returned promise. Resetting inside the async body is wrong: with nothing to send the body
     // finishes synchronously, before `flushing` is assigned, which would leave a settled promise cached forever.
     const p: Promise<void> = (async () => {
+      // The person is fixed when the flush starts and checked again before every item: one replay can hang for a long time, and if
+      // someone else signs in meanwhile, the remaining items must not go out with the new person's cookie and CSRF token.
+      const owner = getCurrentUserId(); const gen = generation;
+      const same = (): boolean => gen === generation && getCurrentUserId() === owner;
       try {
         for (const it of cache.filter((x) => x.status === 'pending' && mine(x))) {
+          if (!same() || !mine(it)) break;
           try {
             await replay(it);
             await del(it.id, store());
           } catch (e) {
+            if (!same()) break; // the answer may belong to the next person's session: leave the item for its owner
             if (e instanceof NetworkError) break;
             if (e instanceof ApiRequestError && (e.status >= 500 || e.status === 429 || e.status === 401)) break; // transient (or: signed out, they wait for the same person to sign in again): try again later
+            if (e instanceof ApiRequestError && e.code === 'csrf_invalid') break; // stale token the API layer could not refresh for this person (api/client.ts): the entry itself is still valid
             const code = e instanceof ApiRequestError ? e.code : 'error';
             await set(it.id, { ...it, status: 'rejected', error: code } satisfies OutboxItem, store());
           }
@@ -91,7 +108,8 @@ export type QueuedResult<T> = { queued: false; data: T } | { queued: true; item:
 /** Try the call now; if the network is unreachable, queue it for replay (same Idempotency-Key). Other errors propagate. */
 export async function callOrQueue<T>(r: { method: OutboxItem['method']; path: string; body?: unknown; label: string }): Promise<QueuedResult<T>> {
   const key = crypto.randomUUID();
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { queued: true, item: await outbox.enqueue({ method: r.method, path: r.path, body: r.body, label: r.label, idempotencyKey: key }) };
+  // Device Mode: the API is the local database worker, which needs no connection, so `offline` is no reason to queue.
+  if (!IS_DEVICE && typeof navigator !== 'undefined' && navigator.onLine === false) return { queued: true, item: await outbox.enqueue({ method: r.method, path: r.path, body: r.body, label: r.label, idempotencyKey: key }) };
   try {
     const data = await (r.method === 'POST' ? api.post<T>(r.path, r.body, { idempotencyKey: key }) : r.method === 'PUT' ? api.put<T>(r.path, r.body, { idempotencyKey: key }) : r.method === 'PATCH' ? api.patch<T>(r.path, r.body, { idempotencyKey: key }) : api.delete<T>(r.path, r.body, { idempotencyKey: key }));
     return { queued: false, data };

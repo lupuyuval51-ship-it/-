@@ -28,7 +28,13 @@ test('ready workouts wizard -> start -> log sets -> finish -> summary XP -> hist
     const skip = page.getByRole('button', { name: exact(t('live.rest.skip')) });
     if (await skip.isVisible({ timeout: 2_000 }).catch(() => false)) await skip.click();
   }
-  await page.getByRole('button', { name: exact(t('live.finishWorkout')) }).first().click();
+  // Sets remain, so "Finish workout" sits in the "More" sheet (not next to "Finish set") and asks before ending early.
+  await expect(page.getByRole('button', { name: exact(t('live.finishWorkout')) })).toHaveCount(0);
+  await page.getByRole('button', { name: exact(t('live.more.title')) }).click();
+  let asked = '';
+  page.once('dialog', (d) => { asked = d.type(); void d.accept(); });
+  await page.getByRole('dialog').getByRole('button', { name: exact(t('live.finishWorkout')) }).click();
+  await expect.poll(() => asked).toBe('confirm');
 
   await expect(page).toHaveURL(/\/workouts\/sessions\/[^/]+$/);
   await expect(page.locator('.wk-xp')).toBeVisible();

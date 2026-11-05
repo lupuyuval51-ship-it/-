@@ -66,6 +66,24 @@ describe('per-person local data', () => {
     expect(events.at(-1)).toMatchObject({ from: 'A', to: null, reason: 'signout' });
   });
 
+  it('signing out of a session that already expired on the server (401) still signs out on this device', async () => {
+    reply = () => asUser('A'); await api.get('/api/auth/me'); fill();
+    reply = (r) => (r.path === '/api/auth/logout' ? ok({ error: 'unauthorized' }, 401) : ok({}));
+    await expect(api.post('/api/auth/logout')).resolves.toEqual({ ok: true });
+    expect(left(PER_PERSON)).toEqual([]); expect(getCurrentUserId()).toBeNull();
+    expect(events.at(-1)).toMatchObject({ from: 'A', to: null, reason: 'signout' });
+  });
+
+  it('a "keep me signed in" off session that ended is treated as a sign-out (shared device); a remembered one is not', async () => {
+    reply = () => asUser('A'); await api.post('/api/auth/login', { username: 'a', password: 'x', remember: false }); fill();
+    reply = () => ok({ error: 'unauthorized' }, 401); await api.get('/api/auth/me').catch(() => undefined); // browser closed, cookie gone
+    expect(left(PER_PERSON)).toEqual([]); expect(left(DEVICE_LEVEL).length).toBe(DEVICE_LEVEL.length);
+    expect(events.at(-1)).toMatchObject({ from: 'A', to: null, reason: 'expired' });
+    reply = () => asUser('A'); await api.post('/api/auth/register', { username: 'a', password: 'x' }); fill();
+    reply = () => ok({ error: 'unauthorized' }, 401); await api.get('/api/auth/me').catch(() => undefined);
+    expect(left(PER_PERSON).length).toBe(PER_PERSON.length);
+  });
+
   it('an expired session (401) stops the current user but wipes nothing', async () => {
     reply = () => asUser('A'); await api.get('/api/auth/me'); fill();
     reply = () => ok({ error: 'unauthorized' }, 401);
@@ -83,5 +101,30 @@ describe('per-person local data', () => {
   it('a listener that throws does not break the request', async () => {
     const bad = vi.fn(() => { throw new Error('boom'); }); const off = onUserChange(bad);
     reply = () => asUser('A'); await expect(api.get('/api/auth/me')).resolves.toBeTruthy(); expect(bad).toHaveBeenCalled(); off();
+  });
+});
+
+describe('stale CSRF token (signed in again in another tab)', () => {
+  const csrf403 = ok({ error: 'csrf_invalid' }, 403);
+  it('refreshes the token through /me once and resends with the same Idempotency-Key when it is still the same person', async () => {
+    reply = () => asUser('A'); await api.get('/api/auth/me');
+    const sent: TransportRequest[] = []; let first = true;
+    reply = (r) => { if (r.path === '/api/auth/me') return asUser('A'); sent.push(r); if (first) { first = false; return csrf403; } return ok({ ok: true }); };
+    await expect(api.post('/api/food-log', { g: 1 }, { idempotencyKey: 'k1' })).resolves.toEqual({ ok: true });
+    expect(sent.map((r) => r.headers?.['idempotency-key'])).toEqual(['k1', 'k1']);
+  });
+  it('never resends when /me says someone else is signed in now', async () => {
+    reply = () => asUser('A'); await api.get('/api/auth/me');
+    const sent: TransportRequest[] = [];
+    reply = (r) => { if (r.path === '/api/auth/me') return asUser('B'); sent.push(r); return csrf403; };
+    await expect(api.post('/api/food-log', {})).rejects.toMatchObject({ status: 403, code: 'csrf_invalid' });
+    expect(sent).toHaveLength(1); expect(getCurrentUserId()).toBe('B');
+  });
+  it('a second csrf_invalid after the refresh is not retried again', async () => {
+    reply = () => asUser('A'); await api.get('/api/auth/me');
+    const sent: TransportRequest[] = [];
+    reply = (r) => { if (r.path === '/api/auth/me') return asUser('A'); sent.push(r); return csrf403; };
+    await expect(api.post('/api/food-log', {})).rejects.toMatchObject({ status: 403 });
+    expect(sent).toHaveLength(2);
   });
 });

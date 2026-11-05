@@ -7,7 +7,7 @@ import { nameOfExercise } from '../data/content.ts';
 import { fmt, useLang } from '../i18n/index.tsx';
 import { Banner, Button, ErrorState, LinkButton, ProgressBar, Tag } from '../ui/kit.tsx';
 import { IconChevron, IconCopy } from '../ui/icons.tsx';
-import { Disclosure, SkeletonList, StatTile, StickyAction } from '../ui/patterns.tsx';
+import { Disclosure, PageHeader, SkeletonList, StatTile, StickyAction } from '../ui/patterns.tsx';
 import { useToast } from '../ui/toast.tsx';
 import '../styles/workouts.css';
 
@@ -106,6 +106,7 @@ function Celebration({ finish, finSport }: { finish: FinishResult; finSport: str
 }
 
 const volumeOf = (s: SessionDetail): number => Math.round(s.exercises.reduce((a, e) => a + e.sets.reduce((b, x) => b + (x.weightKg ?? 0) * (x.reps ?? 0), 0), 0));
+const repsOf = (s: SessionDetail): number => s.exercises.reduce((a, e) => a + e.sets.reduce((b, x) => b + (x.reps ?? 0), 0), 0);
 
 export default function SessionSummary(): ReactNode {
   const { t, lang } = useLang();
@@ -116,10 +117,11 @@ export default function SessionSummary(): ReactNode {
   const state = loc.state as { finish?: unknown } | null;
   const finish = isFinish(state?.finish) && state.finish.sessionId === id ? state.finish : null;
 
-  if (q.isLoading) return <SkeletonList rows={3} />;
+  // The header (with its back control) is there from the first frame, so nothing jumps when the data arrives.
+  if (q.isLoading) return <div className="stack"><PageHeader back="/workouts/history" title={t('workouts.summary.title')} /><SkeletonList rows={3} /></div>;
   if (q.isError) {
     const nf = q.error instanceof ApiRequestError && q.error.status === 404;
-    return <div className="stack"><Link to="/workouts/history">{t('workouts.summary.back')}</Link><ErrorState error={nf ? { code: 'not_found' } : q.error} {...(nf ? {} : { onRetry: () => void q.refetch() })} /></div>;
+    return <div className="stack"><PageHeader back="/workouts/history" title={t('workouts.summary.title')} /><ErrorState error={nf ? { code: 'not_found' } : q.error} {...(nf ? {} : { onRetry: () => void q.refetch() })} /></div>;
   }
   const s = q.data!;
   const sportName = (code: string | null): string | null => (code ? t(`label.sport.${code}`) : null);
@@ -128,12 +130,14 @@ export default function SessionSummary(): ReactNode {
   const finSport = sportName(fin.find((e) => e.sport)?.sport ?? s.sport);
   const totalSets = s.exercises.reduce((a, e) => a + e.sets.length, 0);
   const volume = volumeOf(s);
+  // Bodyweight sessions have no load: show the total reps instead of a "0 kg" volume.
+  const reps = repsOf(s);
   const minutes = s.durationSec !== null ? Math.max(1, Math.round(s.durationSec / 60)) : null;
   const dateText = fmt.date(s.localDate, lang, { day: 'numeric', month: 'long', year: 'numeric' });
 
   const summaryText = (): string => {
     const lines = [t('workouts.summary.textHeader', { name: s.name, date: dateText })];
-    lines.push(t('workouts.summary.textLine', { duration: minutes ?? 0, sets: totalSets, volume: fmt.num(volume) }));
+    lines.push(volume > 0 ? t('workouts.summary.textLine', { duration: minutes ?? 0, sets: totalSets, volume: fmt.num(volume) }) : t('final.summary.textLineReps', { duration: minutes ?? 0, sets: totalSets, reps: fmt.num(reps) }));
     if (finish) {
       lines.push(t('workouts.summary.textXp', { n: finish.xpTotal }));
       for (const p of finish.prs) lines.push(t('workouts.summary.textPr', { name: nameOfExercise(p.exerciseId, lang), previous: p.previous, value: p.value, unit: PR_KINDS.includes(p.kind) ? t(`workouts.summary.prUnit.${p.kind}`) : '' }));
@@ -169,11 +173,7 @@ export default function SessionSummary(): ReactNode {
 
   return (
     <div className="stack">
-      <Link to="/workouts/history" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.summary.back')}</Link>
-      <div className="stack-sm">
-        <h1>{s.name}</h1>
-        <span className="muted">{dateText}</span>
-      </div>
+      <PageHeader back="/workouts/history" title={s.name} subtitle={dateText} />
       {s.finishedAt === null ? <Banner tone="warn">{t('workouts.summary.unfinished')} <Link to="/workouts/session">{t('workouts.summary.resume')}</Link></Banner> : null}
 
       {finish ? <Celebration finish={finish} finSport={finSport} /> : null}
@@ -181,7 +181,8 @@ export default function SessionSummary(): ReactNode {
       <div className="grid-stats">
         <StatTile label={t('workouts.summary.duration')} value={minutes !== null ? <span className="num">{minutes}</span> : <span className="muted small">{t('state.noData')}</span>} {...(minutes !== null ? { unit: t('unit.min') } : {})} />
         <StatTile label={t('workouts.summary.sets')} value={<span className="num">{totalSets}</span>} />
-        <StatTile label={t('workouts.summary.volume')} value={<span className="num">{fmt.num(volume)}</span>} unit={t('unit.kg')} />
+        {volume > 0 ? <StatTile label={t('workouts.summary.volume')} value={<span className="num">{fmt.num(volume)}</span>} unit={t('unit.kg')} />
+          : reps > 0 ? <StatTile label={t('final.summary.reps')} value={<span className="num">{fmt.num(reps)}</span>} /> : null}
         {s.finishedAt !== null && !finish ? <StatTile label={t('workouts.summary.xp')} value={<span className="num">{s.xpAwarded}</span>} /> : null}
       </div>
 

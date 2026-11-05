@@ -17,13 +17,13 @@ export const TIERS: readonly Tier[] = [
   { id: 'gym_bw', place: 'gym', mode: 'bodyweight', equipment: ['pullup_bar', 'dip_station'], labelEn: 'Gym, Bodyweight', labelHe: 'חדר כושר, משקל גוף' },
   { id: 'home_bw', place: 'home', mode: 'bodyweight', equipment: [], labelEn: 'Home, No Gear', labelHe: 'בית, בלי ציוד' },
   { id: 'home_db', place: 'home', mode: 'weights', equipment: ['dumbbell'], labelEn: 'Home, Dumbbells', labelHe: 'בית, משקולות יד' },
-  { id: 'home_db_bench', place: 'home', mode: 'weights', equipment: ['dumbbell', 'bench'], labelEn: 'Home, Dumbbells and Bench', labelHe: 'בית, משקולות יד ובנץ׳' },
+  { id: 'home_db_bench', place: 'home', mode: 'weights', equipment: ['dumbbell', 'bench'], labelEn: 'Home, Dumbbells and Bench', labelHe: 'בית, משקולות יד וספסל' },
   { id: 'home_band', place: 'home', mode: 'weights', equipment: ['resistance_band'], labelEn: 'Home, Resistance Bands', labelHe: 'בית, גומיות התנגדות' },
   { id: 'home_kb', place: 'home', mode: 'weights', equipment: ['kettlebell'], labelEn: 'Home, Kettlebell', labelHe: 'בית, קטלבל' },
   { id: 'home_mix', place: 'home', mode: 'weights', equipment: ['dumbbell', 'resistance_band', 'pullup_bar', 'bench'], labelEn: 'Home, Mixed Gear', labelHe: 'בית, ציוד משולב' },
-  { id: 'park_bw', place: 'park', mode: 'bodyweight', equipment: ['pullup_bar', 'dip_station'], labelEn: 'Park, Bars', labelHe: 'פארק, מתחים ומקבילים' },
-  { id: 'park_band', place: 'park', mode: 'weights', equipment: ['resistance_band', 'pullup_bar', 'dip_station'], labelEn: 'Park, Bands and Bars', labelHe: 'פארק, גומיות ומתחים' },
-  { id: 'park_kb', place: 'park', mode: 'weights', equipment: ['kettlebell', 'pullup_bar', 'dip_station'], labelEn: 'Park, Kettlebell and Bars', labelHe: 'פארק, קטלבל ומתחים' },
+  { id: 'park_bw', place: 'park', mode: 'bodyweight', equipment: ['pullup_bar', 'dip_station'], labelEn: 'Park, Bars', labelHe: 'פארק, מתח ומקבילים' },
+  { id: 'park_band', place: 'park', mode: 'weights', equipment: ['resistance_band', 'pullup_bar', 'dip_station'], labelEn: 'Park, Bands and Bars', labelHe: 'פארק, גומיות ומתח' },
+  { id: 'park_kb', place: 'park', mode: 'weights', equipment: ['kettlebell', 'pullup_bar', 'dip_station'], labelEn: 'Park, Kettlebell and Bars', labelHe: 'פארק, קטלבל ומתח' },
 ];
 
 const ALL_FOCUS: WorkoutFocus[] = ['chest', 'back', 'shoulders', 'arms', 'biceps', 'triceps', 'legs', 'glutes', 'quads', 'hamstrings', 'core', 'full_body', 'upper', 'lower', 'push', 'pull'];
@@ -51,11 +51,6 @@ const STYLE_LABEL: Record<WorkoutStyle, { en: string; he: string }> = {
   circuit: { en: 'Circuit', he: 'מעגל' },
   pyramid: { en: 'Pyramid', he: 'פירמידה' },
   density: { en: 'Density', he: 'צפיפות' },
-};
-const LEVEL_LABEL: Record<Difficulty, { en: string; he: string }> = {
-  beginner: { en: 'Beginner', he: 'מתחילים' },
-  intermediate: { en: 'Intermediate', he: 'בינוני' },
-  advanced: { en: 'Advanced', he: 'מתקדמים' },
 };
 
 /** Generic per-style prescription used ONLY for nominal duration; the real one is personalised per user. */
@@ -152,6 +147,20 @@ function groupsFor(style: WorkoutStyle, n: number): number[][] {
   return [];
 }
 
+/**
+ * "Shoulders – Strength" / "כתפיים – כוח"; on collision "Shoulders – Strength 2", 3, ... (first free number).
+ * `taken` holds lowercased English names already used and is updated.
+ */
+export function shortWorkoutName(focus: WorkoutFocus, style: WorkoutStyle, taken: Set<string>): { nameEn: string; nameHe: string } {
+  const f = FOCUS_LABEL[focus]; const s = STYLE_LABEL[style];
+  const baseEn = `${f.en} – ${s.en}`; const baseHe = `${f.he} – ${s.he}`;
+  let n = 1;
+  const at = (i: number, base: string) => (i === 1 ? base : `${base} ${i}`);
+  while (taken.has(at(n, baseEn).toLowerCase())) n++;
+  taken.add(at(n, baseEn).toLowerCase());
+  return { nameEn: at(n, baseEn), nameHe: at(n, baseHe) };
+}
+
 export interface GenerationReport { workouts: ReadyWorkoutContent[]; skipped: string[] }
 
 export function generateReadyWorkouts(exercises: readonly ExerciseContent[]): GenerationReport {
@@ -203,12 +212,9 @@ export function generateReadyWorkouts(exercises: readonly ExerciseContent[]): Ge
             const minutes = nominalMinutes(sel, style);
             if (minutes < 20 || minutes > 75) continue;
             const need = [...new Set(sel.flatMap((e) => e.equipment.filter((q) => q !== 'none')))].sort() as Equipment[];
-            const lead = sel[0] as ExerciseContent;
-            const f = FOCUS_LABEL[focus]; const s = STYLE_LABEL[style]; const lv = LEVEL_LABEL[actual];
-            let nameEn = `${f.en} ${s.en}, ${lv.en}: ${lead.nameEn} (${tier.labelEn})`;
-            let nameHe = `אימון ${f.he}, ${s.he}, ${lv.he}: ${lead.nameHe} (${tier.labelHe})`;
-            if (names.has(nameEn.toLowerCase())) { nameEn = `${nameEn} ${k + 1}`; nameHe = `${nameHe} ${k + 1}`; }
-            names.add(nameEn.toLowerCase());
+            // Short title: focus and style only. Level, place and mode are shown as tags/meta and the exercises as the list,
+            // so repeating them made every title wrap to 3+ lines. A number is added only when the pair is already taken.
+            const { nameEn, nameHe } = shortWorkoutName(focus, style, names);
             made = {
               id: `rw_${tier.id}_${focus}_${style}_${actual}_${k + 1}`,
               nameHe, nameEn, place: tier.place, mode: tier.mode, focus, level: actual, style,

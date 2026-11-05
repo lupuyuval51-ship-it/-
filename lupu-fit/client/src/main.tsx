@@ -26,7 +26,7 @@ function start(): void {
   if (IS_DEVICE) {
     const worker = new Worker(new URL('./device/deviceWorker.ts', import.meta.url), { type: 'module' });
     const tr = createDeviceTransport(worker);
-    tr.ready.catch((e: Error) => root.render(<LangProvider><Fatal message={e.message} /></LangProvider>));
+    tr.onFatal((e) => root.render(<LangProvider><Fatal message={e.message} /></LangProvider>));
   }
   root.render(<StrictMode><App /></StrictMode>);
 }

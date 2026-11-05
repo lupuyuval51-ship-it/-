@@ -119,8 +119,6 @@ export interface ReadyFilter {
   maxMinutes?: number;
 }
 
-const BODYWEIGHT_OK: readonly Equipment[] = ['pullup_bar', 'dip_station'];
-
 export function filterReadyWorkouts(list: readonly ReadyWorkoutContent[], f: ReadyFilter): ReadyWorkoutContent[] {
   return list.filter((w) => {
     if (f.place && w.place !== f.place) return false;

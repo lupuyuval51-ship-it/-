@@ -182,7 +182,7 @@ export const BACK_B_EXERCISES: ExerciseContent[] = [
       'Pull the chest to the bar while squeezing the shoulder blades together and keeping abs and glutes tight',
       'Lower the body under control to straight arms without letting the hips sag',
     ],
-    cuesHe: ['גוף קשוח כמו קרש', 'החזה נוגע במוט'],
+    cuesHe: ['גוף קשיח כמו קרש', 'החזה נוגע במוט'],
     cuesEn: ['Body stiff like a plank', 'Chest touches the bar'],
     mistakesHe: ['צניחת האגן בזמן המשיכה', 'משיכה של הסנטר בלבד קדימה בלי הנעת הגו', 'חזרות חלקיות שלא מגיעות לטווח מלא'],
     mistakesEn: ['Sagging hips during the pull', 'Poking the chin forward without moving the torso', 'Partial reps that never reach the full range'],

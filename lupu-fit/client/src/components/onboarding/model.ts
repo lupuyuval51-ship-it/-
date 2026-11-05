@@ -83,7 +83,6 @@ export function stepErrors(d: DraftData, step: StepId): FieldErrors {
   return e;
 }
 export const hasErrors = (e: FieldErrors): boolean => Object.keys(e).length > 0;
-export const draftIsValid = (d: DraftData): boolean => (['about', 'training', 'nutrition'] as const).every((s) => !hasErrors(stepErrors(d, s)));
 
 export function toProfileInput(d: DraftData): ProfileInput {
   const name = d.displayName.trim();

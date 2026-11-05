@@ -1,4 +1,4 @@
-import { ACHIEVEMENT_IDS, evaluateAchievements, isoWeekKey, levelFromXp, type AchievementId, type AchievementStats, type XpAward } from '@lupu-fit/shared';
+import { ACHIEVEMENT_IDS, evaluateAchievements, isoWeekKey, type AchievementId, type AchievementStats, type XpAward } from '@lupu-fit/shared';
 import { randomId } from '../crypto/portableCrypto.ts';
 import type { DbAdapter } from '../db/adapter.ts';
 
@@ -11,7 +11,6 @@ export async function awardXp(db: DbAdapter, userId: string, a: XpAward): Promis
 export async function totalXp(db: DbAdapter, userId: string): Promise<number> {
   return Number((await db.query<{ t: number }>('SELECT COALESCE(SUM(amount),0)::int AS t FROM xp_events WHERE user_id = $1', [userId]))[0]?.t ?? 0);
 }
-export const levelOf = levelFromXp;
 
 const n = async (db: DbAdapter, sql: string, p: unknown[]): Promise<number> => Number((await db.query<{ c: number }>(sql, p))[0]?.c ?? 0);
 

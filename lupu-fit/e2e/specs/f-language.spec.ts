@@ -1,4 +1,4 @@
-import { makeT } from '../copy.ts';
+import { exact, makeT } from '../copy.ts';
 import { expect, test } from '../fixtures.ts';
 
 test('language switch he <-> en persists across reload and sets html lang/dir; "more languages" is honest without AI', async ({ app: page, seed, lang, allowConsole }) => {
@@ -39,6 +39,20 @@ test('language switch he <-> en persists across reload and sets html lang/dir; "
   await expect(page).toHaveURL(/\/profile$/);
   await page.locator('.ml-open').click();
   await expect(sheet).toBeVisible();
+
+  // "Other language" is a real form of its own (not nested in the profile form): Translate and Enter both send the request
+  // and the profile page never reloads.
+  await sheet.getByLabel(tt[other]('profile.ml.other'), { exact: true }).fill('Klingon');
+  const viaButton = page.waitForRequest((r) => r.method() === 'POST' && r.url().endsWith('/api/i18n/translate'));
+  await sheet.getByRole('button', { name: exact(tt[other]('profile.ml.otherGo')) }).click();
+  await viaButton;
+  await expect(sheet.getByTestId('ml-error')).toHaveText(tt[other]('profile.ml.needAi'));
+  await expect(page).toHaveURL(/\/profile$/);
+  const viaEnter = page.waitForRequest((r) => r.method() === 'POST' && r.url().endsWith('/api/i18n/translate'));
+  await sheet.getByLabel(tt[other]('profile.ml.other'), { exact: true }).press('Enter');
+  await viaEnter;
+  await expect(sheet.getByTestId('ml-error')).toHaveText(tt[other]('profile.ml.needAi'));
+  await expect(page).toHaveURL(/\/profile$/);
 
   // Back to the project language.
   await page.keyboard.press('Escape');

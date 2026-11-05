@@ -331,7 +331,4 @@ export function applyProgression(plan: GeneratedPlan, histories: ReadonlyMap<str
 
 /* ------------------------------------------------------------ session text */
 
-export function prDescription(kind: string): 'weight' | 'est_1rm' | 'reps' | 'duration' | null {
-  return kind === 'weight' || kind === 'est_1rm' || kind === 'reps' || kind === 'duration' ? kind : null;
-}
 

@@ -7,7 +7,7 @@ import { ck, type CoachStatus, type ThreadDetail, type ThreadRow } from '../comp
 import { fmt, uiLanguageHint, useLang, useT } from '../i18n/index.tsx';
 import { Banner, Button, ErrorState, errorMessage, IconButton, Sheet, TextArea, TextInput } from '../ui/kit.tsx';
 import { IconChat, IconPlus, IconTrash, IconWarn } from '../ui/icons.tsx';
-import { SkeletonList } from '../ui/patterns.tsx';
+import { PageHeader, SkeletonList } from '../ui/patterns.tsx';
 import { useToast } from '../ui/toast.tsx';
 import '../styles/coach.css';
 
@@ -25,6 +25,7 @@ function useWide(): boolean {
 }
 
 const PROMPT_KEYS = ['workout', 'protein', 'weight', 'recovery'] as const;
+const NAMED_PROVIDERS: readonly string[] = ['gemini', 'claude'];
 interface Quota { window: 'minute' | 'day'; retry: number | null }
 
 export default function Coach(): ReactNode {
@@ -88,7 +89,10 @@ export default function Coach(): ReactNode {
   };
   const copy = async (text: string) => { try { await navigator.clipboard.writeText(text); toast(t('coach.copied'), 'ok'); } catch { toast(t('coach.copyFailed'), 'error'); } };
 
-  const providerText = status.data ? (status.data.provider === 'rules' ? t('coach.provider.rules') : t('coach.provider.aiNamed', { name: status.data.provider })) : null;
+  // Internal provider ids never reach the UI: known ones get their product name, anything else (e.g. the Device Mode proxy) is just "AI coach".
+  const provider = status.data?.provider;
+  const providerText = !provider ? null : provider === 'rules' ? t('coach.provider.rules')
+    : NAMED_PROVIDERS.includes(provider) ? t('coach.provider.aiNamed', { name: t(`final.coach.providerName.${provider}`) }) : t('coach.provider.ai');
   const list = threads.data ?? [];
   const empty = (!threadId || (detail.isSuccess && messages.length === 0)) && pending === null;
   const newChat = () => createThread.mutate(undefined, { onSuccess: (r) => selectThread(r.id), onError: (e) => toast(errorMessage(e, t), 'error') });
@@ -115,14 +119,16 @@ export default function Coach(): ReactNode {
       {wide ? <aside className="coach-threads" aria-label={t('coach.threads')}>{threadList}</aside> : null}
 
       <section className="coach-chat" aria-label={t('coach.chat')}>
-        <header className="coach-head">
-          <div className="grow" style={{ minInlineSize: 0 }}>
-            <h1>{t('coach.title')}</h1>
-            {providerText ? <span className="tag" data-testid="provider-label">{providerText}</span> : null}
-          </div>
-          {!wide ? <Button size="sm" onClick={() => setListOpen(true)} aria-haspopup="dialog"><IconChat aria-hidden="true" /> {t('coach.chats')}</Button> : null}
-          {!wide ? <IconButton label={t('coach.newChat')} onClick={newChat} disabled={createThread.isPending}><IconPlus /></IconButton> : null}
-        </header>
+        <PageHeader
+          title={t('coach.title')}
+          {...(providerText ? { subtitle: <span className="tag" data-testid="provider-label">{providerText}</span> } : {})}
+          {...(!wide ? { action: (
+            <div className="row coach-head-actions">
+              <Button size="sm" onClick={() => setListOpen(true)} aria-haspopup="dialog"><IconChat aria-hidden="true" /> {t('coach.chats')}</Button>
+              <IconButton label={t('coach.newChat')} onClick={newChat} disabled={createThread.isPending}><IconPlus /></IconButton>
+            </div>
+          ) } : {})}
+        />
         {status.data?.freeTierNotice ? <Banner tone="warn">{t('coach.freeTier')}</Banner> : null}
 
         <div className="chat-scroll" ref={scroller} role="log" aria-live="polite" aria-label={t('coach.messages')}>

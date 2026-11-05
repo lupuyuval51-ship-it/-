@@ -18,7 +18,9 @@ Not part of `npm run gates` (about 2 minutes); run it before a release.
 - The `app` fixture fails a test on any browser `console.error`/warning or page error. Expected noise is declared per test with `allowConsole(regex)` or, for app-wide probes, in `IGNORED` in `e2e/fixtures.ts` (each entry is explained).
 
 ## Specs
-a register -> onboarding -> Home hero · b ready workouts wizard -> live -> finish -> XP -> history week summary · c daily menu photos + log whole day · d food search thumbnails, quick add, delete + Undo · e coach rules reply and crisis safety card (never AI) · f language switch persistence, `html lang/dir`, more-languages sheet without AI · g offline reload with the service worker (profile-based Home) · h login "keep me signed in" cookie lifetime · i a11y smoke (360 px overflow, named controls, focus in `<main>`) · j profile choice cards.
+a register -> onboarding -> Home hero · b ready workouts wizard -> live -> finish -> XP -> history week summary · c daily menu photos + log whole day · d food search thumbnails, quick add, delete + Undo · e coach rules reply and crisis safety card (never AI) · f language switch persistence, `html lang/dir`, more-languages sheet without AI · g offline reload with the service worker (profile-based Home) · h login "keep me signed in" cookie lifetime · i a11y smoke (360 px overflow, named controls, focus in `<main>`) · j profile choice cards · k shared device: logout and "keep me signed in" off leave no offline identity copy (D21).
+
+11 spec files, 14 tests, each run in the 3 projects (42 runs).
 
 ## Not covered
 Device Mode (PGlite worker), Android shell and native plugins, the AI paths with a real provider, admin/payment flows, camera/barcode, wake lock/vibration, CI wiring.

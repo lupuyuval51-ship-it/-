@@ -2,14 +2,14 @@
 
 Goal: a product that feels fast, obvious and trustworthy on a phone, one-handed, in a gym, in Hebrew RTL and English LTR.
 Read `docs/CLIENT_GUIDE.md` first (hard rules still apply: tokens, logical CSS, i18n, one primary button, lint/tests).
-Shared building blocks (use them, extend them additively): `ui/kit.tsx`, `ui/patterns.tsx` (PageHeader, Skeleton*, StatTile, StickyAction, StepDots, Disclosure, Delayed), `styles/base.css` (.hero-card, .grid-stats, .list-link, .stat-row, .sticky-cta).
+Shared building blocks (use them, extend them additively): `ui/kit.tsx`, `ui/patterns.tsx` (PageHeader, Skeleton*, StatTile, StickyAction, StepDots, Disclosure), `styles/base.css` (.hero-card, .grid-stats, .list-link, .stat-row, .sticky-cta).
 
 ## Principles (each one is checkable in review)
 1. **First viewport answers "what do I do now?"** Home leads with ONE hero card (today's workout / resume / log a meal) and its single orange button; secondary info below. No screen opens with a wall of equal-weight cards.
 2. **Taps budget**: start today's workout ≤ 2 taps from Home; log a recent food ≤ 3 taps; log a set = 1 tap (inputs prefilled from the plan/last session); weigh-in ≤ 2 taps.
 3. **Sensible defaults, never empty forms**: prefill from profile/history, remember last choices (filters, sport, meal slot, grams).
 4. **Progressive disclosure**: advanced options live in `Disclosure`/`Sheet`; lists show 5–7 items + "see all"; long text collapses.
-5. **Loading**: skeletons shaped like the content (`SkeletonCard/List`), never a bare spinner for page content; use `Delayed` for tiny loaders; optimistic updates for toggles, log entries, set completion.
+5. **Loading**: skeletons shaped like the content (`SkeletonCard/List`), never a bare spinner for page content; optimistic updates for toggles, log entries, set completion.
 6. **Feedback for every action**: toast with **Undo** for reversible actions; visible success state (check, count-up) for sets/meals/PRs; `navigator.vibrate(10)` (guarded) on set completion; never silent failure.
 7. **Errors**: inline, plain, actionable ("אין חיבור. הסט נשמר ויסונכרן"), keep the user's input, offer retry. Never show codes.
 8. **Empty states** explain why and give ONE next action (button/link), in the user's language, no sarcasm, no fake data.

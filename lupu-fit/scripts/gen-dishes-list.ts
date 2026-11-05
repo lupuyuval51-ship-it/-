@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /** Writes docs/dishes-list.md from whatever dish slices currently parse (safe while content is still being authored). */
-import { readdirSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { buildDish, foodMap } from '../shared/src/content/build.ts';

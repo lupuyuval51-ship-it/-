@@ -1,30 +1,31 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { buildDailyMenu, filterReadyWorkouts, rankReadyWorkouts, type ProfileInput, type NutritionTargets, type ReadinessState } from '@lupu-fit/shared';
+import { filterReadyWorkouts, rankReadyWorkouts, type ProfileInput, type NutritionTargets, type ReadinessState } from '@lupu-fit/shared';
 import { api } from '../../api/client.ts';
 import { fmt, useLang } from '../../i18n/index.tsx';
 import { DISHES, DISH_BY_ID, EXERCISE_BY_ID, READY_WORKOUTS, exName } from '../../data/content.ts';
 import { qk } from '../../app/session.ts';
-import { Banner, Button, Card, ErrorState, LinkButton, ProgressBar, Segmented, Tag, Toggle, errorMessage } from '../../ui/kit.tsx';
-import { Disclosure, SkeletonCard, StatTile } from '../../ui/patterns.tsx';
+import { Button, Card, ErrorState, LinkButton, ProgressBar, Segmented, Tag, Toggle, errorMessage } from '../../ui/kit.tsx';
+import { Disclosure, SkeletonCard } from '../../ui/patterns.tsx';
 import { TallyMarks } from '../../ui/TallyMarks.tsx';
 import { IconCheck, IconChevron } from '../../ui/icons.tsx';
 import { useToast } from '../../ui/toast.tsx';
 import { ExerciseVideoThumb } from '../ExerciseVideo.tsx';
-import { dayNumber } from './dates.ts';
+import { menuFor } from '../nutrition/logic.ts';
+import { loadChoice } from '../nutrition/menuStore.ts';
 import { activePlan, deriveChecklist, nextMenuItem, nextPlanDay, proteinTone, sessionsThisWeek, upperTone, type ChecklistItem, type PlanRow, type SessionRow, type Tone } from './homeLogic.ts';
 import '../../styles/home.css';
 
 export interface ActiveSession { id: string; name: string; exercises: { id: string; sets: unknown[] }[] }
 export const useActiveSession = () => useQuery({ queryKey: qk.activeSession, queryFn: () => api.get<{ session: ActiveSession | null }>('/api/sessions/active') });
 export const useSessionList = () => useQuery({ queryKey: ['sessions', 'list'], queryFn: () => api.get<{ sessions: SessionRow[] }>('/api/sessions', { limit: 100 }) });
-export const usePlans = () => useQuery({ queryKey: ['plans'], queryFn: () => api.get<{ plans: PlanRow[] }>('/api/plans') });
+/** Same key AND shape as the workouts screens' `usePlans` (an array), so a cache entry written by one screen is valid in the other. */
+export const usePlans = () => useQuery({ queryKey: ['plans'], queryFn: async () => (await api.get<{ plans: PlanRow[] }>('/api/plans')).plans });
 export interface FoodDay { date: string; entries: { slot: string }[]; totals: { kcal: number; proteinG: number; carbsG: number; fatG: number } }
 export const useFoodDay = (date: string) => useQuery({ queryKey: ['food-log', date], queryFn: () => api.get<FoodDay>('/api/food-log', { date }) });
 
 const Chev = (): ReactNode => <IconChevron className="flip-rtl" />;
-const toneClass = (tone: Tone): 'success' | 'warning' | 'danger' | undefined => (tone === 'ok' ? 'success' : tone === 'warn' ? 'warning' : tone === 'over' ? 'danger' : undefined);
 
 /** The ONE thing to do now: resume the open workout. Owns the screen's orange button. */
 export function ResumeCard({ session }: { session: ActiveSession }): ReactNode {
@@ -62,7 +63,7 @@ export function TodayWorkoutCard({ profile, primary, today }: { profile: Profile
   if (plans.isLoading || sessions.isLoading) return <SkeletonCard />;
   // Offline / server down: the plan list is unavailable, but a ready workout is computed locally from the profile, so keep the hero useful.
   if (plans.isError && !suggestion) return <Card><ErrorState error={plans.error} onRetry={() => void plans.refetch()} /></Card>;
-  const plan = activePlan(plans.data?.plans ?? []);
+  const plan = activePlan(plans.data ?? []);
   const next = plan ? nextPlanDay(plan, sessions.data?.sessions ?? [], today) : null;
   const doneToday = (sessions.data?.sessions ?? []).some((s) => s.localDate === today);
   const variant = primary && !doneToday ? ({ variant: 'primary' as const }) : {};
@@ -107,25 +108,23 @@ export function TodayWorkoutCard({ profile, primary, today }: { profile: Profile
   );
 }
 
-/** Three weekly KPIs in one strip: workouts vs goal, calories, protein. */
-export function KpiStrip({ goal, sessions, today, targets }: { goal: number; sessions: readonly SessionRow[] | undefined; today: string; targets: NutritionTargets }): ReactNode {
+/**
+ * This week's training at a glance: one card with workouts vs the weekly goal, the tally marks and a one-line takeaway.
+ * Today's calories and protein live only in the nutrition card, so the same numbers are not shown twice.
+ */
+export function WeekCard({ goal, sessions, today }: { goal: number; sessions: readonly SessionRow[] | undefined; today: string }): ReactNode {
   const { t } = useLang();
-  const food = useFoodDay(today);
   const done = sessions ? sessionsThisWeek(sessions, today).length : 0;
-  const totals = food.data?.totals ?? { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
   return (
-    <div className="stack-sm">
-      <div className="grid-stats home-kpis">
-        <div className="stat-tile">
-          <span className="tiny muted">{t('home.kpi.workouts')}</span>
-          <span className={done >= goal ? 'num-lg success' : 'num-lg'}>{done}<small className="muted small"> / {goal}</small></span>
-          <TallyMarks total={Math.max(goal, done)} done={done} label={t('home.week.aria', { done, total: goal })} />
-        </div>
-        <StatTile label={t('home.kpi.kcal')} value={fmt.num(totals.kcal)} hint={t('home.kpi.of', { n: fmt.num(targets.kcal) })} {...(toneClass(upperTone(totals.kcal, targets.kcal)) ? { tone: toneClass(upperTone(totals.kcal, targets.kcal))! } : {})} />
-        <StatTile label={t('home.kpi.protein')} value={fmt.num(totals.proteinG)} unit={t('unit.g')} hint={t('home.kpi.of', { n: fmt.num(targets.proteinG) })} {...(toneClass(proteinTone(totals.proteinG, targets.proteinG)) ? { tone: toneClass(proteinTone(totals.proteinG, targets.proteinG))! } : {})} />
+    <Card className="stack-sm home-week">
+      <span className="small muted">{t('home.kpi.workouts')}</span>
+      <div className="home-week-row">
+        {/* "done / goal" is one numeric LTR run, so it reads 1 / 4 in both directions. */}
+        <span className={done >= goal ? 'num-lg success' : 'num-lg'}>{done}<small className="muted small"> / {goal}</small></span>
+        <TallyMarks total={Math.max(goal, done)} done={done} label={t('home.week.aria', { done, total: goal })} />
       </div>
       <p className="small muted">{sessions === undefined ? t('app.loading') : done === 0 ? t('home.week.none') : done >= goal ? t('home.week.goalHit') : t('home.week.left', { n: goal - done })}</p>
-    </div>
+    </Card>
   );
 }
 
@@ -189,7 +188,7 @@ export function NutritionCard({ today, targets, children }: { today: string; tar
   return (
     <Card>
       <div className="stack">
-        <div className="row-between"><h2>{t('home.nutrition.title')}</h2><LinkButton to="/nutrition/log" variant="ghost" size="sm">{t('home.logMeal')}<Chev /></LinkButton></div>
+        <div className="row-between"><h2>{t('home.nutrition.title')}</h2><LinkButton to="/nutrition/log" variant="ghost" size="sm" className="accent">{t('home.logMeal')}<Chev /></LinkButton></div>
         {q.isError ? <ErrorState error={q.error} onRetry={() => void q.refetch()} /> : (
           <div className="stack">
             {empty ? <p className="small muted">{t('home.nutrition.none')}</p> : null}
@@ -211,13 +210,14 @@ export function NutritionCard({ today, targets, children }: { today: string; tar
 export function MenuTeaser({ today, profile, targets, embedded }: { today: string; profile: ProfileInput; targets: NutritionTargets; embedded?: boolean }): ReactNode {
   const { t, lang } = useLang();
   const food = useFoodDay(today);
-  const menu = useMemo(() => buildDailyMenu(DISHES, { kcal: targets.kcal }, { mealCount: 4, seed: dayNumber(today), diet: profile.diet, restrictions: profile.restrictions, allergies: profile.allergies }), [today, profile, targets.kcal]);
+  // Same builder, seed and stored choice (meal count, 'generate again', swaps) as /nutrition/menu, so both name the same dishes.
+  const menu = useMemo(() => menuFor(DISHES, targets.kcal, today, loadChoice(today), { diet: profile.diet, restrictions: profile.restrictions, allergies: profile.allergies }), [today, profile, targets.kcal]);
   const logged = new Set((food.data?.entries ?? []).map((e) => e.slot));
   const next = nextMenuItem(menu.items, logged, new Date().getHours());
   const dish = next ? DISH_BY_ID.get(next.dishId) : undefined;
   const body = (
     <div className="stack-sm">
-      <div className="row-between"><h3>{t('home.menu.title')}</h3><LinkButton to="/nutrition/menu" variant="ghost" size="sm">{t('home.menu.open')}<Chev /></LinkButton></div>
+      <div className="row-between"><h3>{t('home.menu.title')}</h3><LinkButton to="/nutrition/menu" variant="ghost" size="sm" className="accent">{t('home.menu.open')}<Chev /></LinkButton></div>
       {menu.items.length === 0 ? <p className="muted">{t('home.menu.none')}</p> : next && dish ? (
         <>
           <span className="small muted">{t('home.menu.next')}: {t(`label.slot.${next.slot}`)}</span>

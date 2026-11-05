@@ -17,14 +17,14 @@ export const he: Dict = {
   },
   note: {
     recovery_day_added: 'התבקשו שבעה ימים: שישה ימי כוח ויום התאוששות.',
-    exercise_swapped: 'תרגיל הוחלף באלטרנטיבה בטוחה יותר.',
+    exercise_swapped: 'תרגיל הוחלף בחלופה בטוחה יותר.',
     exercise_dropped: 'תרגיל הוסר כי אין לו חלופה בטוחה.',
     time_trimmed: 'האימון קוצר כדי להתאים לזמן שהוקצה.',
     slot_unfilled: 'לא נמצא תרגיל מתאים לאחד המקטעים.',
   },
   coach: {
     crisisTitle: 'קודם כול תמיכה',
-    freeTierPrivacy: 'בשכבה החינמית של Google ייתכן שימוש בשאלות לשיפור המוצרים שלה.',
+    freeTierPrivacy: 'במסלול החינמי של Google ייתכן שימוש בשאלות לשיפור המוצרים שלה.',
   },
   sport: {
     soccer: 'כדורגל', basketball: 'כדורסל', volleyball: 'כדורעף', racquet: 'טניס / פאדל', running: 'ריצה',

@@ -10,8 +10,8 @@ import {
   MEAL_SLOTS, MOVEMENT_PATTERNS, MUSCLES, MUSCLE_TO_GROUP, FINISHER_VARIANTS, SPORTS, PLACES, WORKOUT_MODES,
 } from '../shared/src/enums.ts';
 import { isHighImpact } from '../shared/src/age.ts';
-import { BODYWEIGHT_APPARATUS, estimateMinutes, type ExerciseDef } from '../shared/src/training.ts';
-import { FOOD_CATEGORIES, WORKOUT_STYLES, type DishRaw, type ExerciseContent, type FinisherContent, type FoodContent, type MealTemplateRaw, type ReadyWorkoutContent, type WorkoutFocus } from '../shared/src/content/types.ts';
+import { BODYWEIGHT_APPARATUS, estimateMinutes } from '../shared/src/training.ts';
+import { FOOD_CATEGORIES, WORKOUT_STYLES, type DishRaw, type ExerciseContent, type FinisherContent, type FoodContent, type MealTemplateRaw, type ReadyWorkoutContent } from '../shared/src/content/types.ts';
 import { detectAllergensInText } from '../shared/src/menu.ts';
 import { FOCUS_MUSCLES } from '../shared/src/content/focus.ts';
 import { buildDish, buildMealTemplate, foodMap, sumMacros } from '../shared/src/content/build.ts';

@@ -8,6 +8,7 @@ import { ErrorState, Loading } from '../ui/kit.tsx';
 import { ToastProvider } from '../ui/toast.tsx';
 import { UpdatePrompt } from '../ui/UpdatePrompt.tsx';
 import { AutomationRuntime } from '../automation/runtime.tsx';
+import { ProfileTheme } from './ProfileTheme.tsx';
 import { RouteEffects } from './RouteEffects.tsx';
 import { PublicLayout, Shell } from './Shell.tsx';
 import { useMe } from './session.ts';
@@ -58,6 +59,7 @@ export function AppRoutes(): ReactNode {
     <Suspense fallback={<Loading />}>
       <Gate>
         <RouteEffects />
+        <ProfileTheme />
         <Routes>
           <Route element={<PublicLayout />}>
             <Route path="/login" element={<p.Login />} /><Route path="/register" element={<p.Register />} />

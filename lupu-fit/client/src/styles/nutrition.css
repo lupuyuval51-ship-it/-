@@ -4,7 +4,6 @@
 .nutrition-page .date-nav { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.25rem 0.5rem; background: var(--surface); }
 .nutrition-page .flip-180 { transform: scaleX(-1); }
 [dir='rtl'] .nutrition-page .flip-180 { transform: none; }
-.nutrition-page .macro-row .bar { block-size: 0.625rem; }
 .nutrition-page .macro-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
 .nutrition-page .result-row { display: flex; align-items: center; gap: 0.75rem; inline-size: 100%; min-block-size: var(--tap); padding: 0.5rem 0; background: transparent; border: 0; color: var(--text); font: inherit; text-align: start; cursor: pointer; }
 .nutrition-page .result-row:hover { background: var(--surface-2); }
@@ -72,26 +71,29 @@
 .nutrition-page .nu-search input[type='search'] { font-size: var(--fs-18); min-block-size: 3rem; }
 .nutrition-page .nu-chips .chip { min-block-size: 2.75rem; }
 .nutrition-page .list-link .chev { inline-size: 1.25rem; block-size: 1.25rem; flex: none; }
-.nutrition-page .nu-slot-save { color: var(--text-muted); }
 .nutrition-page .nu-shortcuts .list-link { padding-inline: 0; }
 .nutrition-page .nu-ways .nu-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .nutrition-page .nu-tile { align-items: center; text-align: center; min-block-size: 4.25rem; padding-inline: 0.25rem; }
 .nutrition-page .nu-tile strong { font-size: var(--fs-12); line-height: 1.15; }
 .nutrition-page .nu-tile .tiny { display: none; }
 @media (min-width: 40rem) { .nutrition-page .nu-tile { align-items: flex-start; text-align: start; padding-inline: 0.75rem; } .nutrition-page .nu-tile strong { font-size: var(--fs-14); } .nutrition-page .nu-tile .tiny { display: block; } }
-.nutrition-page .segmented button { white-space: nowrap; padding-inline: 0.25rem; font-size: var(--fs-14); }
+/* Long labels (e.g. "ארוחת צהריים" at 360 px) wrap to two lines instead of being clipped into the next segment. */
+.nutrition-page .segmented button { white-space: normal; overflow-wrap: normal; line-height: 1.15; padding-inline: 0.25rem; font-size: var(--fs-14); }
 
 /* ---- second pass: menu ---- */
 .nutrition-page .nu-disclaimer { display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 .nutrition-page .nu-disclaimer svg { inline-size: 1rem; block-size: 1rem; flex: none; margin-block-start: 0.25rem; color: var(--text-muted); }
 .nutrition-page .nu-menu-controls { display: flex; flex-direction: column; gap: 0.25rem; align-items: stretch; }
-.nutrition-page .nu-muted-btn { color: var(--text-muted); }
-.nutrition-page .nu-muted-btn:hover { color: var(--text); }
 .nutrition-page .nu-muted-btn svg { inline-size: 1rem; block-size: 1rem; }
 .nutrition-page .nu-macros { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
 .nutrition-page .nu-macros .num { font-size: var(--fs-18); }
 .nutrition-page .nu-dish h3 { font-size: var(--fs-18); }
 .nutrition-page .nu-details > summary { cursor: pointer; min-block-size: var(--tap); display: flex; align-items: center; color: var(--text-muted); font-size: var(--fs-14); }
+/* Disclosure affordance (same +/− marker as the shared .disclosure): display: flex hides the native triangle. */
+.nutrition-page .nu-details > summary { list-style: none; gap: 0.5rem; }
+.nutrition-page .nu-details > summary::-webkit-details-marker { display: none; }
+.nutrition-page .nu-details > summary::after { content: '+'; font-family: var(--font-num); font-size: var(--fs-22); line-height: 1; color: var(--text-muted); }
+.nutrition-page .nu-details[open] > summary::after { content: '−'; }
 .nutrition-page .nu-group-head { display: flex !important; justify-content: space-between; padding-block: 0.5rem 0.25rem !important; border-block-end: 1px solid var(--border); text-transform: none; letter-spacing: 0.04em; }
 .nutrition-page .nu-checklist > li { padding-block: 0.125rem; }
 .nutrition-page .check-row input { flex: none; }
@@ -100,7 +102,12 @@
   .nu-hub > .sticky-cta { order: -1; align-self: flex-start; inline-size: 16rem; }
 }
 
-.nutrition-page .nu-photo { inline-size: 100%; block-size: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
+.nutrition-page .nu-photo { inline-size: 100%; max-inline-size: 40rem; block-size: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
+/* Desktop: two meals per row (photos stay at or below their native 640 px), everything else keeps the full width. */
+@media (min-width: 60rem) {
+  .nutrition-page.nu-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .nutrition-page.nu-menu > :not(.nu-dish) { grid-column: 1 / -1; }
+}
 
 .nutrition-page .nu-thumb { flex: none; inline-size: 3.5rem; block-size: 3.5rem; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
 .nutrition-page .nu-entries > li { align-items: center; gap: 0.75rem; }

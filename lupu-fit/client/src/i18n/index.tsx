@@ -27,10 +27,23 @@ function lookupIn(tree: Tree | null, key: string): string | undefined {
   for (const part of key.split('.')) { if (typeof cur !== 'object' || cur === null) return undefined; cur = cur[part]; }
   return typeof cur === 'string' ? cur : undefined;
 }
-/** `overlay` is a machine-translated tree (custom language); any key it lacks falls back to English. */
+/** The count of a message: `n`, or the only parameter. Bidi isolates (used to keep numbers LTR) are ignored. */
+function countOf(params: Record<string, string | number>): number | undefined {
+  const vals = Object.values(params);
+  const v = 'n' in params ? params.n : vals.length === 1 ? vals[0] : undefined;
+  if (typeof v === 'number') return v;
+  if (typeof v !== 'string') return undefined;
+  const s = v.replace(/[\u200e\u200f\u2066-\u2069]/g, '').trim();
+  return /^\d+$/.test(s) ? Number(s) : undefined;
+}
+/**
+ * `overlay` is a machine-translated tree (custom language); any key it lacks falls back to English.
+ * Singular: when the count is 1 and a sibling `<key>One` exists, that variant is used ("1 workouts" / "1 אימונים" never render).
+ */
 export function makeT(lang: Language, overlay: Tree | null = null): TFn {
+  const find = (k: string): string | undefined => (overlay ? lookupIn(overlay, k) : undefined) ?? lookup(lang, k) ?? lookup('en', k);
   return (key, params) => {
-    const s = (overlay ? lookupIn(overlay, key) : undefined) ?? lookup(lang, key) ?? lookup('en', key);
+    const s = (params && countOf(params) === 1 ? find(`${key}One`) : undefined) ?? find(key);
     if (s === undefined) { if (import.meta.env.DEV) console.warn(`[i18n] missing key ${key}`); return key; }
     return params ? s.replace(/\{(\w+)\}/g, (_, p: string) => String(params[p] ?? `{${p}}`)) : s;
   };

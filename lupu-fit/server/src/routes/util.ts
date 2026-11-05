@@ -1,6 +1,6 @@
-import type { ProfileInput } from '@lupu-fit/shared';
+import { DAY_WINDOW, type ProfileInput } from '@lupu-fit/shared';
 import type { DbAdapter } from '../db/adapter.ts';
-import { notFound } from '../core/errors.ts';
+import { ApiError, notFound } from '../core/errors.ts';
 import type { Ctx } from '../core/types.ts';
 
 export const uid = (ctx: Ctx): string => (ctx.user as NonNullable<Ctx['user']>).id;
@@ -35,3 +35,15 @@ export async function requireProfile(db: DbAdapter, userId: string): Promise<Pro
 /** YYYY-MM-DD -> Date at UTC midnight and back, for pure calendar arithmetic independent of timezone. */
 export const addDays = (iso: string, days: number): string => new Date(Date.parse(`${iso}T00:00:00Z`) + days * 86400_000).toISOString().slice(0, 10);
 export const isoDate = (d: Date): string => d.toISOString().slice(0, 10);
+
+/**
+ * A client-chosen calendar day must be plausible against the server clock (shared DAY_WINDOW): `today` for workouts and check-ins
+ * (today-1..today+1 covers every time zone), `backfill` for plain logging (up to a year back, at most one day ahead). Anything else
+ * is a 400 validation error (issue message `date_out_of_range`), so far-past or far-future dates can neither mint rewards nor feed trends and the coach.
+ */
+export function assertPlausibleDay(ctx: Ctx, day: string, kind: 'today' | 'backfill', field = 'date'): void {
+  const today = isoDate(ctx.now);
+  const earliest = addDays(today, -(kind === 'today' ? DAY_WINDOW.pastDaysToday : DAY_WINDOW.backfillDays));
+  const latest = addDays(today, DAY_WINDOW.futureDays);
+  if (day < earliest || day > latest) throw new ApiError(400, 'validation_error', { issues: [{ path: field, message: 'date_out_of_range' }], earliest, latest });
+}

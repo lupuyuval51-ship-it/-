@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EXERCISES } from '@lupu-fit/shared/content';
-import { anon, call, makeApp, PROFILE, register, type TestCtx } from './helpers.ts';
+import { call, makeApp, PROFILE, register, type TestCtx } from './helpers.ts';
 import { COACH_LIMITS } from '../src/routes/coach.ts';
 
 const D = '2026-11-02';
@@ -102,7 +102,8 @@ describe('isolation and idempotency', () => {
   it("another user's resources are 404, never 403, on every user-owned route", async () => {
     const t = await makeApp(); const a = await onboard(t, 'user_a', '10.0.0.1'); const b = await onboard(t, 'user_b', '10.0.0.2');
     const w = await workout(t, a, 60);
-    const plan = await call(t, a, 'POST', '/api/plans', { name: 'P', plan: { days: [] } });
+    const plan = await call(t, a, 'POST', '/api/plans', { name: 'P', plan: { days: [{ day: 'full_a', exercises: [{ exerciseId: 'push_up', prescription: { sets: 3, repsMin: 8, repsMax: 10, rpe: 7, restSec: 90, loadKg: null, durationSec: null } }], estimatedMinutes: 20 }] } });
+    expect(plan.status).toBe(201);
     const meal = await call(t, a, 'POST', '/api/saved-meals', { name: 'M', slot: 'lunch', items: [{ name: 'Rice', grams: 100, kcal: 130, proteinG: 3, carbsG: 28, fatG: 0 }] });
     const entry = await call(t, a, 'POST', '/api/food-log', { loggedDate: D, slot: 'lunch', name: 'Rice', grams: 100, kcal: 130, proteinG: 3, carbsG: 28, fatG: 0 });
     const thread = await call(t, a, 'POST', '/api/coach/threads', {});
@@ -232,7 +233,7 @@ describe('nutrition lookups', () => {
     expect((await call(t3, c3, 'GET', '/api/nutrition/barcode/7290000000001')).status).toBe(502);
   });
   it('photo estimate: 503 without a vision provider; validated + labelled estimate with one; garbage is rejected', async () => {
-    const jpeg = 'A'.repeat(200);
+    const jpeg = `/9j/${'A'.repeat(200)}`;
     const t0 = await makeApp(); const c0 = await onboard(t0);
     expect((await call(t0, c0, 'POST', '/api/nutrition/photo-estimate', { jpegBase64: jpeg })).status).toBe(503);
     let reply = '{"items":[{"name":"Rice","grams":150,"kcal":200,"proteinG":4,"carbsG":44,"fatG":1}]}';

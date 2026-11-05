@@ -73,7 +73,6 @@ export default function ExerciseDetail(): ReactNode {
       <div className="exd-grid">
         <div className="stack-sm exd-media">
           <ExerciseVideo exerciseId={ex.id} size="hero" steps={steps} alt={name} />
-          <p className="tiny muted">{t('video.illustration')}</p>
         </div>
         <div className="stack">
           <Tabs label={t('exercises.detail.tabsLabel')} value={tab} onChange={(v) => setSp(v === 'steps' ? {} : { tab: v }, { replace: true })} tabs={TABS.map((x) => ({ value: x, label: t(`exercises.detail.tab${x[0]!.toUpperCase()}${x.slice(1)}`) }))} />

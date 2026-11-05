@@ -7,7 +7,7 @@ import { weekStartOf } from '../components/workouts/weekUtil.ts';
 import { IS_DEVICE } from '../env.ts';
 import { fmt, useLang } from '../i18n/index.tsx';
 import { Banner, Button, LinkButton } from '../ui/kit.tsx';
-import { ensureBackupSince, markCheckinSeen, readBackupState, readCheckinSeen, shouldShowBackup, shouldShowCheckin, snoozeBackup, summarizeLastWeek, type BackupState, type DatedRow, type WeightRow } from './checkin.ts';
+import { ensureBackupSince, hasHistoryBeforeWeek, markCheckinSeen, readBackupState, readCheckinSeen, shouldShowBackup, shouldShowCheckin, snoozeBackup, summarizeLastWeek, type BackupState, type DatedRow, type WeightRow } from './checkin.ts';
 import { isMinorAge } from './schedule.ts';
 import { useAutomationSettings } from './settings.ts';
 import '../styles/automation.css';
@@ -28,7 +28,7 @@ export function AutomationBanners({ profile }: { profile: Pick<ProfileInput, 'ag
   const rows = sessions.data?.sessions; const wts = weights.data?.entries;
   if (!rows || !wts) return null;
   const hasHistory = rows.length > 0 || wts.length > 0;
-  const showCheckin = shouldShowCheckin({ enabled: wantCheckin, today, lang, seenWeek: seen, hasHistory });
+  const showCheckin = shouldShowCheckin({ enabled: wantCheckin, today, lang, seenWeek: seen, hasHistory: hasHistoryBeforeWeek({ today, lang, sessions: rows, weights: wts }) });
   const showBackup = shouldShowBackup({ enabled: wantBackup, isDevice: IS_DEVICE, today, state: backup, hasData: hasHistory });
   const sum = summarizeLastWeek({ today, lang, goal: profile.daysPerWeek, sessions: rows, weights: wts, includeWeight: !isMinorAge(profile.age) });
   const thisWeek = weekStartOf(today, lang);
