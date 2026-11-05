@@ -249,9 +249,12 @@ values ('cccccccc-0000-4000-8000-000000000003', 'cccccccc-1111-4000-8000-0000000
 select lives_ok($$delete from auth.users where id = 'cccccccc-0000-4000-8000-000000000003'$$,
   'deleting an account with a ready current plan succeeds');
 select results_eq(
-  $$ select (select count(*)::int from public.plan_sections) + (select count(*)::int from public.plan_versions)
-          + (select count(*)::int from public.businesses) + (select count(*)::int from public.profiles where id = 'cccccccc-0000-4000-8000-000000000003')
-          + (select count(*)::int from public.ai_usage_records) + (select count(*)::int from public.ai_conversations) $$,
+  $$ select (select count(*)::int from public.plan_sections where plan_version_id = 'cccccccc-4444-4000-8000-000000000003')
+          + (select count(*)::int from public.plan_versions where id = 'cccccccc-4444-4000-8000-000000000003')
+          + (select count(*)::int from public.businesses where id = 'cccccccc-1111-4000-8000-000000000003')
+          + (select count(*)::int from public.profiles where id = 'cccccccc-0000-4000-8000-000000000003')
+          + (select count(*)::int from public.ai_usage_records where user_id = 'cccccccc-0000-4000-8000-000000000003')
+          + (select count(*)::int from public.ai_conversations where business_id = 'cccccccc-1111-4000-8000-000000000003') $$,
   $$ values (0) $$,
   'account deletion removes all of the user''s rows'
 );
