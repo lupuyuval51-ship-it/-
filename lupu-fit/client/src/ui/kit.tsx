@@ -99,7 +99,14 @@ export function Banner({ tone, children }: { tone?: 'warn' | 'danger' | 'ok'; ch
   return <div className={cx('banner', tone)} role={tone === 'danger' ? 'alert' : 'note'}>{tone === 'warn' || tone === 'danger' ? <IconWarn /> : <IconInfo />}<div className="grow">{children}</div></div>;
 }
 
-/** Modal bottom sheet. Traps focus loosely (focus moves in, Escape closes, scrim click closes). */
+/** True while a sheet's own history entry is being popped (async), so a sheet opened in the same tick does not adopt that pop. */
+let sheetUnwinding = false;
+
+/**
+ * Modal bottom sheet. Traps focus loosely (focus moves in and returns to the opener on close, Escape closes, scrim click closes).
+ * The browser/Android Back button closes the sheet instead of leaving the screen: opening adds one same-URL history entry
+ * (React Router's own state is copied, so its location and index stay valid) and Back pops it.
+ */
 export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }): ReactNode {
   const ref = useRef<HTMLDivElement>(null); const t = useT(); const titleId = useId();
   // Keep the latest onClose in a ref so an inline callback does not re-run the effect (which would steal focus from inputs on every render).
@@ -110,7 +117,29 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
     ref.current?.focus();
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
     document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('keydown', onKey); prev?.focus?.(); };
+    const token = `lf-sheet-${Math.random().toString(36).slice(2)}`;
+    let pushed = false;
+    const onPop = (): void => { if (pushed) { pushed = false; closeRef.current(); } };
+    if (!sheetUnwinding) {
+      try {
+        window.history.pushState({ ...((window.history.state as Record<string, unknown> | null) ?? {}), lfSheet: token }, '');
+        pushed = true;
+        window.addEventListener('popstate', onPop);
+      } catch { /* history unavailable: Escape and the close button still work */ }
+    }
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('popstate', onPop);
+      // Closed from the UI (not by Back): drop our entry, unless the app has already navigated on.
+      if (pushed && (window.history.state as { lfSheet?: string } | null)?.lfSheet === token) {
+        sheetUnwinding = true;
+        const done = (): void => { sheetUnwinding = false; window.removeEventListener('popstate', done); };
+        window.addEventListener('popstate', done);
+        setTimeout(done, 600);
+        window.history.back();
+      }
+      prev?.focus?.();
+    };
   }, [open]);
   if (!open) return null;
   return (

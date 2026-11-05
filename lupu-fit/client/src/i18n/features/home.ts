@@ -5,7 +5,7 @@ export default defineFeature({
     greeting: 'Welcome back',
     greetingName: 'Hi, {name}',
     resume: { title: 'Workout in progress', sets: '{n} sets logged so far', cta: 'Resume workout' },
-    hero: { today: 'Next up', doneToday: 'Done for today', moreToday: 'Go again', meal: 'Fuel up', mealCta: 'Log a meal', firstMeal: 'Log your first meal of the day', mealHint: 'Nothing logged yet today.' },
+    hero: { today: 'Next up', doneToday: 'Done for today', moreToday: 'Another workout', meal: 'Next meal', mealCta: 'Log a meal', firstMeal: 'Log your first meal of the day', mealHint: 'Nothing logged yet today.' },
     kpi: { workouts: 'Workouts this week', kcal: 'Calories today', protein: 'Protein today', of: 'of {n}' },
     today: {
       title: "Today's workout", exercises: 'exercises', planDay: 'Day {a} of {b} in your plan', open: 'Open workout', noPlan: 'No active plan yet. Best match for your profile:',
@@ -29,7 +29,7 @@ export default defineFeature({
     greeting: 'ברוכים השבים',
     greetingName: 'היי {name}',
     resume: { title: 'אימון פעיל', sets: '{n} סטים תועדו עד עכשיו', cta: 'המשך אימון' },
-    hero: { today: 'הבא בתור', doneToday: 'האימון של היום הושלם', moreToday: 'אימון נוסף', meal: 'זמן לתדלק', mealCta: 'תיעוד ארוחה', firstMeal: 'תיעוד הארוחה הראשונה להיום', mealHint: 'עוד לא תועד כלום היום.' },
+    hero: { today: 'הבא בתור', doneToday: 'האימון של היום הושלם', moreToday: 'אימון נוסף', meal: 'הארוחה הבאה', mealCta: 'תיעוד ארוחה', firstMeal: 'תיעוד הארוחה הראשונה להיום', mealHint: 'עוד לא תועד כלום היום.' },
     kpi: { workouts: 'אימונים השבוע', kcal: 'קלוריות היום', protein: 'חלבון היום', of: 'מתוך {n}' },
     today: {
       title: 'האימון של היום', exercises: 'תרגילים', planDay: 'יום {a} מתוך {b} בתוכנית', open: 'לפתיחת האימון', noPlan: 'אין עדיין תוכנית פעילה. ההתאמה הטובה ביותר לפרופיל:',

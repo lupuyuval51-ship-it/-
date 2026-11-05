@@ -3,7 +3,7 @@ import { defineFeature } from '../core.ts';
 export default defineFeature({
   progress: {
     take: {
-      empty: 'Finish a workout and your progress will show up here.', sessions: 'In this range: {n} workouts, {g} planned.', sessionsNoGoal: 'In this range: {n} workouts.', weight: 'Body weight changed by {d} kg ({from} to {to}).', prs: 'Personal records set: {n}.',
+      empty: 'Finish a workout and your progress will show up here.', sessions: 'In this range: {n} workouts, {g} planned.', sessionsNoGoal: 'In this range: {n} workouts.', weight: 'Body weight changed by {d} kg ({from} to {to}).',
       volume: 'Most work went to {group}: {n} sets.', strength: 'Estimated 1RM {from} to {to} kg ({d})', weightTrend: 'Trend: {d} kg in this range',
     },
     kpi: { workouts: 'Workouts', sets: 'Sets', prs: 'New records', weight: 'Weight change' },
@@ -44,7 +44,7 @@ export default defineFeature({
 }, {
   progress: {
     take: {
-      empty: 'אחרי האימון הראשון ההתקדמות תופיע כאן.', sessions: 'בטווח הזה: {n} אימונים, {g} מתוכננים.', sessionsNoGoal: 'בטווח הזה: {n} אימונים.', weight: 'משקל הגוף השתנה ב-{d} ק״ג ({from} עד {to}).', prs: 'שיאים אישיים שנקבעו: {n}.',
+      empty: 'אחרי האימון הראשון ההתקדמות תופיע כאן.', sessions: 'בטווח הזה: {n} אימונים, {g} מתוכננים.', sessionsNoGoal: 'בטווח הזה: {n} אימונים.', weight: 'משקל הגוף השתנה ב-{d} ק״ג ({from} עד {to}).',
       volume: 'רוב העבודה הלכה על {group}: {n} סטים.', strength: 'הערכת 1RM {from} עד {to} ק״ג ({d})', weightTrend: 'מגמה: {d} ק״ג בטווח הזה',
     },
     kpi: { workouts: 'אימונים', sets: 'סטים', prs: 'שיאים חדשים', weight: 'שינוי משקל' },

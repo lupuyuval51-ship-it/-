@@ -26,21 +26,29 @@ export async function assertNotLocked(db: DbAdapter, scope: string, keys: { scop
   if (retry > 0) throw new ApiError(429, 'too_many_attempts', { retryAfterSec: retry }, { 'retry-after': String(retry) });
 }
 
-export async function recordFailure(db: DbAdapter, scope: string, keys: { scopeKind: string; id: string }[], now: Date): Promise<void> {
+export interface FailureState { count: number; lockedUntil: Date | null }
+
+/**
+ * Counts one failure for every key and returns the resulting state. The counter row is created first (ON CONFLICT DO NOTHING) and
+ * then locked FOR UPDATE, so concurrent failures serialise on the row: none is lost and none hits a unique-key error.
+ */
+export async function recordFailure(db: DbAdapter, scope: string, keys: { scopeKind: string; id: string }[], now: Date): Promise<FailureState[]> {
   const p = POLICIES[scope] as LimitPolicy;
+  const out: FailureState[] = [];
   for (const k of keys) {
     const sc = `${scope}:${k.scopeKind}`;
-    await db.transaction(async (tx) => {
-      const rows = await tx.query<Row>('SELECT fail_count, first_failed_at, locked_until FROM auth_attempts WHERE scope = $1 AND identifier = $2 FOR UPDATE', [sc, k.id]);
-      const row = rows[0];
-      const fresh = !row || (now.getTime() - new Date(row.first_failed_at).getTime() > p.windowSec * 1000 && !(row.locked_until && new Date(row.locked_until) > now));
-      const count = fresh ? 1 : (row?.fail_count ?? 0) + 1;
-      const lockSec = count >= p.threshold ? Math.min(p.baseLockSec * 2 ** (count - p.threshold), p.maxLockSec) : 0;
+    out.push(await db.transaction(async (tx) => {
+      await tx.query('INSERT INTO auth_attempts (scope, identifier, fail_count, first_failed_at, locked_until, updated_at) VALUES ($1,$2,0,$3,NULL,$3) ON CONFLICT DO NOTHING', [sc, k.id, now.toISOString()]);
+      const row = (await tx.query<Row>('SELECT fail_count, first_failed_at, locked_until FROM auth_attempts WHERE scope = $1 AND identifier = $2 FOR UPDATE', [sc, k.id]))[0] as Row;
+      const fresh = now.getTime() - new Date(row.first_failed_at).getTime() > p.windowSec * 1000 && !(row.locked_until && new Date(row.locked_until) > now);
+      const count = fresh ? 1 : row.fail_count + 1;
+      const lockSec = count >= p.threshold ? Math.min(p.baseLockSec * 2 ** Math.min(count - p.threshold, 30), p.maxLockSec) : 0;
       const lockedUntil = lockSec > 0 ? new Date(now.getTime() + lockSec * 1000) : null;
-      if (!row) await tx.query('INSERT INTO auth_attempts (scope, identifier, fail_count, first_failed_at, locked_until, updated_at) VALUES ($1,$2,$3,$4,$5,$4)', [sc, k.id, count, now.toISOString(), lockedUntil?.toISOString() ?? null]);
-      else await tx.query('UPDATE auth_attempts SET fail_count = $3, first_failed_at = $4, locked_until = $5, updated_at = $6 WHERE scope = $1 AND identifier = $2', [sc, k.id, count, (fresh ? now : new Date(row.first_failed_at)).toISOString(), lockedUntil?.toISOString() ?? null, now.toISOString()]);
-    });
+      await tx.query('UPDATE auth_attempts SET fail_count = $3, first_failed_at = $4, locked_until = $5, updated_at = $6 WHERE scope = $1 AND identifier = $2', [sc, k.id, count, (fresh ? now : new Date(row.first_failed_at)).toISOString(), lockedUntil?.toISOString() ?? null, now.toISOString()]);
+      return { count, lockedUntil };
+    }));
   }
+  return out;
 }
 
 export async function clearFailures(db: DbAdapter, scope: string, key: { scopeKind: string; id: string }): Promise<void> {

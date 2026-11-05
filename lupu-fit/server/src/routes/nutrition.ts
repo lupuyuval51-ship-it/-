@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ApiError } from '../core/errors.ts';
 import type { Router } from '../core/router.ts';
 import type { Deps } from '../core/types.ts';
-import { assertQuota, recordUsage } from './coach.ts';
+import { reserveQuota } from './coach.ts';
 
 const EstimateSchema = z.object({
   items: z.array(z.object({ name: z.string().min(1).max(120), grams: z.number().min(1).max(3000), kcal: z.number().min(0).max(3000), proteinG: z.number().min(0).max(300), carbsG: z.number().min(0).max(500), fatG: z.number().min(0).max(300) })).min(1).max(12),
@@ -35,12 +35,11 @@ export function nutritionRoutes(r: Router, d: Deps): void {
   r.post('/api/nutrition/photo-estimate', async (ctx) => {
     const b = ctx.body as z.infer<typeof PhotoEstimateBodySchema>;
     if (!d.ai?.describeImage) throw new ApiError(503, 'ai_unavailable');
-    await assertQuota(ctx, 'photo');
+    await reserveQuota(ctx, 'photo');
     const text = await d.ai.describeImage({
       system: 'You estimate the nutrition of a meal from a photo. Reply with JSON only: {"items":[{"name":string,"grams":number,"kcal":number,"proteinG":number,"carbsG":number,"fatG":number}],"notes":string}. Be conservative; these are rough estimates. If no food is visible return {"items":[]}.',
       prompt: b.lang === 'he' ? 'Name the items in Hebrew.' : 'Name the items in English.', jpegBase64: b.jpegBase64,
     }).catch(() => { throw new ApiError(502, 'ai_failed'); });
-    await recordUsage(ctx, 'photo');
     let parsed: unknown;
     try { parsed = JSON.parse(text.replace(/^```(?:json)?|```$/gm, '').trim()); } catch { throw new ApiError(502, 'bad_estimate'); }
     const ok = EstimateSchema.safeParse(parsed);

@@ -4,12 +4,17 @@ import { z } from 'zod';
 import { randomId } from '../crypto/portableCrypto.ts';
 import { ApiError } from '../core/errors.ts';
 import type { Router } from '../core/router.ts';
+import type { DbAdapter } from '../db/adapter.ts';
 import type { Ctx, Deps } from '../core/types.ts';
 import { unlockAchievements } from '../services/gamification.ts';
+import { promptLanguage } from '../services/langLabel.ts';
 import { targetsFor } from './profile.ts';
 import { addDays, isoDate, loadProfile, uid } from './util.ts';
 
 const EX = new Map(EXERCISES.map((e) => [e.id, e]));
+/** The prompt asks for under 150 words; this is the hard stop for a model that ignores it (also bounds what is stored and shown). */
+export const MAX_REPLY_CHARS = 2000;
+export const clampReply = (t: string): string => (t.length > MAX_REPLY_CHARS ? `${t.slice(0, MAX_REPLY_CHARS).replace(/\s+\S*$/, '')}…` : t);
 export const COACH_LIMITS = { perMinute: 6, perDay: 50 } as const;
 
 /** Structured, anonymised snapshot: age BRACKET (never exact age), no name/username, only numbers that exist in the DB. */
@@ -36,21 +41,40 @@ export async function buildSnapshot(ctx: Ctx, lang: Language): Promise<CoachSnap
   };
 }
 
-const SYSTEM = (lang: Language, ui?: UiLanguage) => `You are the LUPU-FIT coach: a concise, evidence-based strength and nutrition coach. Reply in ${ui ? `${ui.name} (language code ${ui.code})` : lang === 'he' ? 'Hebrew (gender-neutral phrasing: infinitives and noun phrases)' : 'English'}. Use ONLY numbers present in the provided snapshot; if data is missing say there is not enough data. Never diagnose, never give medical advice, never advise calorie intake below safe limits, never discuss steroid/PED dosing. Keep answers under 150 words. For any pain, injury or health concern recommend stopping and seeing a professional.`;
+const SYSTEM = (lang: Language, ui?: UiLanguage, minor = false) => {
+  const label = ui ? promptLanguage(ui) : null; // an unacceptable free-text language name is ignored: the app language is used
+  return `You are the LUPU-FIT coach: a concise, evidence-based strength and nutrition coach. Reply in ${label ?? (lang === 'he' ? 'Hebrew (gender-neutral phrasing: infinitives and noun phrases)' : 'English')}. Use ONLY numbers present in the provided snapshot; if data is missing say there is not enough data. Never diagnose, never give medical advice, never advise calorie intake below safe limits, never discuss steroid/PED dosing. Keep answers under 150 words. For any pain, injury or health concern recommend stopping and seeing a professional.${minor ? ' The user is under 18: never discuss calorie targets, deficits, weight loss, body-weight goals, supplements or one-rep-max testing; suggest talking to a parent, doctor or qualified coach for those topics, and keep advice about technique, sleep, recovery and fun.' : ''}`;
+};
 
-async function usage(ctx: Ctx, kind: string): Promise<{ minute: number; day: number }> {
-  const since = (ms: number) => new Date(ctx.now.getTime() - ms).toISOString();
-  const q = async (ms: number) => Number((await ctx.db.query<{ c: number }>('SELECT COUNT(*)::int AS c FROM coach_usage WHERE user_id = $1 AND kind = $2 AND used_at > $3', [uid(ctx), kind, since(ms)]))[0]?.c ?? 0);
+async function usage(db: DbAdapter, userId: string, now: Date, kind: string): Promise<{ minute: number; day: number }> {
+  const since = (ms: number) => new Date(now.getTime() - ms).toISOString();
+  const q = async (ms: number) => Number((await db.query<{ c: number }>('SELECT COUNT(*)::int AS c FROM coach_usage WHERE user_id = $1 AND kind = $2 AND used_at > $3', [userId, kind, since(ms)]))[0]?.c ?? 0);
   return { minute: await q(60_000), day: await q(86_400_000) };
 }
 export const TRANSLATE_LIMITS = { perMinute: 30, perDay: 150 } as const;
-export const assertQuota = async (ctx: Ctx, kind: 'message' | 'photo' | 'translate'): Promise<void> => {
-  const u = await usage(ctx, kind);
+type QuotaKind = 'message' | 'photo' | 'translate';
+async function checkQuota(db: DbAdapter, userId: string, now: Date, kind: QuotaKind): Promise<void> {
+  const u = await usage(db, userId, now, kind);
   const lim = kind === 'message' ? COACH_LIMITS : kind === 'translate' ? TRANSLATE_LIMITS : { perMinute: 6, perDay: 20 };
   if (u.minute >= lim.perMinute) throw new ApiError(429, 'quota_exceeded', { window: 'minute' }, { 'retry-after': '30' });
   if (u.day >= lim.perDay) throw new ApiError(429, 'quota_exceeded', { window: 'day' }, { 'retry-after': '3600' });
-};
+}
+export const assertQuota = (ctx: Ctx, kind: QuotaKind): Promise<void> => checkQuota(ctx.db, uid(ctx), ctx.now, kind);
 export const recordUsage = (ctx: Ctx, kind: string): Promise<unknown> => ctx.db.query('INSERT INTO coach_usage (user_id, kind, used_at) VALUES ($1,$2,$3)', [uid(ctx), kind, ctx.now.toISOString()]);
+
+/**
+ * Check AND charge the quota in one transaction. The user's row is locked first (FOR NO KEY UPDATE does not block foreign-key
+ * checks of other inserts), so parallel requests of the same user are counted one after the other: a burst of N requests
+ * can never get more than the limit through before the first one is recorded. The charge stays even when the provider then fails.
+ */
+export async function reserveQuota(ctx: Ctx, kind: QuotaKind): Promise<void> {
+  const userId = uid(ctx);
+  await ctx.db.transaction(async (tx) => {
+    await tx.query('SELECT 1 FROM users WHERE id = $1 FOR NO KEY UPDATE', [userId]);
+    await checkQuota(tx, userId, ctx.now, kind);
+    await tx.query('INSERT INTO coach_usage (user_id, kind, used_at) VALUES ($1,$2,$3)', [userId, kind, ctx.now.toISOString()]);
+  });
+}
 
 async function ownThread(ctx: Ctx, id: string) {
   const t = (await ctx.db.query<{ id: string; title: string }>('SELECT id, title FROM coach_threads WHERE id = $1 AND user_id = $2', [id, uid(ctx)]))[0];
@@ -106,15 +130,15 @@ export function coachRoutes(r: Router, d: Deps): void {
       const bot = await save('assistant', safetyResponse(hit.category, b.lang), 'safety', hit.category);
       return { json: { user, assistant: bot }, status: 201 };
     }
-    await assertQuota(ctx, 'message');
+    await reserveQuota(ctx, 'message');
     const snap = await buildSnapshot(ctx, b.lang);
     const user = await save('user', b.text, null, null);
-    await recordUsage(ctx, 'message');
     let text: string | null = null; let provider = 'rules';
     if (d.ai && snap) {
       try {
         const history = (await ctx.db.query<{ role: 'user' | 'assistant'; content: string }>('SELECT role, content FROM coach_messages WHERE thread_id = $1 ORDER BY created_at DESC, id DESC LIMIT 12', [t.id])).reverse();
-        text = await d.ai.complete({ system: `${SYSTEM(b.lang, b.uiLanguage)}\n\nSnapshot (JSON): ${JSON.stringify(snap)}`, messages: history });
+        text = await d.ai.complete({ system: `${SYSTEM(b.lang, b.uiLanguage, snap.ageBucket === 'minor')}\n\nSnapshot (JSON): ${JSON.stringify(snap)}`, messages: history, maxTokens: 600 });
+        text = clampReply(text);
         provider = d.ai.name;
       } catch { text = null; } // provider down / rate limited: fall back to the deterministic coach
     }

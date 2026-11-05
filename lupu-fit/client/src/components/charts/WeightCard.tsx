@@ -60,10 +60,10 @@ export function WeightCard({ rangeDays }: { rangeDays: number }): ReactNode {
       <h2>{t('progress.weight.title')}</h2>
       {trend !== null ? <p className="prog-sec-take">{t('progress.take.weightTrend', { d: `\u2066${trend > 0 ? '+' : ''}${fmt.num(trend, 1)}\u2069` })}</p> : null}
       <div className="stack">
-        <div className="weight-add">
+        <form className="weight-add" onSubmit={(e) => { e.preventDefault(); if (start !== null && !add.isPending) add.mutate(start); }}>
           <NumberStepper label={t('progress.weight.today')} value={start} onChange={setKg} step={0.1} decimals={1} min={30} max={300} suffix={t('unit.kg')} />
-          <Button disabled={add.isPending || start === null} onClick={() => start !== null && add.mutate(start)}>{t('progress.weight.add')}</Button>
-        </div>
+          <Button type="submit" disabled={add.isPending || start === null}>{t('progress.weight.add')}</Button>
+        </form>
         <LineChart
           series={[{ id: 'raw', label: t('progress.weight.raw'), tone: 'accent', dotsOnly: true, points: entries.map((e) => ({ x: e.loggedDate, y: e.weightKg })) }, { id: 'trend', label: t('progress.weight.trend'), points: smoothed.map((p) => ({ x: p.date, y: p.weightKg })) }]}
           ariaLabel={summary} caption={t('progress.weight.title')} xHeader={t('progress.date')} unit={t('unit.kg')} decimals={1} formatX={(x) => fmt.date(x, lang)}

@@ -90,7 +90,7 @@ describe('POST /api/i18n/translate', () => {
     await call(t, c, 'PUT', '/api/profile', { language: 'en', theme: 'system', units: 'metric', sex: 'male', age: 30, heightCm: 180, weightKg: 80, goal: 'general_fitness', experience: 'intermediate', place: 'gym', equipment: [], injuries: [], daysPerWeek: 3, sessionMinutes: 60, activityLevel: 'moderate', diet: 'omnivore', allergies: [], restrictions: [] });
     const th = await call(t, c, 'POST', '/api/coach/threads', {});
     const m = await call(t, c, 'POST', `/api/coach/threads/${th.json.id}/messages`, { text: 'how is my week', lang: 'en', uiLanguage: target });
-    expect(m.status).toBe(201); expect(seen[0]).toContain('Reply in Français (language code fr)');
+    expect(m.status).toBe(201); expect(seen[0]).toContain('Reply in French (language code fr)'); // the server names the language itself; the client's display name is never put in the prompt
     const m2 = await call(t, c, 'POST', `/api/coach/threads/${th.json.id}/messages`, { text: 'again', lang: 'en' });
     expect(m2.status).toBe(201); expect(seen[1]).toContain('Reply in English');
   });

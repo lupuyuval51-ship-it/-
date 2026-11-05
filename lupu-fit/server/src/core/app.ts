@@ -14,7 +14,11 @@ export function parseCookies(header: string | undefined): Record<string, string>
   for (const part of header.split(';')) {
     const i = part.indexOf('=');
     if (i < 0) continue;
-    out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+    const raw = part.slice(i + 1).trim();
+    let value = raw;
+    // A malformed %-escape from some other cookie on the same host must not turn every request into a 500.
+    try { value = decodeURIComponent(raw); } catch { /* keep the raw text */ }
+    out[part.slice(0, i).trim()] = value;
   }
   return out;
 }
@@ -39,6 +43,10 @@ export function createApiApp(deps: Deps, router: Router): ApiApp {
     try { return await dispatch(req); }
     catch (e) {
       if (e instanceof ApiError) return { status: e.status, body: { error: e.code, ...(e.extra ?? {}) }, ...(e.headers ? { headers: e.headers } : {}) };
+      // Database data errors caused by the request itself (impossible date, out-of-range number, too-long text) are client errors.
+      const pgCode = typeof e === 'object' && e !== null && 'code' in e ? String((e as { code?: unknown }).code) : '';
+      if (/^22[0-9A-Z]{3}$/.test(pgCode)) return { status: 400, body: { error: 'validation_error' } };
+      if (pgCode === '23505') return { status: 409, body: { error: 'conflict' } };
       // Never leak internals. The host logs the raw error through deps hooks if it wants to.
       console.error('[api] unhandled', e instanceof Error ? e.message : e);
       return { status: 500, body: { error: 'internal_error' } };
@@ -99,7 +107,8 @@ export function createApiApp(deps: Deps, router: Router): ApiApp {
     // Canonical JSON (Dates -> ISO strings): every transport (HTTP, device worker, tests) sees byte-identical bodies.
     if (res.body !== undefined) res.body = JSON.parse(JSON.stringify(res.body)) as unknown;
     if (useIdem && user && idemKey && res.status >= 200 && res.status < 300) {
-      await deps.db.query('INSERT INTO idempotency_keys (user_id, key, method, path, status_code, response_body) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING', [user.id, idemKey, method, req.path, res.status, JSON.stringify(res.body ?? null)]);
+      // The user row may be gone by now (DELETE /api/account): storing the replay record must not turn a successful deletion into a 500.
+      await deps.db.query('INSERT INTO idempotency_keys (user_id, key, method, path, status_code, response_body) SELECT $1::text, $2::text, $3::text, $4::text, $5::int, $6::jsonb WHERE EXISTS (SELECT 1 FROM users WHERE id = $1::text) ON CONFLICT DO NOTHING', [user.id, idemKey, method, req.path, res.status, JSON.stringify(res.body ?? null)]);
     }
     return res;
   }

@@ -1,8 +1,10 @@
 import type { UiLanguage } from '@lupu-fit/shared';
 import { z } from 'zod';
 import type { AiProvider } from '../core/types.ts';
+import { promptLanguage } from './langLabel.ts';
 
 const PH = /\{(\w+)\}/g;
+const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u202A-\u202E\u2066-\u2069]/;
 export const placeholders = (s: string): string[] => [...s.matchAll(PH)].map((m) => m[1] as string).sort();
 const sameBag = (a: string[], b: string[]): boolean => a.length === b.length && a.every((x, i) => x === b[i]);
 
@@ -10,11 +12,13 @@ const sameBag = (a: string[], b: string[]): boolean => a.length === b.length && 
 export function validValue(src: string, out: unknown): out is string {
   if (typeof out !== 'string' || out.trim() === '' || out.length > src.length * 6 + 80) return false;
   if (/[<>]/.test(out) && !/[<>]/.test(src)) return false;
+  // No control characters and no bidi overrides/isolates (they can visually reverse or hide text) unless the English source already has them.
+  if (CONTROL.test(out) && !CONTROL.test(src)) return false;
   return sameBag(placeholders(src), placeholders(out));
 }
 
 export const SYSTEM_PROMPT = (target: UiLanguage): string => `You are a professional UI localisation engine for a fitness app called LUPU-FIT.
-Translate the VALUES of the JSON object you receive from English into ${target.name} (language code ${target.code}).
+Translate the VALUES of the JSON object you receive from English into ${promptLanguage(target) ?? `the language with BCP-47 code ${target.code}`}.
 Rules:
 - Output ONLY one JSON object. No prose, no code fences.
 - Output EXACTLY the same keys as the input. Never add, drop, rename or reorder keys.

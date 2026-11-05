@@ -288,7 +288,7 @@ describe('History', () => {
     const { default: History } = await import('../../pages/History.tsx');
     const u = userEvent.setup();
     await mount(<History />, '/workouts/history');
-    expect(await screen.findByText('סיומת ספורט — כדורגל')).toBeInTheDocument();
+    expect(await screen.findByText('סיומת ספורט: כדורגל')).toBeInTheDocument();
     expect(screen.getAllByText(/סיומת ספורט/)).toHaveLength(1);
     expect(screen.getByRole('link', { name: /פתיחת סיכום של חזה/ })).toHaveAttribute('href', '/workouts/sessions/a');
     await u.click(screen.getByRole('button', { name: 'מחיקה: גב' }));

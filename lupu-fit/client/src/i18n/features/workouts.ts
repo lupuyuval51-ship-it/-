@@ -216,14 +216,14 @@ export default defineFeature({
     history: {
       thisWeek: 'השבוע', lastWeek: 'שבוע שעבר', workoutsWord: 'אימונים', setsWord: 'סטים',
       title: 'היסטוריית אימונים', back: 'חזרה לאימונים', emptyTitle: 'עוד אין אימונים שהסתיימו', emptyHint: 'אימונים שהסתיימו יופיעו כאן עם הסטים וה־XP שלהם.', toWorkouts: 'בחירת אימון',
-      finisherChip: 'סיומת ספורט — {sport}', finisherNoSport: 'סיומת ספורט', duration: '{n} דק׳', sets: '{n} סטים', xp: '{n} נק׳ XP', more: 'עוד', openSummary: 'פתיחת סיכום של {name}',
+      finisherChip: 'סיומת ספורט: {sport}', finisherNoSport: 'סיומת ספורט', duration: '{n} דק׳', sets: '{n} סטים', xp: '{n} XP', more: 'עוד', openSummary: 'פתיחת סיכום של {name}',
       delete: 'מחיקה', deleteTitle: 'למחוק את האימון?', deleteWarn: 'פעולה זו מוחקת לצמיתות את {name} על כל הסטים שלו. אי אפשר לבטל, וה־XP שהוענק נשאר.', deleted: 'האימון נמחק', cancel: 'להשאיר', loadFailed: 'לא הצלחנו לטעון את ההיסטוריה.',
     },
     summary: {
       xpUnit: 'XP', levelBar: 'התקדמות לרמה {level}', levelBarText: '{have} מתוך {need} XP עד רמה {next}', done: 'סיום',
       title: 'סיכום אימון', back: 'חזרה להיסטוריה', notFound: 'האימון הזה לא קיים.', loadFailed: 'לא הצלחנו לטעון את האימון.',
-      duration: 'משך', sets: 'סטים', volume: 'נפח', xp: 'ניסיון XP', date: 'תאריך', exercises: 'תרגילים', noSets: 'לא נרשמו סטים לתרגיל הזה.',
-      colSet: 'סט', colReps: 'חזרות', colWeight: 'משקל', colTime: 'זמן', colRpe: 'RPE', finisherSection: 'סיומת ספורט — {sport}', finisherSectionNoSport: 'סיומת ספורט',
+      duration: 'משך', sets: 'סטים', volume: 'נפח', xp: 'XP', date: 'תאריך', exercises: 'תרגילים', noSets: 'לא נרשמו סטים לתרגיל הזה.',
+      colSet: 'סט', colReps: 'חזרות', colWeight: 'משקל', colTime: 'זמן', colRpe: 'RPE', finisherSection: 'סיומת ספורט: {sport}', finisherSectionNoSport: 'סיומת ספורט',
       unfinished: 'האימון הזה עדיין בעיצומו.', resume: 'חזרה לאימון',
       celebration: 'עבודה מצוינת', levelUp: 'רמה {from} לרמה {to}', levelSame: 'רמה {level}', xpBreakdown: 'XP שנצבר', xpTotal: 'סך הכול {n} נק׳ XP',
       xpType: { workout: 'השלמת אימון', sets: 'סטים שנרשמו', pr: 'שיאים אישיים', weekly_goal: 'יעד שבועי', food_day: 'יום תיעוד תזונה', protein_day: 'יום חלבון', weigh_in: 'שקילה' },

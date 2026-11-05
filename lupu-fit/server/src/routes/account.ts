@@ -1,9 +1,10 @@
-import { AccountDeleteBodySchema, BackupPayloadSchema, epley1RM, type BackupPayload } from '@lupu-fit/shared';
+import { AccountDeleteBodySchema, ageBucket, BackupPayloadSchema, epley1RM, type BackupPayload } from '@lupu-fit/shared';
 import { randomId } from '../crypto/portableCrypto.ts';
 import { clearedCookie } from '../core/app.ts';
 import { ApiError } from '../core/errors.ts';
+import { ident } from '../core/rateLimit.ts';
 import type { Router } from '../core/router.ts';
-import type { Deps } from '../core/types.ts';
+import type { Ctx, Deps } from '../core/types.ts';
 import { loadProfile, uid } from './util.ts';
 
 export const RESTORE_LIMIT = { hosted: 8 * 1024 * 1024, device: 200 * 1024 * 1024 } as const;
@@ -41,6 +42,8 @@ export function accountRoutes(r: Router, d: Deps): void {
   r.post('/api/device/restore', async (ctx) => {
     const b = ctx.body as BackupPayload;
     const u = uid(ctx);
+    const prof = await loadProfile(ctx.db, u);
+    const minor = prof ? ageBucket(prof.age) === 'minor' : false; // no 1RM estimates for minors, however the data got here
     await ctx.db.transaction(async (tx) => {
       await tx.query('DELETE FROM workout_sessions WHERE user_id = $1', [u]);
       await tx.query('DELETE FROM body_weight_entries WHERE user_id = $1', [u]);
@@ -61,7 +64,7 @@ export function accountRoutes(r: Router, d: Deps): void {
           for (const t of e.sets) {
             await tx.query('INSERT INTO session_sets (id, session_exercise_id, set_no, reps, weight_kg, duration_sec, rpe) VALUES ($1,$2,$3,$4,$5,$6,$7)', [randomId(), seId, n++, t.reps ?? null, t.weightKg ?? null, t.durationSec ?? null, t.rpe ?? null]);
             const cur = best.get(e.exerciseId) ?? { w: null, e: null, r: null, d: null };
-            const e1 = t.weightKg && t.reps ? epley1RM(t.weightKg, t.reps) : null;
+            const e1 = !minor && t.weightKg && t.reps ? epley1RM(t.weightKg, t.reps) : null;
             best.set(e.exerciseId, { w: Math.max(cur.w ?? 0, t.weightKg ?? 0) || null, e: Math.max(cur.e ?? 0, e1 ?? 0) || null, r: Math.max(cur.r ?? 0, t.reps ?? 0) || null, d: Math.max(cur.d ?? 0, t.durationSec ?? 0) || null });
           }
         }
@@ -73,8 +76,11 @@ export function accountRoutes(r: Router, d: Deps): void {
 
   r.delete('/api/account', async (ctx) => {
     void (ctx.body as { confirm: 'DELETE' });
+    const username = (ctx.user as NonNullable<Ctx['user']>).username;
     const del = await ctx.db.query('DELETE FROM users WHERE id = $1 RETURNING id', [uid(ctx)]); // everything else cascades
     if (del.length === 0) throw new ApiError(404, 'not_found');
+    // The only table keyed by the person rather than by user_id: login / registration counters hold a hash of the username.
+    await ctx.db.query('DELETE FROM auth_attempts WHERE identifier = $1', [(await ident('username', username)).id]);
     return { json: { ok: true }, setCookies: [clearedCookie(d)] };
   }, { body: AccountDeleteBodySchema });
 

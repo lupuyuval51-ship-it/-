@@ -2,7 +2,7 @@ import { defineFeature } from '../core.ts';
 
 export default defineFeature({
   welcome: {
-    title: 'Welcome to LUPU-FIT', lead: 'Strength training and nutrition in one place, built around you.',
+    title: 'Welcome to LUPU-FIT', lead: 'Strength training, nutrition and progress in one app.',
     point1: 'A workout for today that fits where you train, the gear you have and the time you have.',
     point2: 'Daily nutrition targets calculated from your details, with safety floors built in.',
     point3: 'Progress tracking for your weight, sets and personal records.',
@@ -74,7 +74,7 @@ export default defineFeature({
   },
 }, {
   welcome: {
-    title: 'ברוכים הבאים ל-LUPU-FIT', lead: 'אימוני כוח ותזונה במקום אחד, מותאמים אליכם.',
+    title: 'ברוכים הבאים ל-LUPU-FIT', lead: 'אימוני כוח, תזונה והתקדמות באפליקציה אחת.',
     point1: 'אימון להיום שמתאים למקום האימון, לציוד שיש ולזמן הפנוי.',
     point2: 'יעדי תזונה יומיים שמחושבים לפי הנתונים האישיים, עם רצפות בטיחות מובנות.',
     point3: 'מעקב התקדמות אחר משקל, סטים ושיאים אישיים.',

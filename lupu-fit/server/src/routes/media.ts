@@ -8,7 +8,9 @@ import { EXERCISES } from '@lupu-fit/shared/content';
 
 const IDS = new Set(EXERCISES.map((e) => e.id));
 const b64 = (s: string): Uint8Array => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
-const AttachBody = z.object({ mp4Base64: z.string().min(100).max(6_000_000), posterUrl: z.string().max(300).optional(), url: z.string().max(300), credit: z.string().max(200).optional(), priority: z.enum(['A', 'B', 'C', 'D']).optional() });
+/** Media is served by this app only: a same-origin absolute path, never a full URL (it ends up in every user's <video src>). */
+const MediaPath = z.string().max(300).regex(/^\/(?!\/)[A-Za-z0-9/_.-]+$/).refine((p) => !p.includes('..'));
+const AttachBody = z.object({ mp4Base64: z.string().min(100).max(6_000_000), posterUrl: MediaPath.optional(), url: MediaPath, credit: z.string().max(200).optional(), priority: z.enum(['A', 'B', 'C', 'D']).optional() });
 
 export function mediaRoutes(r: Router, _d: Deps): void {
   /** Only exercises with a VALIDATED and REVIEWED media record report hasMedia = true. */

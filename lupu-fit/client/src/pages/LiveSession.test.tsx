@@ -78,13 +78,13 @@ describe('LiveSession', () => {
     expect(await screen.findByText(/אחרון:/)).toHaveTextContent('אחרון: 3×10 · 60 ק״ג');
     expect(await screen.findByText('מומלץ: +2.5 ק״ג')).toBeInTheDocument();
     expect(container.querySelectorAll('.btn-primary')).toHaveLength(1);
-    expect(screen.getByText(/סיומת ספורט — כדורגל \(כ-\d+ דק׳\)/)).toBeInTheDocument();
+    expect(screen.getByText(/סיומת ספורט: כדורגל \(כ-\d+ דק׳\)/)).toBeInTheDocument();
     expect(calls.some((c) => c.path === '/api/exercises/barbell_bench_press/history')).toBe(true);
   });
 
   it('renders the finisher header in English too', async () => {
     setup(); view('en');
-    expect(await screen.findByText(/Sport finisher — Soccer \(about \d+ min\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Sport finisher: Soccer \(about \d+ min\)/)).toBeInTheDocument();
   });
 
   it('freezes the progression badge when readiness is easier', async () => {

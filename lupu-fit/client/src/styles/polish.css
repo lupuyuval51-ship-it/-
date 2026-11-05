@@ -3,7 +3,7 @@
 /* Page titles: heavier, with a solid marker tick (the tally-stroke motif). */
 .main > h1, .page-head h1 { font-size: var(--fs-28); font-weight: 800; line-height: 1.1; padding-inline-start: 0.75rem; border-inline-start: 5px solid var(--text); }
 :lang(en) .main > h1, :lang(en) .page-head h1 { font-family: var(--font-num); font-size: 2.25rem; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1; }
-:lang(en) .card > h2, :lang(en) .card > h3:first-child { font-family: var(--font-num); text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--fs-22); }
+:lang(en) .card > h2, :lang(en) .card > h3:first-child, :lang(en) .card:not(.hero-card) > .row-between > h2:first-child, :lang(en) .card:not(.hero-card) > .stack-sm > h2:first-child { font-family: var(--font-num); text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--fs-22); }
 
 /* Cards: registration-mark corner notch, like stamped steel. */
 .card, .hero-card { position: relative; }

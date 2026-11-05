@@ -2,16 +2,17 @@ import { TranslateBodySchema, type TranslateBody } from '@lupu-fit/shared';
 import { ApiError } from '../core/errors.ts';
 import type { Router } from '../core/router.ts';
 import type { Deps } from '../core/types.ts';
+import { promptLanguage } from '../services/langLabel.ts';
 import { translateBatch } from '../services/translate.ts';
-import { assertQuota, recordUsage } from './coach.ts';
+import { reserveQuota } from './coach.ts';
 
 /** POST /api/i18n/translate: machine-translates <=150 UI strings. Authenticated, per-user rate limited (shares the coach_usage ledger, kind "translate"). */
 export function i18nRoutes(r: Router, d: Deps): void {
   r.post('/api/i18n/translate', async (ctx) => {
     const b = ctx.body as TranslateBody;
     if (!d.ai) throw new ApiError(503, 'ai_unavailable');
-    await assertQuota(ctx, 'translate');
-    await recordUsage(ctx, 'translate');
+    if (!promptLanguage(b.target)) throw new ApiError(400, 'invalid_language');
+    await reserveQuota(ctx, 'translate');
     try {
       const res = await translateBatch(d.ai, b.target, b.keys);
       return { json: { ...res, provider: d.ai.name } };

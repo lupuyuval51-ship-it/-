@@ -21,10 +21,24 @@ function normalizeCoach(s: string): string {
     .trim();
 }
 
-const NEGATION = /(?:^|[\s,.;:!?])(?:no|not|without|never|zero|free of|dont|don't|do not|doesnt|doesn't|ללא|בלי|אין|אינ[וי]|לא)\s+(?:\S+\s+){0,2}$/;
+const NEG_WORD = /(?:^|[\s,.;:!?])(?:no|not|without|never|zero|free of|dont|don't|do not|doesnt|doesn't|ללא|בלי|אין|אינ[וי]|לא)(?=\s)/g;
+/** First-person subjects: a negation that is followed by one belongs to an EARLIER clause ("no point, I want to die"). */
+const FIRST_PERSON = new Set(['i', "i'm", 'im', "i'd", 'id', "i'll", 'ill', "i've", 'ive', 'me', 'my', 'myself', 'we', 'אני', 'אנחנו']);
 
-function negatedBefore(text: string, index: number): boolean {
-  return NEGATION.test(text.slice(Math.max(0, index - 40), index));
+/**
+ * True when a negation word sits directly before the match in the SAME clause ("no chest pain", "I don't want to die").
+ * It does not count when punctuation or a first-person subject comes in between: "there is no point, I want to die" is not a negation.
+ */
+function negatedBefore(text: string, index: number, maxBetween = 2): boolean {
+  const before = text.slice(Math.max(0, index - 40), index);
+  for (const m of before.matchAll(NEG_WORD)) {
+    const rest = before.slice((m.index ?? 0) + m[0].length).trim();
+    const tokens = rest === '' ? [] : rest.split(/\s+/);
+    if (tokens.length > maxBetween) continue;
+    if (tokens.some((t) => /[,.;:!?]/.test(t) || FIRST_PERSON.has(t))) continue;
+    return true;
+  }
+  return false;
 }
 
 interface Rule { category: SafetyCategory; re: RegExp }
@@ -57,13 +71,12 @@ const CRASH_HE = /(?:אוכל|אוכלת|לאכול|צורך)\s+(?:רק\s+|בע�
 
 const BENIGN_STEROID = /\b(?:cortisone|corticosteroid|prednisone|inhaler|nasal spray|steroid (?:cream|injection into|shot in)|topical)\b|קורטיזון|בשאיפה|משאף|קרם סטרואידים/;
 
-export function classifySafety(input: string): SafetyHit | null {
-  const text = normalizeCoach(input);
+function classifyText(text: string, relaxedSpaces: boolean): SafetyHit | null {
   if (!text) return null;
-
-  for (const r of RULES) {
+  for (const r of relaxedSpaces ? RELAXED_RULES : RULES) {
     const m = r.re.exec(text);
-    if (m && !negatedBefore(text, m.index)) return { category: r.category, matched: m[0] };
+    // Self-harm statements only count as negated when the negation is right next to them ("I don't want to die").
+    if (m && !negatedBefore(text, m.index, r.category === 'self_harm' ? 1 : 2)) return { category: r.category, matched: m[0] };
   }
 
   for (const re of [CRASH_EN, CRASH_HE]) {
@@ -78,6 +91,54 @@ export function classifySafety(input: string): SafetyHit | null {
     const he = new RegExp(`(?:${PED_HE})`).exec(text);
     const heIntent = new RegExp(`(?:${PED_INTENT_HE})`).test(text);
     if (he && heIntent) return { category: 'ped_dosing', matched: he[0] };
+  }
+  return null;
+}
+
+/** Rules with optional spaces, used only on text where spaced-out letters ("k i l l  m y s e l f") were joined back into words. */
+const RELAXED_RULES: Rule[] = RULES.map((r) => ({ category: r.category, re: new RegExp(r.re.source.replace(/ /g, ' ?'), r.re.flags) }));
+
+/** Look-alike letters (Cyrillic / Greek) that people use to dodge keyword filters. */
+const CONFUSABLES: Record<string, string> = {
+  'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x', 'к': 'k', 'м': 'm', 'т': 't', 'і': 'i', 'ј': 'j', 'ѕ': 's', 'һ': 'h', 'ԁ': 'd',
+  'ο': 'o', 'α': 'a', 'ε': 'e', 'ι': 'i', 'κ': 'k', 'ν': 'v', 'ρ': 'p', 'τ': 't', 'υ': 'u', 'χ': 'x',
+};
+const LEET: Record<string, string> = { '0': 'o', '3': 'e', '4': 'a', '5': 's', '7': 't', '@': 'a', '$': 's', '!': 'i', '|': 'i' };
+/** A run of 4+ single characters separated by one space / dot / dash / underscore / asterisk each ("k i l l", "s.u.i.c.i.d.e"). */
+const SPACED_RUN = /(?<![\p{L}\p{N}])(?:[\p{L}\p{N}][ \t._*-]){3,}[\p{L}\p{N}](?![\p{L}\p{N}])/gu;
+
+/** Digits and symbols standing in for letters, only inside a token that also has a letter: "su1c1de", "w@nt", "t0". `one` is what "1" means (i or l). */
+function unleet(text: string, one: 'i' | 'l'): string {
+  return text.replace(/\S+/g, (tok) => (/\p{L}/u.test(tok) && /[013457@$!|]/.test(tok) && tok.length >= 2 ? tok.replace(/[013457@$!|]/g, (c) => (c === '1' ? one : (LEET[c] as string))) : tok));
+}
+
+/**
+ * Every spelling of the input that the rules should see: the plain normalisation plus de-obfuscated forms (accents, zero-width
+ * and formatting characters, look-alike letters, spaced-out letters, leetspeak, stretched letters). Extra variants can only
+ * ADD hits; a false positive costs a gentle message, a false negative costs far more (D7).
+ */
+function safetyVariants(input: string): { text: string; relaxed: boolean }[] {
+  const out: { text: string; relaxed: boolean }[] = [{ text: normalizeCoach(input), relaxed: false }];
+  const stripped = input.normalize('NFKD').replace(/[\p{M}\p{Cf}]/gu, '');
+  let joined = false;
+  const spaced = stripped.replace(SPACED_RUN, (run) => { joined = true; return run.replace(/[ \t._*-]/g, ''); });
+  const base = normalizeCoach([...spaced.toLowerCase()].map((c) => CONFUSABLES[c] ?? c).join(''));
+  const seeds = [base, unleet(base, 'i'), unleet(base, 'l')];
+  for (const t of seeds) {
+    for (const v of new Set([t, t.replace(/(\p{L})\1{2,}/gu, '$1$1'), t.replace(/(\p{L})\1{2,}/gu, '$1')])) out.push({ text: v, relaxed: joined });
+  }
+  return out;
+}
+
+export function classifySafety(input: string): SafetyHit | null {
+  const capped = input.length > 20_000 ? input.slice(0, 20_000) : input;
+  const seen = new Set<string>();
+  for (const v of safetyVariants(capped)) {
+    const key = `${v.relaxed ? 1 : 0}:${v.text}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const hit = classifyText(v.text, v.relaxed);
+    if (hit) return hit;
   }
   return null;
 }
@@ -137,10 +198,25 @@ const NO_DATA: Record<Language, string> = {
   en: 'There is not enough data yet to answer that reliably.',
 };
 
+const MINOR_REDIRECT: Record<'nutrition' | 'strength', Record<Language, string>> = {
+  nutrition: {
+    he: 'מתחת לגיל 18 לא ניתנים כאן יעדי קלוריות או משקל. לשאלות תזונה כדאי לפנות להורה, לרופא או לאיש מקצוע בתחום התזונה. אפשר לשאול אותי על אימונים, שינה והתאוששות.',
+    en: 'I do not give calorie or body-weight targets to anyone under 18. For nutrition questions please talk to a parent, your doctor or a qualified dietitian. I am happy to help with training, sleep and recovery.',
+  },
+  strength: {
+    he: 'מתחת לגיל 18 מתמקדים בטכניקה ובחזרות נכונות ולא באומדן משקל מקסימלי. אפשר לשאול אותי על אימון היום או על התאוששות.',
+    en: 'Under 18 the focus is good technique and reps, not estimating a maximum weight. You can ask me about today\'s workout or about recovery.',
+  },
+};
+
 /** Deterministic, data-driven answer. Only states numbers that exist in the snapshot. */
 export function rulesCoachReply(question: string, s: CoachSnapshot, lang: Language): string {
   const he = lang === 'he';
   const intent = detectIntent(question);
+  if (s.ageBucket === 'minor') { // minors: no calorie / body-weight talk and no 1RM estimates
+    if (intent === 'calories' || intent === 'weight') return MINOR_REDIRECT.nutrition[lang];
+    if (intent === 'pr') return MINOR_REDIRECT.strength[lang];
+  }
   switch (intent) {
     case 'workout': {
       const lead = s.readiness === 'rest' ? (he ? 'לפי הצ׳ק-אין שלך כדאי יום מנוחה או תנועה קלה. ' : 'Your check-in suggests a rest day or light movement. ') : s.readiness === 'easier' ? (he ? 'לפי הצ׳ק-אין שלך כדאי אימון קל יותר היום. ' : 'Your check-in suggests an easier session today. ') : '';

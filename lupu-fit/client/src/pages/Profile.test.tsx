@@ -39,7 +39,7 @@ describe('Profile basics', () => {
     view();
     expect(await screen.findByText('Daily targets')).toBeInTheDocument();
     expect(screen.getByText('2,500', { selector: '.num-hero' })).toBeInTheDocument();
-    expect(screen.getByText('Hosted account')).toBeInTheDocument();
+    expect(screen.getByText('In your account')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Redo the questionnaire/ })).toHaveAttribute('href', '/onboarding');
     expect(screen.getByRole('link', { name: 'Delete account' })).toHaveAttribute('href', '/account-deletion');
     expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy');
@@ -128,7 +128,7 @@ describe('Backup and restore', () => {
     await screen.findByText('Backup and restore');
     await user.upload(screen.getByLabelText('Choose a backup file'), json({ backup: validBackup, extra: {} }));
     const dlg = await screen.findByRole('dialog', { name: 'Restore backup?' });
-    expect(within(dlg).getByText(/REPLACES your current workouts, food log and weight entries/)).toBeInTheDocument();
+    expect(within(dlg).getByText(/replaces your current workouts, food log and weight entries/)).toBeInTheDocument();
     expect(within(dlg).getByText(/1 weight entries, 1 food entries and 0 workouts/)).toBeInTheDocument();
     expect(h.calls.some((c) => c.p === '/api/device/restore')).toBe(false);
     await user.click(within(dlg).getByRole('button', { name: 'Replace my data' }));
@@ -180,7 +180,7 @@ describe('Logout', () => {
     const user = userEvent.setup();
     await screen.findByText('Daily targets');
     expect(qc.getQueryCache().getAll().length).toBeGreaterThan(0);
-    await user.click(screen.getByRole('button', { name: 'Log out' }));
+    await user.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(await screen.findByText('login-route')).toBeInTheDocument();
     expect(h.calls.some((c) => c.m === 'POST' && c.p === '/api/auth/logout')).toBe(true);
     expect(qc.getQueryCache().getAll().filter((q) => q.state.data !== undefined)).toHaveLength(0);

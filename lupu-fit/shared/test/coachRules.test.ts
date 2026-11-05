@@ -18,6 +18,33 @@ const BENIGN = [
   'אימון רגליים קטלני', 'איך משפרים לחיצת חזה', 'אין לי כאב בחזה רק עייפות', 'אני רוצה לעשות אימון חזק', 'כמה חלבון אני צריך', 'אוכל 2000 קלוריות ביום לעלייה במסה', 'קורס מאמני כושר מומלץ', 'לחיצת חזה ללא כאב', 'שרירי הרגליים הרגו אותי אחרי האימון',
 ];
 
+/** Evasions: spacing, accents, zero-width characters, look-alike letters, leetspeak, stretched letters, and negations that belong to an earlier clause. */
+const EVASIONS: [SafetyCategory, string][] = [
+  ['self_harm', 'k i l l  m y s e l f'], ['self_harm', 'k.i.l.l myself'], ['self_harm', 'I want to kill myse1f'], ['self_harm', 'su1c1de'], ['self_harm', 'thinking of suicîde'],
+  ['self_harm', 'sui\u200bcide'], ['self_harm', 'su\u00adicide'], ['self_harm', 'su\u0456cide'] /* Cyrillic i */, ['self_harm', 'I w@nt t0 d1e'], ['self_harm', 'suiiiicide'], ['self_harm', 'ｓｕｉｃｉｄｅ'],
+  ['self_harm', 'there is no point, I want to die'], ['self_harm', "I can't take it no more, I want to die"], ['self_harm', 'no hope. i want to kill myself'], ['self_harm', 'nothing helps and I do not know why, I want to die'],
+  ['self_harm', 'אין טעם, אני רוצה למות'], ['self_harm', 'ר ו צ ה  ל מ ו ת'], ['self_harm', 'ל\u200dהתאבד'], ['self_harm', 'אני רוצה לפגוע בעצמי'.replace(/ /g, '  ')],
+  ['medical_emergency', 'I h4ve ch3st p4in'], ['medical_emergency', 'c h e s t  p a i n'], ['medical_emergency', 'no energy, chest pain'], ['medical_emergency', 'I fa\u200binted'],
+  ['eating_disorder', 'I m@ke myself  thr0w up'], ['eating_disorder', 's t a r v e  m y s e l f'],
+  ['ped_dosing', 'trenbolone d0se'], ['ped_dosing', 'how much t e s t o s t e r o n e'], ['ped_dosing', 'tren dosage'.toUpperCase()],
+];
+/** Real negations and ordinary gym talk must stay quiet. */
+const STILL_BENIGN = [
+  "I don't want to die", 'I do not want to die, I want to lift', "I'm not suicidal", 'no suicidal thoughts at all', 'אני לא רוצה למות', 'אין לי כאב בחזה', 'I have no chest pain',
+  'I want to diet', 'I want to diet and lift', 'a b c d e f g', 'sets: 5 x 5 x 5', 'my 1RM is 100 kg', 'w8 5 sets of 3', 'mp4 video 4 of 5',
+];
+
+describe('pre-LLM safety interceptor: evasions', () => {
+  for (const [cat, text] of EVASIONS) it(`${cat}: ${JSON.stringify(text)}`, () => expect(classifySafety(text)?.category).toBe(cat));
+  for (const text of STILL_BENIGN) it(`benign: ${text}`, () => expect(classifySafety(text), text).toBeNull());
+  it('finds a crisis phrase buried in a maximum-length message and stays fast', () => {
+    const t0 = Date.now();
+    expect(classifySafety(`${'workout notes '.repeat(140)} I want to kill myself`)?.category).toBe('self_harm');
+    expect(classifySafety('a '.repeat(10_000))).toBeNull();
+    expect(Date.now() - t0).toBeLessThan(2000);
+  });
+});
+
 describe('pre-LLM safety interceptor', () => {
   for (const [cat, text] of MUST) it(`${cat}: ${text}`, () => expect(classifySafety(text)?.category).toBe(cat));
   for (const text of BENIGN) it(`benign: ${text}`, () => expect(classifySafety(text), text).toBeNull());
@@ -54,6 +81,13 @@ describe('rules coach', () => {
       expect(rulesCoachReply(q, empty, 'he')).toContain('אין מספיק נתונים');
     }
     expect(rulesCoachReply('today workout', empty, 'en')).toMatch(/no workout scheduled/i);
+  });
+  it('minors get no calorie, weight or 1RM numbers from the rules coach', () => {
+    const minor: CoachSnapshot = { ...snap, ageBucket: 'minor' };
+    for (const q of ['my calories', 'my weight?', 'my PR', 'כמה קלוריות אכלתי', 'המשקל שלי']) {
+      for (const lang of ['en', 'he'] as const) expect(rulesCoachReply(q, minor, lang), q).not.toMatch(/2310|2600|0\.6|102/);
+    }
+    expect(rulesCoachReply('what should I train today', minor, 'en')).toContain('Upper A'); // training talk is unchanged
   });
   it('respects readiness', () => {
     expect(rulesCoachReply('today workout', { ...snap, readiness: 'rest' }, 'en')).toMatch(/rest day/i);

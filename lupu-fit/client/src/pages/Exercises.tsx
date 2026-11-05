@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigationType, useSearchParams } from 'react-router';
 import { useLang } from '../i18n/index.tsx';
 import { EXERCISES } from '../data/content.ts';
 import { useProfile } from '../app/session.ts';
@@ -25,12 +25,13 @@ export default function Exercises(): ReactNode {
   const limit = Math.max(PAGE, Number(sp.get('n')) || PAGE);
   const [sheet, setSheet] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const navType = useNavigationType();
   const sentinel = useRef<HTMLDivElement>(null);
 
   // On phones the keyboard opens straight away: searching is the main way in.
   useEffect(() => {
     const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
-    if (coarse && !sp.toString() && window.scrollY < 8) searchRef.current?.focus({ preventScroll: true });
+    if (coarse && navType !== 'POP' && !sp.toString() && window.scrollY < 8) searchRef.current?.focus({ preventScroll: true }); // not on Back: the list is being restored
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

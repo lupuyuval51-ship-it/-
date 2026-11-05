@@ -66,7 +66,6 @@ export default function Progress(): ReactNode {
   if (p) {
     if (p.consistency.sessions > 0) takeaway.push(plannedTotal > 0 ? t('progress.take.sessions', { n: ltr(String(p.consistency.sessions)), g: ltr(String(plannedTotal)) }) : t('progress.take.sessionsNoGoal', { n: ltr(String(p.consistency.sessions)) }));
     if (wDelta !== null && wFirst !== undefined && wLast !== undefined) takeaway.push(t('progress.take.weight', { d: signed(wDelta), from: ltr(fmt.num(wFirst, 1)), to: ltr(fmt.num(wLast, 1)) }));
-    if (newPrs.length > 0) takeaway.push(t('progress.take.prs', { n: ltr(String(newPrs.length)) }));
   }
   const headline = takeaway[0];
   const sorted = stats.data ? [...stats.data.allAchievementIds].sort((a, b) => {

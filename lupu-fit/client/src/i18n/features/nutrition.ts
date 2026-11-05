@@ -43,7 +43,7 @@ export default defineFeature({
     photo: {
       estimateNote: 'AI estimate from a photo. It is a rough guess, not a measurement. Nothing is logged until you confirm each item.', choose: 'Take or choose a photo', analyzing: 'Analyzing…',
       none: 'No food was recognised in this photo.', resultTitle: 'Estimated items', badge: 'ESTIMATE', reviewHint: 'Edit anything that looks off, then log each item.', name: 'Name',
-      itemKcal: '{kcal} kcal (estimate)', logItem: 'Log item', logged: 'Logged as an estimate', notImage: 'Please choose an image file.',
+      itemKcal: '{kcal} kcal (estimate)', logItem: 'Log item', logged: 'Logged as an estimate', notImage: 'Choose an image file.',
     },
     quick: { name: 'Name', hint: 'Values are for the whole amount you entered, not per 100 g.', add: 'Add entry' },
     custom: { hint: 'Enter values per 100 g as printed on the label.', kcal100: 'kcal per 100 g', serving: 'Serving size (g)', save: 'Save food', saved: 'Food saved' },
@@ -61,7 +61,7 @@ export default defineFeature({
       details: 'Ingredients and portion', allergenLine: 'Allergen filtering is automatic. Verify ingredients yourself.',
     },
     menu: {
-      title: 'Daily menu', photoNote: 'Dish photos are AI-generated illustrations, not the actual meal. Nutrition values come from the ingredients.', mealCount: 'Meals per day', meals: '{n} meals', regenerate: 'Generate again', basis: 'Based on {kcal} kcal per day',
+      title: 'Daily menu', photoNote: 'Dish photos are AI-generated illustrations, not the actual meal. Nutrition values are calculated from the ingredients.', mealCount: 'Meals per day', meals: '{n} meals', regenerate: 'Generate again', basis: 'Based on {kcal} kcal per day',
       missing: 'No suitable dish was found for: {slots}. Your allergies, diet or restrictions may be too narrow for this slot.', none: 'No menu could be built', noneHint: 'No dishes match your diet, restrictions and allergies.',
       needProfile: 'A menu needs your profile and targets.', portion: 'Portion', ingredients: 'Ingredients', swap: 'Swap dish', logDish: 'Log this dish', loggedOne: 'Logged', logged: 'Logged {n} dishes',
       dayTotals: 'Day totals vs targets', engineNote: 'Snacks are capped at 350 kcal and portions range from 0.5× to 1.75×.', logAll: 'Log the whole day',

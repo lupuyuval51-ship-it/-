@@ -50,7 +50,7 @@ export function progressRoutes(r: Router, _d: Deps): void {
       consistency: { sessions: sessions.length, weeks: [...weekly.entries()].sort().map(([week, count]) => ({ week, count })), weeklyGoal: p?.daysPerWeek ?? null },
       setsByGroup: groups, hasSets: sets.length > 0, strength,
       nutrition: { loggedDays: food.length, avgKcal: food.length ? Math.round(food.reduce((a, x) => a + Number(x.kcal), 0) / food.length) : null, avgProteinG: food.length ? Math.round(food.reduce((a, x) => a + Number(x.p), 0) / food.length) : null, targetKcal: t?.kcal ?? null, targetProteinG: t?.proteinG ?? null, daysOnProteinTarget: t ? food.filter((x) => Number(x.p) >= 0.9 * t.proteinG).length : 0 },
-      prs: prs.map((x) => ({ exerciseId: x.exercise_id, maxWeight: x.max_weight, est1rm: x.est_1rm, maxReps: x.max_reps, maxDuration: x.max_duration, updatedAt: x.updated_at })),
+      prs: prs.map((x) => ({ exerciseId: x.exercise_id, maxWeight: x.max_weight, est1rm: p && ageBucket(p.age) === 'minor' ? null : x.est_1rm, maxReps: x.max_reps, maxDuration: x.max_duration, updatedAt: x.updated_at })),
     } };
   });
 }

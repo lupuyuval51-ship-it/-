@@ -2,7 +2,8 @@ import { EXERCISES } from '@lupu-fit/shared/content';
 import { ApiError } from '../core/errors.ts';
 import type { Router } from '../core/router.ts';
 import type { Deps } from '../core/types.ts';
-import { uid } from './util.ts';
+import { loadProfile, uid } from './util.ts';
+import { ageBucket } from '@lupu-fit/shared';
 
 const IDS = new Set(EXERCISES.map((e) => e.id));
 
@@ -21,6 +22,8 @@ export function exerciseHistoryRoutes(r: Router, _d: Deps): void {
       history.push({ sessionId: s.session_id, date: s.local_date, sets: sets.map((t) => ({ setNo: t.set_no, reps: t.reps, weightKg: t.weight_kg, durationSec: t.duration_sec, rpe: t.rpe })) });
     }
     const pr = (await ctx.db.query<{ max_weight: number | null; est_1rm: number | null; max_reps: number | null; max_volume: number | null; max_duration: number | null; updated_at: string }>('SELECT max_weight, est_1rm, max_reps, max_volume, max_duration, updated_at FROM personal_records WHERE user_id = $1 AND exercise_id = $2', [uid(ctx), id]))[0];
-    return { json: { exerciseId: id, history, record: pr ? { maxWeight: pr.max_weight, est1rm: pr.est_1rm, maxReps: pr.max_reps, maxVolume: pr.max_volume, maxDuration: pr.max_duration, updatedAt: pr.updated_at } : null } };
+    const prof = await loadProfile(ctx.db, uid(ctx));
+    const minor = prof ? ageBucket(prof.age) === 'minor' : false; // no 1RM estimates for minors, whatever is stored
+    return { json: { exerciseId: id, history, record: pr ? { maxWeight: pr.max_weight, est1rm: minor ? null : pr.est_1rm, maxReps: pr.max_reps, maxVolume: pr.max_volume, maxDuration: pr.max_duration, updatedAt: pr.updated_at } : null } };
   });
 }

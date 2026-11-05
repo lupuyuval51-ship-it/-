@@ -108,6 +108,9 @@ export function sessionRoutes(r: Router, _d: Deps): void {
     const b = ctx.body as z.infer<typeof SessionExerciseReplaceSchema>;
     await ownedOpenSession(ctx.db, uid(ctx), ctx.params['id'] as string);
     if (!EX.has(b.exerciseId)) throw new ApiError(400, 'unknown_exercise');
+    // Scoped to THIS session first: a foreign or unknown row id must answer 404 like any missing id, never a 409 that proves it exists.
+    const own = await ctx.db.query('SELECT 1 FROM session_exercises WHERE id = $1 AND session_id = $2', [ctx.params['seId'], ctx.params['id']]);
+    if (own.length === 0) throw new ApiError(404, 'not_found');
     const has = Number((await ctx.db.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM session_sets WHERE session_exercise_id = $1', [ctx.params['seId']]))[0]?.n ?? 0);
     if (has > 0) throw new ApiError(409, 'exercise_has_sets'); // never rewrite history: replace only before any set is logged
     const up = await ctx.db.query('UPDATE session_exercises SET exercise_id = $1 WHERE id = $2 AND session_id = $3 RETURNING id', [b.exerciseId, ctx.params['seId'], ctx.params['id']]);

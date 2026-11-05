@@ -36,7 +36,7 @@ export default defineFeature({
     finishNeedsConnection: 'A connection is required to finish the workout',
     finishFailed: 'Could not finish the workout.',
     discarded: 'Workout discarded',
-    finisher: { header: 'Sport finisher — {sport} (about {min} min)', start: 'Start timer', stop: 'Stop timer', round: 'Round {n} of {total}', work: 'Work', done: 'Finisher complete', roundsDone: '{done} of {total} rounds', idle: 'Ready', plan: 'Work {work} sec · rest {rest} sec' },
+    finisher: { header: 'Sport finisher: {sport} (about {min} min)', start: 'Start timer', stop: 'Stop timer', round: 'Round {n} of {total}', work: 'Work', done: 'Finisher complete', roundsDone: '{done} of {total} rounds', idle: 'Ready', plan: 'Work {work} sec · rest {rest} sec' },
     structure: {
       queuedOrder: 'Reorder exercises', queuedRemove: 'Remove exercise', queuedReplace: 'Replace exercise',
       add: 'Add exercise', remove: 'Remove exercise', replace: 'Replace exercise', replaceLocked: 'Replacing is possible only before the first set.',
@@ -80,7 +80,7 @@ export default defineFeature({
     finishNeedsConnection: 'החיבור נדרש לסיום האימון',
     finishFailed: 'לא ניתן היה לסיים את האימון.',
     discarded: 'האימון בוטל',
-    finisher: { header: 'סיומת ספורט — {sport} (כ-{min} דק׳)', start: 'הפעלת טיימר', stop: 'עצירת הטיימר', round: 'סבב {n} מתוך {total}', work: 'עבודה', done: 'הסיומת הושלמה', roundsDone: '{done} מתוך {total} סבבים', idle: 'מוכנים', plan: 'עבודה {work} שנ׳ · מנוחה {rest} שנ׳' },
+    finisher: { header: 'סיומת ספורט: {sport} (כ-{min} דק׳)', start: 'הפעלת טיימר', stop: 'עצירת הטיימר', round: 'סבב {n} מתוך {total}', work: 'עבודה', done: 'הסיומת הושלמה', roundsDone: '{done} מתוך {total} סבבים', idle: 'מוכנים', plan: 'עבודה {work} שנ׳ · מנוחה {rest} שנ׳' },
     structure: {
       queuedOrder: 'שינוי סדר התרגילים', queuedRemove: 'הסרת תרגיל', queuedReplace: 'החלפת תרגיל',
       add: 'הוספת תרגיל', remove: 'הסרת התרגיל', replace: 'החלפת תרגיל', replaceLocked: 'אפשר להחליף רק לפני הסט הראשון.',
