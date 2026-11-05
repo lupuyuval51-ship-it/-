@@ -51,3 +51,6 @@ test-results/
 e2e/artifacts/
 /android
 /ios
+dist-e2e/
+supabase/functions/.env.e2e
+supabase/functions/.env.test
