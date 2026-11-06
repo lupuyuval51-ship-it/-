@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, StyleSheet, TextInput, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 
 import { CategoryChips } from '@/components/ideas/CategoryChips';
 import { IdeaCard } from '@/components/ideas/IdeaCard';
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconButton } from '@/components/ui/IconButton';
-import { Input } from '@/components/ui/Input';
+import { Input, type InputHandle } from '@/components/ui/Input';
 import { MultiOptionGroup } from '@/components/ui/OptionGroup';
 import { Sheet } from '@/components/ui/Sheet';
 import { allIdeas } from '@/data/ideas';
@@ -27,7 +27,7 @@ export default function SearchScreen() {
   const { t, locale } = useI18n();
   const { colors } = useTheme();
   const params = useLocalSearchParams<Params>();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<InputHandle>(null);
 
   const initialCategory = (CATEGORY_SLUGS as readonly string[]).includes(params.category ?? '') ? (params.category as CategorySlug) : null;
   const [query, setQuery] = useState(params.q ?? '');

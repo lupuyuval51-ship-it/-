@@ -44,5 +44,6 @@ export const ScalePressable = forwardRef<View, ScalePressableProps>(function Sca
     [haptic, onPress],
   );
 
-  return <AnimatedPressable ref={ref} {...rest} onPressIn={handleIn} onPressOut={handleOut} onPress={handlePress} style={[animated, style]} />;
+  // Reanimated's animated component types the ref loosely; the instance is a plain View.
+  return <AnimatedPressable ref={ref as never} {...rest} onPressIn={handleIn} onPressOut={handleOut} onPress={handlePress} style={[animated, style]} />;
 });

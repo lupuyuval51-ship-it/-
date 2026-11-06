@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, type ComponentRef } from 'react';
 import { StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 
 import { useI18n } from '@/i18n';
@@ -22,7 +22,9 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   size?: 'md' | 'lg';
 }
 
-export const Input = forwardRef<TextInput, InputProps>(function Input(
+export type InputHandle = ComponentRef<typeof TextInput>;
+
+export const Input = forwardRef<InputHandle, InputProps>(function Input(
   { label, hint, error, icon, onClear, containerStyle, inputStyle, size = 'md', multiline, value, onFocus, onBlur, ...rest },
   ref,
 ) {

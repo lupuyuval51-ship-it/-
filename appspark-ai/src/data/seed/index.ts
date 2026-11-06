@@ -6,6 +6,7 @@ import { ideas as business } from './business';
 import { ideas as creativity } from './creativity';
 import { ideas as devtools } from './devtools';
 import { ideas as ecommerce } from './ecommerce';
+import { ideas as education } from './education';
 import { ideas as entertainment } from './entertainment';
 import { ideas as finance } from './finance';
 import { ideas as games } from './games';
@@ -20,6 +21,7 @@ export const seedIdeas: Idea[] = [
   ...creativity,
   ...devtools,
   ...ecommerce,
+  ...education,
   ...entertainment,
   ...finance,
   ...games,

@@ -1,7 +1,8 @@
 import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
-import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { isSupabaseConfigured } from '@/lib/env';
+import { supabase } from '@/lib/supabase';
 
 export interface SessionUser {
   id: string;
