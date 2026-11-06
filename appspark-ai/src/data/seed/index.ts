@@ -2,6 +2,7 @@
 import type { Idea } from '../types';
 
 import { ideas as ai } from './ai';
+import { ideas as ai_2 } from './ai-2';
 import { ideas as business } from './business';
 import { ideas as creativity } from './creativity';
 import { ideas as devtools } from './devtools';
@@ -13,10 +14,12 @@ import { ideas as games } from './games';
 import { ideas as health } from './health';
 import { ideas as lifestyle } from './lifestyle';
 import { ideas as productivity } from './productivity';
+import { ideas as productivity_2 } from './productivity-2';
 import { ideas as social } from './social';
 
 export const seedIdeas: Idea[] = [
   ...ai,
+  ...ai_2,
   ...business,
   ...creativity,
   ...devtools,
@@ -28,5 +31,6 @@ export const seedIdeas: Idea[] = [
   ...health,
   ...lifestyle,
   ...productivity,
+  ...productivity_2,
   ...social,
 ];

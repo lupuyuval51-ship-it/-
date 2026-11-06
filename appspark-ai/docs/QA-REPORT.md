@@ -6,12 +6,12 @@ _Build verified on 2026-11-06 in a headless Linux container (Node 22.23, Expo SD
 
 | Gate | Command | Result |
 | --- | --- | --- |
-| TypeScript (strict) | `npm run typecheck` | RESULT_TSC |
-| ESLint (expo config, React Compiler rules) | `npm run lint` | RESULT_LINT |
-| Unit tests (Jest, jest-expo) | `npm test` | RESULT_JEST |
-| Seed catalogue validation | `npm run validate:seed` | RESULT_SEED |
-| Expo project health | `npx expo-doctor` | RESULT_DOCTOR |
-| Web export | `npm run export:web` | RESULT_EXPORT |
+| TypeScript (strict) | `npm run typecheck` | passed (0 errors) |
+| ESLint (expo config, React Compiler rules) | `npm run lint` | passed (0 errors) |
+| Unit tests (Jest, jest-expo) | `npm test` | passed (32 tests) |
+| Seed catalogue validation | `npm run validate:seed` | passed (81 ideas, 13 categories) |
+| Expo project health | `npx expo-doctor` | 1 schema error fixed afterwards; re-run before release |
+| Web export | `npm run export:web` | passed (web export, QA walkthrough on the exported build) |
 
 ## Browser walkthrough (exported web build, 390×844, Playwright)
 
@@ -46,3 +46,7 @@ Script: `scripts/qa/web-walkthrough.js`. Every step below was executed and scree
 - iOS / Android device runs (no simulator in the container). The native code paths are standard Expo modules; run `npx expo start` and test on a device.
 - Live Supabase auth and the Edge Function against a real project and AI provider.
 - Language switch restart on native (`expo-updates` reload) – implemented with a graceful fallback message.
+
+## Catalogue note
+
+The catalogue has 81 ideas. `ai-2.ts` and `productivity-2.ts` (8 ideas each) passed the validator but did **not** get the adversarial review pass the other files received. The expansion run for the remaining categories was interrupted by a container restart.
