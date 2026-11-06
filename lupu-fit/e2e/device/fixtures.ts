@@ -1,4 +1,4 @@
-import { chromium, test as base, expect, type BrowserContext, type ConsoleMessage, type Page, type Request, type TestInfo } from '@playwright/test';
+import { chromium, test as base, expect, type Browser, type BrowserContext, type ConsoleMessage, type Page, type Request, type TestInfo } from '@playwright/test';
 import { makeT, type TFn } from '../copy.ts';
 
 export type Lang = 'he' | 'en';
@@ -94,6 +94,21 @@ export async function launchProfile(info: TestInfo, userDataDir: string, lang: L
   await context.addInitScript((l) => { try { if (!localStorage.getItem('lf_lang')) localStorage.setItem('lf_lang', l); } catch { /* storage blocked */ } }, lang);
   const page = context.pages()[0] ?? (await context.newPage());
   return { context, page, watch };
+}
+
+
+/**
+ * A brand new browser profile (no IndexedDB, no localStorage: a phone the app was never opened on) with the same device options, network
+ * cut and watchers as the normal fixture. Close it when done. `init` runs before any page script (e.g. to fake the Capacitor bridge).
+ */
+export async function freshContext(browser: Browser, info: TestInfo, lang: Lang, init?: () => void): Promise<{ context: BrowserContext; page: Page; watch: Watch }> {
+  const use = info.project.use as Record<string, unknown>;
+  const { launchOptions: _l, defaultBrowserType: _d, baseURL, ...ctxOpts } = use as { launchOptions?: unknown; defaultBrowserType?: string; baseURL?: string } & Record<string, unknown>;
+  const context = await browser.newContext({ ...ctxOpts, baseURL });
+  const watch = await watchContext(context, originOf(baseURL));
+  await context.addInitScript((l) => { try { if (!localStorage.getItem('lf_lang')) localStorage.setItem('lf_lang', l); } catch { /* storage blocked */ } }, lang);
+  if (init) await context.addInitScript(init);
+  return { context, page: await context.newPage(), watch };
 }
 
 /** First launch to Home: welcome -> onboarding (defaults are valid) -> review -> save. No login or registration screen is involved. */

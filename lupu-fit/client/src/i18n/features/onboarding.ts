@@ -6,6 +6,10 @@ export default defineFeature({
     deviceData: 'Your data stays on this device. It is stored in the app’s own database and is not uploaded to a server.',
     cta: 'Set up my profile', legalPrefix: 'By continuing you agree to the',
     v1: 'Today\'s workout, fitted to your gear and time', v2: 'Nutrition targets with safety floors built in', v3: 'Weight, sets and records in one place', setupTime: 'Setup takes about two minutes.',
+    restore: {
+      cta: 'I already have a backup', hint: 'Moved to a new phone or reinstalled? Restore the backup file you exported from LUPU-FIT and skip the setup.',
+      toastHome: 'Backup restored. Welcome back.', toastSetup: 'Backup restored. It has no profile, so set one up next.',
+    },
   },
   onboarding: {
     done: { title: 'Your plan is ready', lead: 'Taking you to your first workout.' },
@@ -75,6 +79,10 @@ export default defineFeature({
     deviceData: 'הנתונים נשארים על המכשיר הזה. הם נשמרים במסד הנתונים של האפליקציה ואינם מועלים לשרת.',
     cta: 'הגדרת הפרופיל שלי', legalPrefix: 'בהמשך מאשרים את',
     v1: 'אימון להיום, מותאם לציוד ולזמן', v2: 'יעדי תזונה עם מינימום בטוח מובנה', v3: 'משקל, סטים ושיאים במקום אחד', setupTime: 'ההגדרה לוקחת כשתי דקות.',
+    restore: {
+      cta: 'כבר יש לי גיבוי', hint: 'עברתם לטלפון חדש או התקנתם מחדש? אפשר לשחזר את קובץ הגיבוי שייצאתם מ-LUPU-FIT ולדלג על ההגדרה.',
+      toastHome: 'הגיבוי שוחזר. טוב שחזרתם.', toastSetup: 'הגיבוי שוחזר. אין בו פרופיל, ולכן השלב הבא הוא הגדרת פרופיל.',
+    },
   },
   onboarding: {
     done: { title: 'התוכנית מוכנה', lead: 'עוברים לאימון הראשון.' },

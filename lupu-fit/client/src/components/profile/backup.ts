@@ -1,3 +1,4 @@
+import { downloadTextFile } from '../../lib/nativeFile.ts';
 import { BACKUP_VERSION, BackupPayloadSchema, ClientSettingsSchema, type BackupPayload, type BackupV2, type ClientSettings } from '@lupu-fit/shared';
 
 /** How many things a backup holds, as the confirmation sheet shows them. */
@@ -48,13 +49,7 @@ export function withClientSettings(exported: unknown, settings: ClientSettings):
 }
 
 export function downloadJson(filename: string, data: unknown): File {
-  const file = new File([JSON.stringify(data, null, 2)], filename, { type: 'application/json' });
-  const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.rel = 'noopener';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  return file;
+  return downloadTextFile(filename, JSON.stringify(data, null, 2));
 }
 
 /** Blob.text() with a FileReader fallback for older engines. */

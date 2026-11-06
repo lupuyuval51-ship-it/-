@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider roots (authority ${applicationId}.fileprovider). Deliberately narrow, so a share or a camera hand-off can never expose
+  anything else of the app or of shared storage:
+  - cache/backups/ : the backup copy written by the Share flow (client/src/lib/nativeFile.ts). Each share grants read access to ONE uri.
+  - Android/data/<app>/files/Pictures/ : the photo taken for the optional meal estimate (WebView file chooser, only in a build with an AI proxy).
+  The Capacitor template's `external-path "."` (all shared storage) and `cache-path "."` (the whole cache) were removed.
+-->
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-path name="my_images" path="." />
-    <cache-path name="my_cache_images" path="." />
+    <cache-path name="backups" path="backups/" />
+    <external-files-path name="meal_photos" path="Pictures/" />
 </paths>
