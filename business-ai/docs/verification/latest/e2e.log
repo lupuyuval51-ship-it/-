@@ -1,0 +1,12 @@
+PASS sign-up
+PASS onboarding
+PASS plan-generated
+PASS edit-section
+PASS roadmap-complete-task
+PASS advisor-chat
+PASS finance-add-revenue
+PASS reload-persistence
+PASS hebrew-rtl
+PASS dark-mode
+
+10/10 steps passed

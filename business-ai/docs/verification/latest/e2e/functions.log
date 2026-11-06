@@ -1,2 +1,16 @@
 Setting up Edge Functions runtime...
 Edge Runtime file descriptor limit lowered to 20000: the host's hard limit (ulimit -Hn) is below the default 65536. Heavy Edge Function workloads may exhaust file descriptors.
+2026-11-06T09:12:32.379673424Z Serving functions on http://127.0.0.1:54321/functions/v1/<function-name>
+2026-11-06T09:12:32.379703042Z  - http://127.0.0.1:54321/functions/v1/advisor
+2026-11-06T09:12:32.379705372Z  - http://127.0.0.1:54321/functions/v1/ai
+2026-11-06T09:12:32.379706639Z Using supabase-edge-runtime-1.77.9 (compatible with Deno v2.1.4)
+2026-11-06T09:12:40.261730111Z serving the request with supabase/functions/ai
+2026-11-06T09:16:01.009383952Z serving the request with supabase/functions/ai
+2026-11-06T09:16:01.557476499Z [Info] {"level":"info","fn":"ai","action":"plan.generate","status":202,"ms":528}
+2026-11-06T09:16:01.557491959Z 
+2026-11-06T09:16:01.821638186Z wall clock duration warning: isolate: da283aa4-68c0-4a66-884f-45dc2e922cbd
+2026-11-06T09:16:01.842057624Z early termination has been triggered: isolate: da283aa4-68c0-4a66-884f-45dc2e922cbd
+2026-11-06T09:16:07.634814212Z serving the request with supabase/functions/advisor
+2026-11-06T09:16:08.197455080Z [Info] {"level":"info","fn":"advisor","status":200,"ms":144}
+2026-11-06T09:16:08.197470213Z 
+Stopped serving supabase/functions

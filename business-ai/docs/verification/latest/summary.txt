@@ -10,3 +10,13 @@ pgtap          exit=0
 deno-check     exit=0
 deno-test      exit=0
 race           exit=0
+e2e            exit=0
+
+---- key lines ----
+Test Suites: 39 passed, 39 total
+Tests:       627 passed, 627 total
+Files=9, Tests=426,  1 wallclock secs ( 0.08 usr  0.00 sys +  0.09 cusr  0.06 csys =  0.23 CPU)
+Result: PASS
+ok | 43 passed (22 steps) | 0 failed (4s)
+  "ok": true,
+10/10 steps passed

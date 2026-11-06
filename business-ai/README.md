@@ -227,9 +227,11 @@ The Android package id is `com.businessai.app` (set in `app.json`). Changing the
 | `npm test` | Jest: finance engine, i18n parity, formatting, design tokens/contrast, every feature's pure logic, component smoke tests |
 | `npm run test:db` | pgTAP: RLS isolation for every table, privileges, triggers, RPCs, quota/cost-cap reservation |
 | `npm run check:functions` / `npm run test:functions` | `deno check`, plus Deno unit and integration tests for the AI layer, run against the fake Anthropic server and the local stack |
+| `npm run test:race` | Concurrency/all-or-nothing checks against the local stack (parallel advisor approvals, parallel finance "Accept all", failing batch saves nothing) |
+| `npm run verify:all` | Runs **every** check above and keeps the raw logs in `docs/verification/latest/` |
 | `bash e2e/run-e2e.sh` | Full stack: Supabase, the real Edge Functions (with `AI_API_BASE_URL` pointed at `e2e/fake-anthropic`), the web export and the Playwright definition-of-done flow |
 
-The latest results are recorded in [`docs/TESTING.md`](docs/TESTING.md).
+The latest results are in [`docs/TESTING.md`](docs/TESTING.md). The raw output of the last full run (logs, E2E `results.json`, screenshots) is committed in [`docs/verification/latest/`](docs/verification/latest/).
 
 ---
 

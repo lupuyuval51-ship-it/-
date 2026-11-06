@@ -1,17 +1,26 @@
 # Testing & verification results
 
-These results come from the build environment on 2026-11-05: Linux, Node 22, Deno 2.9, the Supabase CLI 3 local stack (Postgres 17, GoTrue, PostgREST, edge-runtime 1.77) and Chromium via Playwright.
+**Don't take this page on trust: the raw output is committed.** [`docs/verification/latest/`](verification/latest/)
+contains one log per check, `summary.txt` (exit code of every check), the E2E `results.json` and all screenshots. Run
+`bash scripts/verify-all.sh` (or `npm run verify:all`) to reproduce everything; `WITH_E2E=0` skips the browser run.
 
-| Suite | Command | Result |
+Latest run: **commit `e1cce0b`, 2026-11-06 09:11 UTC.** Linux, Node 22, Deno 2.9, Supabase CLI 3 local stack (Postgres 17,
+GoTrue, PostgREST, edge-runtime 1.77), Chromium via Playwright.
+
+> `summary.txt` shows `dirty: 1`. That count is a false positive: the only uncommitted path at the time was the
+> verification output folder itself (git listed it as the untracked directory `docs/verification/`, which the
+> script's filter did not exclude; fixed in `scripts/verify-all.sh`). The code under test is exactly commit `e1cce0b`.
+
+| Check | Command | Result (raw log) |
 |---|---|---|
-| TypeScript (strict, whole app) | `npm run typecheck` | **0 errors** |
-| ESLint (eslint-config-expo) | `npm run lint` | **0 errors, 0 warnings** |
-| Jest (app + shared domain) | `npm test` | **39 suites, 625 tests passed** |
-| pgTAP (RLS, privileges, triggers, RPCs) | `npm run test:db` | **8 files, 407 assertions passed** |
-| Deno (Edge Functions) | `npm run check:functions` and `npm run test:functions` | **type check OK; 41 tests passed (one integration test with 22 steps, against the real local stack and the fake Anthropic server)** |
-| Web export | `npx expo export --platform web` | builds |
-| Android JS bundle | `npx expo export --platform android` | builds (Hermes bytecode) |
-| E2E (Playwright, web build + local stack + real functions + fake Anthropic) | `bash e2e/run-e2e.sh` | **10/10 steps passed** |
+| TypeScript (strict, whole app) | `npm run typecheck` | **0 errors** — [`typecheck.log`](verification/latest/typecheck.log) |
+| ESLint (eslint-config-expo) | `npm run lint` | **0 errors, 0 warnings** — [`lint.log`](verification/latest/lint.log) |
+| Jest (app + shared domain) | `npm test` | **39 suites, 627 tests passed** — [`jest.log`](verification/latest/jest.log) |
+| pgTAP (RLS, privileges, triggers, RPCs) | `npm run test:db` | **9 files, 426 assertions passed** — [`pgtap.log`](verification/latest/pgtap.log) |
+| Deno (Edge Functions) | `npm run check:functions`, `npm run test:functions` | **type check OK; 43 tests passed (incl. one 22-step integration test against the real local stack)** — [`deno-check.log`](verification/latest/deno-check.log), [`deno-test.log`](verification/latest/deno-test.log) |
+| Race checks (parallel approvals) | `npm run test:race` | **pass** — [`race.log`](verification/latest/race.log) |
+| E2E (Playwright, web build + local stack + real Edge Functions + fake Anthropic) | `bash e2e/run-e2e.sh` | **10/10 steps passed** — [`e2e.log`](verification/latest/e2e.log), [`e2e/results.json`](verification/latest/e2e/results.json), screenshots in [`e2e/`](verification/latest/e2e/) |
+| Web export / Android JS bundle | `npx expo export --platform web\|android` | both build (the web build is the one E2E runs) |
 
 ## What each suite covers
 
@@ -50,7 +59,16 @@ These results come from the build environment on 2026-11-05: Linux, Node 22, Den
   - the advisor SSE stream with its persisted messages;
   - a missing API key returns `not_configured`.
 
-## Concurrency check (exactly-once proposals)
+## Concurrency and all-or-nothing checks (`e2e/race-checks.mjs`, raw output in `race.log`)
+
+These run against the local stack. In the latest run:
+
+- **Advisor:** 20 parallel `apply_advisor_action` calls → 2 `applied` and 18 `already_applied`; the database ends with exactly 1 expense and 1 task.
+- **Finance "Accept all":** 10 parallel `accept_finance_proposal` calls with the same 3 lines plus the starting capital → 3 rows inserted in total (each line once); the starting capital is applied.
+- **All-or-nothing:** a batch whose last line is invalid fails and saves **nothing**, with no startup cost and no capital change.
+- **Mock database (Deno):** invalid AI roadmap output is rejected **before any database call**, and a valid roadmap is written by exactly **one** transactional RPC (`tests/roadmap_payload_test.ts`).
+
+## Earlier concurrency check (exactly-once proposals)
 
 `apply_advisor_action` was called **20 times in parallel** (10× for an expense proposal, 10× for a task proposal) by the same user against the local stack:
 

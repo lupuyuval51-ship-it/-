@@ -16,7 +16,7 @@ mkdir -p "$OUT"
 SUMMARY="$OUT/summary.txt"
 {
   echo "commit:   $(git rev-parse HEAD 2>/dev/null || echo unknown)"
-  echo "dirty:    $(git status --porcelain 2>/dev/null | grep -v "^?? $OUT" | wc -l | tr -d ' ') changed file(s) outside $OUT"
+  echo "dirty:    $(git status --porcelain -- . ":(exclude)$OUT" ":(exclude)docs/verification" 2>/dev/null | wc -l | tr -d ' ') changed file(s) outside the verification output"
   echo "date:     $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "node:     $(node --version)  deno: $(deno --version 2>/dev/null | head -1)  supabase: $(supabase --version 2>/dev/null)"
   echo
