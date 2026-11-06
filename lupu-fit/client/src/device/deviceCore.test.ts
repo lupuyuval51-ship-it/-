@@ -132,3 +132,61 @@ describe('Device Mode export', () => {
     expect(JSON.stringify(body)).not.toMatch(/device_[0-9a-f]{8}/);
   });
 });
+
+describe('Device Mode backup: the file is the only way back after "delete all data"', () => {
+  const PROFILE = { language: 'en', theme: 'system', units: 'metric', sex: 'male', age: 30, heightCm: 180, weightKg: 80, goal: 'general_fitness', experience: 'intermediate', place: 'gym', equipment: ['dumbbell', 'barbell', 'bench'], injuries: [], daysPerWeek: 3, sessionMinutes: 60, activityLevel: 'moderate', diet: 'omnivore', allergies: [], restrictions: [] };
+  const presc = { sets: 3, repsMin: 8, repsMax: 10, rpe: 7, restSec: 90, loadKg: null, durationSec: null };
+  const ok = async (s: DeviceServer, method: string, path: string, body?: unknown) => { const r = (await call(s, method, path, body)).res; expect(r.status, `${method} ${path} ${JSON.stringify(r.body)}`).toBeLessThan(300); return r.body as any; }; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const canon = (b: any): unknown => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const sess = new Map<string, string>(b.sessions.map((s: any, i: number) => [s.id, `S${i}`])); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const plans = new Map<string, string>(b.plans.map((p: any, i: number) => [p.id, `P${i}`])); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const { exportedAt: _at, ...rest } = b;
+    return JSON.parse(JSON.stringify({
+      ...rest,
+      sessions: b.sessions.map((s: any, i: number) => ({ ...s, id: `S${i}`, sourceId: s.sourceId ? s.sourceId.replace(/^[^:]+/, (h: string) => plans.get(h) ?? h) : s.sourceId })), // eslint-disable-line @typescript-eslint/no-explicit-any
+      plans: b.plans.map((p: any, i: number) => ({ ...p, id: `P${i}` })), // eslint-disable-line @typescript-eslint/no-explicit-any
+      xpEvents: b.xpEvents.map((x: any) => ({ ...x, sourceKey: sess.get(x.sourceKey) ?? x.sourceKey })), // eslint-disable-line @typescript-eslint/no-explicit-any
+    }));
+  };
+
+  it('export -> delete all data -> restore brings back profile, workouts, food, weights, plans, saved meals, own foods and coach chats on the real on-device database', async () => {
+    const { s } = await fresh();
+    const today = new Date().toISOString().slice(0, 10);
+    await ok(s, 'PUT', '/api/profile', { ...PROFILE, displayName: 'Dana Device' });
+    await ok(s, 'POST', '/api/weights', { loggedDate: today, weightKg: 80.5, note: 'morning' });
+    await ok(s, 'POST', '/api/food-log', { loggedDate: today, slot: 'lunch', name: 'Rice', grams: 150, kcal: 200, proteinG: 30, carbsG: 20, fatG: 3 });
+    await ok(s, 'POST', '/api/foods/custom', { name: 'Protein bar', kcal: 380, proteinG: 30, carbsG: 40, fatG: 12, servingG: 60 });
+    await ok(s, 'POST', '/api/saved-meals', { name: 'Usual lunch', slot: 'lunch', items: [{ name: 'Rice', grams: 100, kcal: 130, proteinG: 3, carbsG: 28, fatG: 0 }] });
+    const gen = await ok(s, 'POST', '/api/plans/generate', { seed: 3 });
+    await ok(s, 'POST', '/api/plans', { name: 'Plan A', plan: gen.plan, activate: true });
+    const w = await ok(s, 'POST', '/api/sessions', { name: 'Chest', source: 'custom', localDate: today, exercises: [{ exerciseId: 'barbell_bench_press', planned: presc }] });
+    for (let i = 0; i < 3; i++) await ok(s, 'POST', `/api/sessions/${w.id}/sets`, { sessionExerciseId: w.exercises[0].id, reps: 8, weightKg: 60 });
+    await ok(s, 'POST', `/api/sessions/${w.id}/finish`);
+    const th = await ok(s, 'POST', '/api/coach/threads', { title: 'My chat' });
+    await ok(s, 'POST', `/api/coach/threads/${th.id}/messages`, { text: 'plan my week', lang: 'en' });
+
+    const file = await ok(s, 'GET', '/api/export');
+    expect(file.backup).toMatchObject({ version: 2, mode: 'device' }); expect(file.extra.account).toBeNull();
+    expect(JSON.stringify(file)).not.toMatch(/device_[0-9a-f]{8}/);
+    const file1 = JSON.parse(JSON.stringify(file)) as typeof file; // what the person keeps on disk
+
+    // delete all data: the whole on-device database is wiped and a fresh hidden account is created
+    const gone = await s.handle(DEL); expect(gone.res.status).toBe(200); await gone.after?.();
+    expect((await ok(s, 'GET', '/api/saved-meals')).meals).toEqual([]);
+    expect((await ok(s, 'GET', '/api/coach/threads')).threads).toEqual([]);
+    expect((await call(s, 'GET', '/api/profile')).res.status).toBe(404);
+
+    // restore into the new empty install
+    const res = await ok(s, 'POST', '/api/device/restore', file1.backup);
+    expect(res).toMatchObject({ policy: 'replace', backupVersion: 2, restored: { workouts: 1, sets: 3, foods: 1, weights: 1, plans: 1, savedMeals: 1, customFoods: 1, threads: 1, messages: 2, profile: 1 }, untouched: [] });
+    expect((await ok(s, 'GET', '/api/profile')).profile.displayName).toBe('Dana Device');
+    expect((await ok(s, 'GET', '/api/auth/me')).onboarded).toBe(true);
+    expect((await ok(s, 'GET', '/api/saved-meals')).meals.map((m: { name: string }) => m.name)).toEqual(['Usual lunch']);
+    expect((await ok(s, 'GET', '/api/foods/custom')).foods.map((f: { name: string }) => f.name)).toEqual(['Protein bar']);
+    expect((await ok(s, 'GET', '/api/coach/threads')).threads.map((x: { title: string }) => x.title)).toEqual(['My chat']);
+    expect((await ok(s, 'GET', '/api/plans')).plans.map((p: { name: string; active: boolean }) => [p.name, p.active])).toEqual([['Plan A', true]]);
+    expect((await ok(s, 'GET', '/api/stats')).xp).toBeGreaterThan(0);
+    const file2 = await ok(s, 'GET', '/api/export');
+    expect(canon(file2.backup)).toEqual(canon(file1.backup));
+  }, 120_000);
+});

@@ -24,5 +24,7 @@ export class PgliteAdapter implements DbAdapter {
   async transaction<T>(fn: (tx: DbAdapter) => Promise<T>): Promise<T> {
     return this.db.transaction((tx) => fn(new TxAdapter(tx)));
   }
+  /** A direct filesystem sync (not `PGlite.syncToFs`, which returns at once when another sync is already queued). */
+  async flush(): Promise<void> { await this.db.fs?.syncToFs(false); }
   close(): Promise<void> { return this.db.close(); }
 }

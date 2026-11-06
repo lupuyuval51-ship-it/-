@@ -19,7 +19,7 @@ const db = PgAdapter.fromUrl(url);
 await migrate(db);
 const ai = providersFromEnv(process.env);
 const api = buildApp({
-  db, mode: 'hosted', clock: () => new Date(), ...DEFAULT_DEPS, secureCookies: true,
+  db, mode: 'hosted', clock: () => new Date(), ...DEFAULT_DEPS, secureCookies: true, ...(process.env['APP_VERSION'] ? { appVersion: process.env['APP_VERSION'] } : {}),
   // Session-token hashes run on every request: synchronous node:crypto takes microseconds and never queues behind PBKDF2 in libuv's pool.
   sha256: (text: string) => createHash('sha256').update(text).digest('hex'),
   ...(ai ? { ai } : {}),

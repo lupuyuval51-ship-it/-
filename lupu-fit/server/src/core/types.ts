@@ -30,6 +30,8 @@ export interface Deps {
   clock: () => Date;
   pbkdf2Iterations: number;
   secureCookies: boolean;
+  /** Release version, written into backup files ("unknown" when the host does not say). */
+  appVersion?: string;
   sessionTtlDays: number;
   ai?: AiProvider;
   /**

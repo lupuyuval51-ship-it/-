@@ -7,6 +7,7 @@
  */
 import { DEFAULT_DEPS } from '../../../server/src/createApp.ts';
 import type { TransportRequest } from '../api/transport.ts';
+import { APP_VERSION } from '../env.ts';
 import type { Deps } from '../../../server/src/core/types.ts';
 import { createDeviceServer, idbStore, type DeviceServer } from './deviceCore.ts';
 import { ProxyAiProvider } from './proxyAi.ts';
@@ -31,7 +32,7 @@ function init(): Promise<void> {
   const aiProxy = (import.meta.env['VITE_AI_PROXY_URL'] as string | undefined) || undefined;
   const f = makeGuardedFetch(aiProxy);
   const s = createDeviceServer(idbStore(), (db): Deps => ({
-    db, mode: 'device', clock: () => new Date(), ...DEFAULT_DEPS, sessionTtlDays: 3650, secureCookies: false, fetch: f,
+    db, mode: 'device', clock: () => new Date(), ...DEFAULT_DEPS, sessionTtlDays: 3650, secureCookies: false, appVersion: APP_VERSION, fetch: f,
     // No proxy => no AI (rules coach / ai_unavailable for translate); with VITE_AI_PROXY_URL the proxy holds the keys.
     ai: aiProxy ? new ProxyAiProvider(aiProxy, f) : undefined,
   }));

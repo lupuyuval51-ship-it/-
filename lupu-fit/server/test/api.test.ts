@@ -251,10 +251,10 @@ describe('account: export, restore, delete', () => {
     await workout(t, c, 60); await call(t, c, 'POST', '/api/weights', { loggedDate: D, weightKg: 80 });
     await call(t, c, 'POST', '/api/food-log', { loggedDate: D, slot: 'lunch', name: 'Rice', grams: 100, kcal: 130, proteinG: 3, carbsG: 28, fatG: 0 });
     const ex = (await call(t, c, 'GET', '/api/export')).json;
-    expect(ex.backup.version).toBe(1); expect(ex.backup.sessions).toHaveLength(1); expect(ex.backup.bodyWeight).toHaveLength(1); expect(ex.backup.foodLog).toHaveLength(1);
+    expect(ex.backup.version).toBe(2); expect(ex.backup.sessions).toHaveLength(1); expect(ex.backup.bodyWeight).toHaveLength(1); expect(ex.backup.foodLog).toHaveLength(1);
     const c2 = await onboard(t, 'fresh', '10.0.0.7');
     const rs = await call(t, c2, 'POST', '/api/device/restore', ex.backup);
-    expect(rs.status, JSON.stringify(rs.json)).toBe(200); expect(rs.json.restored.sessions).toBe(1);
+    expect(rs.status, JSON.stringify(rs.json)).toBe(200); expect(rs.json.restored.workouts).toBe(1);
     expect((await call(t, c2, 'GET', `/api/food-log?date=${D}`)).json.entries).toHaveLength(1);
     expect((await call(t, c2, 'GET', '/api/progress?range=30d')).json.prs.length).toBeGreaterThan(0);
     expect((await call(t, c, 'DELETE', '/api/account', { confirm: 'nope' })).status).toBe(400);

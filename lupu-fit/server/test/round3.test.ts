@@ -165,23 +165,23 @@ describe('XP cannot be minted from client-chosen dates or empty sessions', () =>
 });
 
 describe('export cost is linear and bounded per account', () => {
-  it('builds the export for 2000 saved meals x 40 items quickly, groups items correctly, and is rate limited', async () => {
+  it('builds the export for 500 saved meals x 40 items (the account cap) quickly, groups items correctly, and is rate limited', async () => {
     const t = await makeApp(); const c = await onboard(t);
-    await t.db.query("INSERT INTO saved_meals (id, user_id, name, slot) SELECT 'm' || g, (SELECT id FROM users LIMIT 1), 'Meal ' || g, 'lunch' FROM generate_series(1, 2000) g");
-    await t.db.query("INSERT INTO saved_meal_items (id, saved_meal_id, name, grams, kcal, protein_g, carbs_g, fat_g) SELECT 'i' || m || '-' || k, 'm' || m, 'item', 1, 1, 0, 0, 0 FROM generate_series(1, 2000) m, generate_series(1, 40) k");
+    await t.db.query("INSERT INTO saved_meals (id, user_id, name, slot) SELECT 'm' || g, (SELECT id FROM users LIMIT 1), 'Meal ' || g, 'lunch' FROM generate_series(1, 500) g");
+    await t.db.query("INSERT INTO saved_meal_items (id, saved_meal_id, name, grams, kcal, protein_g, carbs_g, fat_g) SELECT 'i' || m || '-' || k, 'm' || m, 'item', 1, 1, 0, 0, 0 FROM generate_series(1, 500) m, generate_series(1, 40) k");
     const started = performance.now();
     const ex = await call(t, c, 'GET', '/api/export');
     const ms = performance.now() - started;
     expect(ex.status).toBe(200);
-    expect(ex.json.extra.savedMeals).toHaveLength(2000);
-    expect(ex.json.extra.savedMeals.every((m: { items: unknown[] }) => m.items.length === 40)).toBe(true);
+    expect(ex.json.backup.savedMeals).toHaveLength(500);
+    expect(ex.json.backup.savedMeals.every((m: { items: unknown[] }) => m.items.length === 40)).toBe(true);
     expect(ms).toBeLessThan(10_000); // end to end on in-memory PGlite (the database read dominates); the grouping itself is checked below
     for (let i = 1; i < EXPORT_PER_MIN; i++) expect((await call(t, c, 'GET', '/api/export')).status).toBe(200);
     const limited = await call(t, c, 'GET', '/api/export');
     expect(limited.status).toBe(429); expect(limited.headers?.['retry-after']).toBe('60');
     // The saved-meal list loads in two queries (not one per meal) and groups the same way.
     const list = (await call(t, c, 'GET', '/api/saved-meals')).json.meals as { items: unknown[] }[];
-    expect(list).toHaveLength(2000); expect(list.every((m) => m.items.length === 40)).toBe(true);
+    expect(list).toHaveLength(500); expect(list.every((m) => m.items.length === 40)).toBe(true);
   }, 60_000);
   it('grouping 80,000 rows into 2,000 groups is one pass (the old filter per group took over a second)', () => {
     const rows = Array.from({ length: 80_000 }, (_, i) => ({ saved_meal_id: `m${i % 2000}`, i }));

@@ -11,7 +11,7 @@ export default defineFeature({
       account: { title: 'App and data', delete: 'Delete all data' },
       nu: { deleteHint: 'Deleting all data erases your profile, workouts, food log and everything else stored on this device. You will be asked to confirm on the next screen.' },
       backup: {
-        hint: 'There is no cloud copy of your data. Export saves one file with all of it: keep that file somewhere safe, such as a cloud drive or an e-mail to yourself. Restore brings back workouts, food log and weight entries from such a file; plans, saved meals and your profile are in the file but are not restored.',
+        hint: 'There is no cloud copy of your data. Export saves one file with all of it: your profile, workouts with records and XP, food log, weight entries, plans, saved meals, your own foods, coach chats and the settings of this device. Keep that file somewhere safe, such as a cloud drive or an e-mail to yourself. Restore REPLACES what is in the app with the contents of such a file, so it is also the way to move to a new phone.',
         rejected: 'This backup file is not valid.',
       },
     },
@@ -46,7 +46,7 @@ export default defineFeature({
       account: { title: 'אפליקציה ונתונים', delete: 'מחיקת כל הנתונים' },
       nu: { deleteHint: 'מחיקת כל הנתונים מוחקת את הפרופיל, האימונים, יומן האוכל וכל מה ששמור במכשיר הזה. במסך הבא תתבקשו לאשר.' },
       backup: {
-        hint: 'אין עותק של הנתונים בענן. הייצוא שומר קובץ אחד עם הכול: כדאי לשמור אותו במקום בטוח, למשל בכונן ענן או באימייל לעצמכם. השחזור מחזיר אימונים, יומן אוכל ורשומות משקל מקובץ כזה; תוכניות, ארוחות שמורות והפרופיל נמצאים בקובץ אבל לא משוחזרים.',
+        hint: 'אין עותק של הנתונים בענן. הייצוא שומר קובץ אחד עם הכול: הפרופיל, האימונים עם השיאים ונקודות הניסיון, יומן האוכל, רשומות המשקל, התוכניות, הארוחות השמורות, המזונות האישיים, שיחות המאמן והגדרות המכשיר הזה. כדאי לשמור אותו במקום בטוח, למשל בכונן ענן או באימייל לעצמכם. השחזור מחליף את מה שיש באפליקציה בתוכן קובץ כזה, ולכן זו גם הדרך לעבור לטלפון חדש.',
         rejected: 'קובץ הגיבוי הזה לא תקין.',
       },
     },
