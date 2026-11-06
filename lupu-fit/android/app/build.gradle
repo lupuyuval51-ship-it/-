@@ -12,8 +12,8 @@ android {
         applicationId "app.lupufit"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9
-        versionName "0.9.0"
+        versionCode 10
+        versionName "0.10.0"
         resourceConfigurations += ["en", "iw", "he"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
