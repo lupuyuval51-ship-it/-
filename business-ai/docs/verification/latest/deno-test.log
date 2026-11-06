@@ -6,3 +6,193 @@
 [0m[32mCheck[0m tests/roadmap_payload_test.ts
 [0m[32mCheck[0m tests/schema_test.ts
 [0m[32mCheck[0m tests/sse_test.ts
+[0m[38;5;245mrunning 5 tests from ./tests/errors_test.ts[0m
+provider errors: typed SDK errors map to public codes ... [0m[32mok[0m [0m[38;5;245m(20ms)[0m
+provider errors: AppErrors pass through; usage and partial text are kept ... [0m[32mok[0m [0m[38;5;245m(340µs)[0m
+error codes: every public code has an HTTP status ... [0m[32mok[0m [0m[38;5;245m(102µs)[0m
+postgrest errors: business-rule and SQLSTATE codes map to public codes ... [0m[32mok[0m [0m[38;5;245m(516µs)[0m
+http: error envelope never leaks internal details ... [0m[32mok[0m [0m[38;5;245m(9ms)[0m
+[0m[38;5;245mrunning 1 test from ./tests/integration_test.ts[0m
+integration: ai + advisor functions against local Supabase and the fake Anthropic API ...
+[0m[38;5;245m------- post-test output -------[0m
+supabase keys from: supabase status
+[0m[38;5;245m----- post-test output end -----[0m
+  preflight, method, auth and body validation ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"unknown","status":401,"code":"unauthorized","ms":0}
+{"level":"info","fn":"ai","action":"unknown","status":401,"code":"unauthorized","ms":2}
+{"level":"info","fn":"ai","action":"unknown","status":400,"code":"invalid_request","ms":7}
+{"level":"info","fn":"ai","action":"unknown","status":400,"code":"invalid_request","ms":9}
+[0m[38;5;245m----- post-test output end -----[0m
+  preflight, method, auth and body validation ... [0m[32mok[0m [0m[38;5;245m(23ms)[0m
+  missing ANTHROPIC_API_KEY → 503 not_configured (both functions, nothing reserved) ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"error","scope":"ai.finance.propose","code":"not_configured","status":503}
+{"level":"info","fn":"ai","action":"finance.propose","status":503,"code":"not_configured","ms":6}
+{"level":"error","scope":"advisor.prepare","code":"not_configured","status":503}
+{"level":"info","fn":"advisor","status":503,"code":"not_configured","ms":5}
+[0m[38;5;245m----- post-test output end -----[0m
+  missing ANTHROPIC_API_KEY → 503 not_configured (both functions, nothing reserved) ... [0m[32mok[0m [0m[38;5;245m(14ms)[0m
+  plan.generate requires the business_idea answer (412 precondition_failed) ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":412,"code":"precondition_failed","ms":13}
+[0m[38;5;245m----- post-test output end -----[0m
+  plan.generate requires the business_idea answer (412 precondition_failed) ... [0m[32mok[0m [0m[38;5;245m(16ms)[0m
+  plan.generate (he): 202, then 15 sections, finance proposal, roadmap, usage ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":202,"ms":32}
+[0m[38;5;245m----- post-test output end -----[0m
+  plan.generate (he): 202, then 15 sections, finance proposal, roadmap, usage ... [0m[32mok[0m [0m[38;5;245m(278ms)[0m
+  plan.regenerateSection returns a valid proposal and persists nothing ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":200,"ms":41}
+[0m[38;5;245m----- post-test output end -----[0m
+  plan.regenerateSection returns a valid proposal and persists nothing ... [0m[32mok[0m [0m[38;5;245m(52ms)[0m
+  user B cannot use user A's business (404) and nothing is charged to B ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":404,"code":"not_found","ms":10}
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":404,"code":"not_found","ms":10}
+{"level":"info","fn":"ai","action":"marketing.generate","status":404,"code":"not_found","ms":11}
+{"level":"info","fn":"advisor","status":404,"code":"not_found","ms":6}
+[0m[38;5;245m----- post-test output end -----[0m
+  user B cannot use user A's business (404) and nothing is charged to B ... [0m[32mok[0m [0m[38;5;245m(41ms)[0m
+  advisor (he): SSE meta → delta → actions → done; both messages persisted ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"advisor","status":200,"ms":76}
+[0m[38;5;245m----- post-test output end -----[0m
+  advisor (he): SSE meta → delta → actions → done; both messages persisted ... [0m[32mok[0m [0m[38;5;245m(94ms)[0m
+  advisor: follow-up message in the same conversation uses history ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"advisor","status":200,"ms":55}
+{"level":"info","fn":"advisor","status":404,"code":"not_found","ms":10}
+[0m[38;5;245m----- post-test output end -----[0m
+  advisor: follow-up message in the same conversation uses history ... [0m[32mok[0m [0m[38;5;245m(67ms)[0m
+  advisor: refusal → SSE error event, usage recorded as error ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"error","scope":"advisor.stream","code":"ai_refused","status":422}
+{"level":"info","fn":"advisor","status":200,"ms":47}
+[0m[38;5;245m----- post-test output end -----[0m
+  advisor: refusal → SSE error event, usage recorded as error ... [0m[32mok[0m [0m[38;5;245m(50ms)[0m
+  quota: plan_generation is limited to 2 per month on the free tier (429) ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":429,"code":"quota_exceeded","ms":31}
+[0m[38;5;245m----- post-test output end -----[0m
+  quota: plan_generation is limited to 2 per month on the free tier (429) ... [0m[32mok[0m [0m[38;5;245m(40ms)[0m
+  cost cap: a user over the monthly cost cap gets 429 cost_cap_reached ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"advisor","status":429,"code":"cost_cap_reached","ms":18}
+[0m[38;5;245m----- post-test output end -----[0m
+  cost cap: a user over the monthly cost cap gets 429 cost_cap_reached ... [0m[32mok[0m [0m[38;5;245m(25ms)[0m
+  plan.generate failure (provider overloaded) marks the version failed and frees the quota ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":202,"ms":37}
+{"level":"error","scope":"plan.generate","code":"ai_unavailable","status":503,"cause":"Error: 529 {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded (fake).\"},\"request_id\":\"req_fake_1793956330036\"}"}
+[0m[38;5;245m----- post-test output end -----[0m
+  plan.generate failure (provider overloaded) marks the version failed and frees the quota ... [0m[32mok[0m [0m[38;5;245m(71ms)[0m
+  roadmap.generate before any plan → 412 ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"roadmap.generate","status":412,"code":"precondition_failed","ms":28}
+[0m[38;5;245m----- post-test output end -----[0m
+  roadmap.generate before any plan → 412 ... [0m[32mok[0m [0m[38;5;245m(29ms)[0m
+  plan.generate (en) succeeds after the failure; English content ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":202,"ms":35}
+[0m[38;5;245m----- post-test output end -----[0m
+  plan.generate (en) succeeds after the failure; English content ... [0m[32mok[0m [0m[38;5;245m(168ms)[0m
+  plan.generate: a second request while one is generating → 409, nothing reserved ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":202,"ms":29}
+{"level":"info","fn":"ai","action":"plan.generate","status":409,"code":"conflict","ms":29}
+[0m[38;5;245m----- post-test output end -----[0m
+  plan.generate: a second request while one is generating → 409, nothing reserved ... [0m[32mok[0m [0m[38;5;245m(82ms)[0m
+  stale generating versions and stale reservations are released ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.generate","status":429,"code":"quota_exceeded","ms":32}
+[0m[38;5;245m----- post-test output end -----[0m
+  stale generating versions and stale reservations are released ... [0m[32mok[0m [0m[38;5;245m(53ms)[0m
+  roadmap.generate: create → 409 when AI tasks exist; replace_ai_items keeps user/done items ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"roadmap.generate","status":409,"code":"conflict","ms":13}
+{"level":"info","fn":"ai","action":"roadmap.generate","status":200,"ms":54}
+[0m[38;5;245m----- post-test output end -----[0m
+  roadmap.generate: create → 409 when AI tasks exist; replace_ai_items keeps user/done items ... [0m[32mok[0m [0m[38;5;245m(84ms)[0m
+  roadmap.recommend returns suggestions and persists nothing ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"roadmap.recommend","status":200,"ms":38}
+[0m[38;5;245m----- post-test output end -----[0m
+  roadmap.recommend returns suggestions and persists nothing ... [0m[32mok[0m [0m[38;5;245m(45ms)[0m
+  marketing.generate saves an editable AI asset ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"marketing.generate","status":201,"ms":31}
+[0m[38;5;245m----- post-test output end -----[0m
+  marketing.generate saves an editable AI asset ... [0m[32mok[0m [0m[38;5;245m(34ms)[0m
+  finance.propose returns integer minor units and persists nothing ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"finance.propose","status":200,"ms":29}
+[0m[38;5;245m----- post-test output end -----[0m
+  finance.propose returns integer minor units and persists nothing ... [0m[32mok[0m [0m[38;5;245m(31ms)[0m
+  error mapping end to end: refusal 422, invalid JSON 502, truncated 502, rate limit 429 ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"error","scope":"ai.plan.regenerateSection","code":"ai_refused","status":422}
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":422,"code":"ai_refused","ms":31}
+{"level":"error","scope":"ai.plan.regenerateSection","code":"ai_invalid_output","status":502,"op":"structured:json","cause":"SyntaxError: Unexpected token 'h', \"this is not JSON\" is not valid JSON"}
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":502,"code":"ai_invalid_output","ms":29}
+{"level":"error","scope":"ai.plan.regenerateSection","code":"ai_invalid_output","status":502,"op":"stop_reason:max_tokens"}
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":502,"code":"ai_invalid_output","ms":27}
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":429,"code":"rate_limited","ms":28}
+{"level":"error","scope":"ai.plan.regenerateSection","code":"not_configured","status":503,"cause":"Error: 401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"invalid x-api-key\"},\"request_id\":\"req_fake_1793956330724\"}"}
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":503,"code":"not_configured","ms":32}
+[0m[38;5;245m----- post-test output end -----[0m
+  error mapping end to end: refusal 422, invalid JSON 502, truncated 502, rate limit 429 ... [0m[32mok[0m [0m[38;5;245m(150ms)[0m
+  refusal fallback: usage is billed per attempt (iterations) ...
+[0m[38;5;245m------- post-test output -------[0m
+{"level":"info","fn":"ai","action":"plan.regenerateSection","status":200,"ms":24}
+[0m[38;5;245m----- post-test output end -----[0m
+  refusal fallback: usage is billed per attempt (iterations) ... [0m[32mok[0m [0m[38;5;245m(27ms)[0m
+integration: ai + advisor functions against local Supabase and the fake Anthropic API ... [0m[32mok[0m [0m[38;5;245m(3s)[0m
+[0m[38;5;245mrunning 9 tests from ./tests/outputs_test.ts[0m
+plan section: ids assigned server-side, blank blocks dropped, limits applied ... [0m[32mok[0m [0m[38;5;245m(17ms)[0m
+plan section: nothing usable → ai_invalid_output ... [0m[32mok[0m [0m[38;5;245m(613µs)[0m
+structured validation: JSON parse and zod errors become ai_invalid_output with usage ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+roadmap: phases normalized to canonical order; missing phase rejected ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+dates: addDaysIso crosses month and year boundaries in UTC ... [0m[32mok[0m [0m[38;5;245m(137µs)[0m
+finance proposal: major units → integer minor units, clamped, ids, blank labels dropped ... [0m[32mok[0m [0m[38;5;245m(316µs)[0m
+marketing: item ids, empty label omitted, default title by locale ... [0m[32mok[0m [0m[38;5;245m(907µs)[0m
+roadmap suggestions: ids, clamped due days, blank titles dropped ... [0m[32mok[0m [0m[38;5;245m(157µs)[0m
+advisor actions: invalid actions dropped, ids assigned, long strings clipped, follow-ups capped ... [0m[32mok[0m [0m[38;5;245m(3ms)[0m
+[0m[38;5;245mrunning 9 tests from ./tests/pricing_test.ts[0m
+pricing: per-model prices (USD per 1M tokens = micros per token) ... [0m[32mok[0m [0m[38;5;245m(814µs)[0m
+pricing: unknown or missing model is priced as Opus 5.5 ... [0m[32mok[0m [0m[38;5;245m(255µs)[0m
+pricing: opus input/output cost ... [0m[32mok[0m [0m[38;5;245m(62µs)[0m
+pricing: cache reads 0.1x and cache writes 1.25x input price ... [0m[32mok[0m [0m[38;5;245m(47µs)[0m
+pricing: fractional micros are rounded up (conservative) ... [0m[32mok[0m [0m[38;5;245m(65µs)[0m
+pricing: negative / NaN token counts count as zero ... [0m[32mok[0m [0m[38;5;245m(53µs)[0m
+pricing: usageFromApi uses top-level usage priced at the response model ... [0m[32mok[0m [0m[38;5;245m(142µs)[0m
+pricing: usageFromApi sums fallback iterations at each attempt model ... [0m[32mok[0m [0m[38;5;245m(85µs)[0m
+pricing: addUsage and empty usage ... [0m[32mok[0m [0m[38;5;245m(82µs)[0m
+[0m[38;5;245mrunning 8 tests from ./tests/prompts_test.ts[0m
+injection: closing tags inside data cannot end the envelope ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+injection: case, whitespace and the user_request tag are neutralized too ... [0m[32mok[0m [0m[38;5;245m(257µs)[0m
+system prompt: declares data untrusted, forbids revealing it, honesty and basis rules ... [0m[32mok[0m [0m[38;5;245m(175µs)[0m
+locale: Hebrew and English instructions ... [0m[32mok[0m [0m[38;5;245m(120µs)[0m
+truncate: hard caps with an ellipsis ... [0m[32mok[0m [0m[38;5;245m(113µs)[0m
+plan prompts: every section has a guide; groups list their keys; data wrapped ... [0m[32mok[0m [0m[38;5;245m(340µs)[0m
+roadmap, marketing, finance and advisor prompts carry their rules ... [0m[32mok[0m [0m[38;5;245m(409µs)[0m
+advisor history: plain text, notes for proposed actions, starts with user, skips errors ... [0m[32mok[0m [0m[38;5;245m(3ms)[0m
+[0m[38;5;245mrunning 4 tests from ./tests/roadmap_payload_test.ts[0m
+buildRoadmapPayload: dates, milestone keys, refs and dependency filtering ... [0m[32mok[0m [0m[38;5;245m(15ms)[0m
+buildRoadmapPayload: a roadmap without any usable task is invalid output ... [0m[32mok[0m [0m[38;5;245m(715µs)[0m
+persistRoadmap: invalid AI output is rejected before ANY database call ... [0m[32mok[0m [0m[38;5;245m(333µs)[0m
+persistRoadmap: a valid roadmap is written in exactly ONE transactional RPC ... [0m[32mok[0m [0m[38;5;245m(338µs)[0m
+[0m[38;5;245mrunning 4 tests from ./tests/schema_test.ts[0m
+json schema: every AI schema is structured-outputs compatible ... [0m[32mok[0m [0m[38;5;245m(6ms)[0m
+json schema: enum and const are kept; ranges and lengths move into the description ... [0m[32mok[0m [0m[38;5;245m(726µs)[0m
+fake server: samples are valid for every AI schema in both languages ... [0m[32mok[0m [0m[38;5;245m(16ms)[0m
+fake server: language detection, rejected parameters and stream shape ... [0m[32mok[0m [0m[38;5;245m(837µs)[0m
+[0m[38;5;245mrunning 3 tests from ./tests/sse_test.ts[0m
+sse: events are encoded as event + single JSON data line ... [0m[32mok[0m [0m[38;5;245m(825µs)[0m
+sse: parser ignores keep-alive comments and keeps order ... [0m[32mok[0m [0m[38;5;245m(229µs)[0m
+sse: writer stops writing after close or cancel ... [0m[32mok[0m [0m[38;5;245m(6ms)[0m
+
+[0m[32mok[0m | 43 passed (22 steps) | 0 failed [0m[38;5;245m(4s)[0m
+

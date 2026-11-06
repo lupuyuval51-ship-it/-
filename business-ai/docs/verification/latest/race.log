@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "failures": [],
+  "advisor": {
+    "calls": 20,
+    "applied": 2,
+    "alreadyApplied": 18,
+    "errors": [],
+    "expenses": 1,
+    "tasks": 1
+  },
+  "financeAcceptAll": {
+    "calls": 10,
+    "errors": [],
+    "totalInserted": 3,
+    "startupCosts": 1,
+    "recurringExpenses": 2,
+    "revenueStreams": 1,
+    "startingCapital": 4000000
+  },
+  "financeAllOrNothing": {
+    "failedAsExpected": true,
+    "startupCostsBefore": 1,
+    "startupCostsAfter": 1,
+    "startingCapitalAfter": 4000000
+  }
+}

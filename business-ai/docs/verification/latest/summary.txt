@@ -8,3 +8,5 @@ lint           exit=0
 jest           exit=0
 pgtap          exit=0
 deno-check     exit=0
+deno-test      exit=0
+race           exit=0
