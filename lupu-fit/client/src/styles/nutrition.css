@@ -73,6 +73,7 @@
 .nutrition-page .list-link .chev { inline-size: 1.25rem; block-size: 1.25rem; flex: none; }
 .nutrition-page .nu-shortcuts .list-link { padding-inline: 0; }
 .nutrition-page .nu-ways .nu-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.nutrition-page .nu-ways .nu-tiles[data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .nutrition-page .nu-tile { align-items: center; text-align: center; min-block-size: 4.25rem; padding-inline: 0.25rem; }
 .nutrition-page .nu-tile strong { font-size: var(--fs-12); line-height: 1.15; }
 .nutrition-page .nu-tile .tiny { display: none; }

@@ -14,7 +14,7 @@ export default defineFeature({
       quotaMinute: 'Too many requests in a short time. Wait a minute and try again.', quotaDay: 'You reached today’s limit for this feature. Try again tomorrow.',
       aiUnavailable: 'AI estimates are not available right now. You can still add the meal by search or quick add.', aiFailed: 'The AI could not read this photo. Try a clearer photo or add the meal manually.',
       productNotFound: 'Product not found in Open Food Facts. Try quick add or a custom food.', noNutrition: 'This product has no nutrition data. Try quick add instead.',
-      lookupFailed: 'The product lookup service did not respond. Check your connection and try again.', invalidBarcode: 'The barcode must be 8 to 14 digits.',
+      lookupFailed: 'The product lookup service did not respond. Check your connection and try again, or add the food by search or by typing the values.', invalidBarcode: 'The barcode must be 8 to 14 digits.',
       macros100: 'Protein, carbs and fat together cannot exceed 100 g per 100 g.', tooLarge: 'The photo is too large to send.',
     },
     hub: {
@@ -37,7 +37,7 @@ export default defineFeature({
     },
     barcode: {
       scan: 'Scan with camera', stop: 'Stop camera', camera: 'Camera preview', noScanner: 'Camera scanning is not supported here. Enter the number below.',
-      cameraDenied: 'Camera access was not granted. Enter the number below.', number: 'Barcode number', hint: '8 to 14 digits, usually under the barcode', lookup: 'Look up', looking: 'Looking up…',
+      offlineNote: 'No internet connection. Barcode lookup needs one. You can still add the food by search or by typing the values.', sent: 'Only the barcode number is sent, to Open Food Facts.', cameraDenied: 'Camera access was not granted. Enter the number below.', number: 'Barcode number', hint: '8 to 14 digits, usually under the barcode', lookup: 'Look up', looking: 'Looking up…',
       source: 'Product data comes from Open Food Facts and may be incomplete. Check the label.',
     },
     photo: {
@@ -79,7 +79,7 @@ export default defineFeature({
       quotaMinute: 'יותר מדי בקשות בזמן קצר. כדאי להמתין דקה ולנסות שוב.', quotaDay: 'הגעתם למגבלה היומית של התכונה הזו. כדאי לנסות מחר.',
       aiUnavailable: 'הערכת AI אינה זמינה כרגע. אפשר להוסיף את הארוחה בחיפוש או בהוספה מהירה.', aiFailed: 'ה-AI לא הצליח לקרוא את התמונה. כדאי לנסות תמונה ברורה יותר או להוסיף ידנית.',
       productNotFound: 'המוצר לא נמצא ב-Open Food Facts. אפשר להשתמש בהוספה מהירה או במאכל מותאם.', noNutrition: 'למוצר הזה אין נתוני תזונה. אפשר להשתמש בהוספה מהירה.',
-      lookupFailed: 'שירות חיפוש המוצרים לא הגיב. כדאי לבדוק את החיבור ולנסות שוב.', invalidBarcode: 'ברקוד חייב להכיל 8 עד 14 ספרות.',
+      lookupFailed: 'שירות חיפוש המוצרים לא הגיב. כדאי לבדוק את החיבור ולנסות שוב, או להוסיף את המאכל בחיפוש או בהקלדת ערכים.', invalidBarcode: 'ברקוד חייב להכיל 8 עד 14 ספרות.',
       macros100: 'חלבון, פחמימות ושומן יחד לא יכולים לעבור 100 ג׳ ל-100 ג׳.', tooLarge: 'התמונה גדולה מדי לשליחה.',
     },
     hub: {
@@ -102,7 +102,7 @@ export default defineFeature({
     },
     barcode: {
       scan: 'סריקה במצלמה', stop: 'עצירת מצלמה', camera: 'תצוגת מצלמה', noScanner: 'סריקה במצלמה לא נתמכת כאן. אפשר להזין את המספר למטה.',
-      cameraDenied: 'לא ניתנה גישה למצלמה. אפשר להזין את המספר למטה.', number: 'מספר ברקוד', hint: '8 עד 14 ספרות, בדרך כלל מתחת לברקוד', lookup: 'חיפוש מוצר', looking: 'מחפש…',
+      offlineNote: 'אין חיבור לאינטרנט. חיפוש ברקוד זקוק לחיבור. אפשר עדיין להוסיף את המאכל בחיפוש או בהקלדת ערכים.', sent: 'נשלח רק מספר הברקוד, אל Open Food Facts.', cameraDenied: 'לא ניתנה גישה למצלמה. אפשר להזין את המספר למטה.', number: 'מספר ברקוד', hint: '8 עד 14 ספרות, בדרך כלל מתחת לברקוד', lookup: 'חיפוש מוצר', looking: 'מחפש…',
       source: 'נתוני המוצר מגיעים מ-Open Food Facts ועשויים להיות חלקיים. כדאי לבדוק מול התווית.',
     },
     photo: {

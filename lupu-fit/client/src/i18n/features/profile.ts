@@ -4,7 +4,7 @@ export default defineFeature({
   profile: {
     nu: { body: 'Body and goals', prefs: 'Preferences', storage: 'Videos and storage', day: 'day', moreSetup: 'Equipment, injuries and restrictions', advancedKcal: 'Advanced: custom calorie target', instantHint: 'Language and theme apply immediately. Name and units are saved with Save.', redoHint: 'Update your goals and details step by step', saved: 'No changes to save', danger: 'Danger zone', deleteHint: 'Deleting your account removes all your data. You will be asked to confirm on the next screen.', exportHint: 'Download everything as a JSON file', shareHint: 'Send the backup file to another app', restoreHint: 'Replace current data with a backup file' },
     ml: {
-      title: 'Language', more: 'Translate the app to another language', moreHint: 'Any language. Done once with machine translation, then saved on this device.', note: 'Machine translation may be imperfect. Exercise and food names stay in English or Hebrew unless translated, and legal pages stay in their original language.',
+      title: 'Language', builtInOnly: 'Hebrew and English are built into the app. Other languages need an AI translation service, which this version does not use.', more: 'Translate the app to another language', moreHint: 'Any language. Done once with machine translation, then saved on this device.', note: 'Machine translation may be imperfect. Exercise and food names stay in English or Hebrew unless translated, and legal pages stay in their original language.',
       sheetTitle: 'Translate the app', search: 'Search languages', noMatch: 'No matching language', other: 'Other language', otherHint: 'Type any language name, in any script', otherGo: 'Translate', otherBad: 'Enter a language name (letters only).',
       downloaded: 'On this device', use: 'Use', del: 'Delete', delLabel: 'Delete {lang} to free space', deleted: '{lang} removed from this device', active: 'In use', now: 'Showing: {lang} (machine translated)', switched: 'App language: {lang}',
       progress: 'Translating {lang}: part {n} of {total}', preparing: 'Preparing…', cancel: 'Cancel', cancelled: 'Cancelled. Finished parts are saved, so you can continue later.', cached: 'Loaded from this device. No internet needed.',
@@ -36,14 +36,14 @@ export default defineFeature({
     },
     account: {
       title: 'Account and app', mode: 'Data stored', modeDevice: 'On this device', modeHosted: 'In your account', version: 'App version', privacy: 'Privacy', terms: 'Terms', delete: 'Delete account',
-      logout: 'Sign out', deviceNote: 'In device mode your data stays on this device and there is no account to log out of.',
+      logout: 'Sign out', deviceNote: 'Your data stays on this device. There is no account, no sign-in and no cloud copy.',
     },
   },
 }, {
   profile: {
     nu: { body: 'גוף ומטרות', prefs: 'העדפות', storage: 'סרטונים ואחסון', day: 'יום', moreSetup: 'ציוד, פציעות והגבלות', advancedKcal: 'מתקדם: יעד קלוריות מותאם', instantHint: 'שפה ועיצוב משתנים מיד. שם ויחידות נשמרים עם כפתור השמירה.', redoHint: 'עדכון המטרות והפרטים צעד אחר צעד', saved: 'אין שינויים לשמירה', danger: 'פעולות בלתי הפיכות', deleteHint: 'מחיקת החשבון מסירה את כל הנתונים שלכם. במסך הבא תתבקשו לאשר.', exportHint: 'הורדת כל הנתונים כקובץ JSON', shareHint: 'שליחת קובץ הגיבוי לאפליקציה אחרת', restoreHint: 'החלפת הנתונים הנוכחיים בקובץ גיבוי' },
     ml: {
-      title: 'שפה', more: 'לתרגם את האפליקציה לשפה אחרת', moreHint: 'כל שפה. תרגום מכונה חד-פעמי, ואז נשמר במכשיר הזה.', note: 'תרגום מכונה עלול להיות לא מדויק. שמות של תרגילים ומזונות נשארים בעברית או באנגלית אלא אם תורגמו, והמסמכים המשפטיים נשארים בשפת המקור.',
+      title: 'שפה', builtInOnly: 'עברית ואנגלית מובנות באפליקציה. שפות אחרות דורשות שירות תרגום מבוסס AI, שהגרסה הזו לא משתמשת בו.', more: 'לתרגם את האפליקציה לשפה אחרת', moreHint: 'כל שפה. תרגום מכונה חד-פעמי, ואז נשמר במכשיר הזה.', note: 'תרגום מכונה עלול להיות לא מדויק. שמות של תרגילים ומזונות נשארים בעברית או באנגלית אלא אם תורגמו, והמסמכים המשפטיים נשארים בשפת המקור.',
       sheetTitle: 'תרגום האפליקציה', search: 'חיפוש שפה', noMatch: 'לא נמצאה שפה מתאימה', other: 'שפה אחרת', otherHint: 'אפשר להקליד שם של כל שפה, בכל כתב', otherGo: 'לתרגם', otherBad: 'יש להזין שם שפה (אותיות בלבד).',
       downloaded: 'במכשיר הזה', use: 'להשתמש', del: 'למחוק', delLabel: 'מחיקת {lang} לפינוי מקום', deleted: '{lang} הוסרה מהמכשיר', active: 'בשימוש', now: 'מוצגת: {lang} (תרגום מכונה)', switched: 'שפת האפליקציה: {lang}',
       progress: 'מתרגמים {lang}: חלק {n} מתוך {total}', preparing: 'מכינים…', cancel: 'ביטול', cancelled: 'בוטל. החלקים שהסתיימו נשמרו, אפשר להמשיך אחר כך.', cached: 'נטען מהמכשיר. לא צריך אינטרנט.',
@@ -75,7 +75,7 @@ export default defineFeature({
     },
     account: {
       title: 'חשבון ואפליקציה', mode: 'אחסון הנתונים', modeDevice: 'במכשיר הזה', modeHosted: 'בחשבון שלכם', version: 'גרסת האפליקציה', privacy: 'פרטיות', terms: 'תנאי שימוש', delete: 'מחיקת חשבון',
-      logout: 'התנתקות', deviceNote: 'במצב מכשיר הנתונים נשארים על המכשיר הזה ואין חשבון להתנתק ממנו.',
+      logout: 'התנתקות', deviceNote: 'הנתונים נשארים על המכשיר הזה. אין חשבון, אין התחברות ואין עותק בענן.',
     },
   },
 });

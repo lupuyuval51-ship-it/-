@@ -4,6 +4,7 @@ import { createDeviceTransport } from './api/client.ts';
 import { App } from './app/App.tsx';
 import { IS_DEVICE } from './env.ts';
 import { LangProvider, useT } from './i18n/index.tsx';
+import { isNativeShell, setupServiceWorker } from './lib/serviceWorker.ts';
 import { applyTheme, getTheme } from './lib/theme.ts';
 import './styles/tokens.css';
 import './styles/base.css';
@@ -40,4 +41,4 @@ if (IS_DEVICE && typeof navigator !== 'undefined' && 'locks' in navigator) {
   });
 } else start();
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) window.addEventListener('load', () => { void navigator.serviceWorker.register('/sw.js'); });
+window.addEventListener('load', () => { void setupServiceWorker({ prod: import.meta.env.PROD, device: IS_DEVICE, native: IS_DEVICE && isNativeShell() }); });

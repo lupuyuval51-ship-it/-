@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { api } from '../../api/client.ts';
 import { useT } from '../../i18n/index.tsx';
+import { useNetworkOnline } from '../live/OfflineBanner.tsx';
 import type { Loggable } from '../../lib/foodSearch.ts';
 import { Banner, Button, errorMessage, TextInput } from '../../ui/kit.tsx';
 import { IconBarcode } from '../../ui/icons.tsx';
@@ -16,6 +17,7 @@ export const canScan = (): boolean => !!detectorCtor() && typeof navigator !== '
 
 export function BarcodePanel({ onFound }: { onFound: (item: Loggable) => void }): ReactNode {
   const t = useT();
+  const online = useNetworkOnline();
   const [ean, setEan] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanErr, setScanErr] = useState<string | null>(null);
@@ -69,8 +71,10 @@ export function BarcodePanel({ onFound }: { onFound: (item: Loggable) => void })
         <TextInput label={t('nutrition.barcode.number')} hint={t('nutrition.barcode.hint')} inputMode="numeric" autoComplete="off" value={ean} onChange={(e) => setEan(e.target.value.replace(/\D/g, '').slice(0, 14))} />
         <Button type="submit" disabled={!valid || lookup.isPending}>{lookup.isPending ? t('nutrition.barcode.looking') : t('nutrition.barcode.lookup')}</Button>
       </form>
-      {err ? <Banner tone="danger">{err}</Banner> : null}
-      <span className="small muted">{t('nutrition.barcode.source')}</span>
+      {/* The lookup is the one feature that needs the internet (Open Food Facts). Offline is said calmly and never blocks anything else. */}
+      {!online && !err ? <Banner><span data-testid="barcode-offline">{t('nutrition.barcode.offlineNote')}</span></Banner> : null}
+      {err ? <Banner tone="danger"><span data-testid="barcode-error">{err}</span></Banner> : null}
+      <span className="small muted">{t('nutrition.barcode.source')} {t('nutrition.barcode.sent')}</span>
     </div>
   );
 }

@@ -48,6 +48,8 @@ export function ExerciseVideo({ exerciseId, size = 'md', steps, alt, autoPlay = 
   }, []);
   useEffect(() => { const f = () => setPageVisible(!document.hidden); document.addEventListener('visibilitychange', f); return () => document.removeEventListener('visibilitychange', f); }, []);
 
+  const hasClip = info !== null;
+  const hasVideo = hasClip && !failed; // the <video> element exists only then (the clip list arrives after the first render)
   const shouldPlay = visible && pageVisible && !failed && (userPlay || (autoPlay && autoplayAllowed() && !rest));
   useEffect(() => {
     const v = ref.current; if (!v) return;
@@ -55,13 +57,12 @@ export function ExerciseVideo({ exerciseId, size = 'md', steps, alt, autoPlay = 
     if (shouldPlay) { videoStore.claim(v); v.play().then(() => setPlaying(true), () => setPlaying(false)); }
     else { v.pause(); videoStore.release(v); setPlaying(false); }
     return () => { videoStore.release(v); };
-  }, [shouldPlay, slow]);
+  }, [shouldPlay, slow, hasVideo]);
 
-  const toggle = useCallback(() => { const v = ref.current; if (!v) return; if (v.paused) { setUserPlay(true); } else { setUserPlay(false); v.pause(); setPlaying(false); } }, []);
+  const toggle = useCallback(() => { const v = ref.current; if (!v) return; if (v.paused) { setUserPlay(true); videoStore.claim(v); v.play().then(() => setPlaying(true), () => setPlaying(false)); } else { setUserPlay(false); v.pause(); setPlaying(false); } }, []);
   const retry = () => { setFailed(false); ref.current?.load(); };
   const fullscreen = () => { const el = wrapRef.current; void (el?.requestFullscreen?.() ?? Promise.resolve()); };
 
-  const hasClip = info !== null;
   const showFallback = failed || !hasClip;
   return (
     <div>

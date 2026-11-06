@@ -121,3 +121,14 @@ describe('idbStore', () => {
     expect(hasMarker).toBe(false);
   }, 60_000);
 });
+
+describe('Device Mode export', () => {
+  it('has no account in it: the hidden local identifier is not written to the file the person keeps', async () => {
+    const { s } = await fresh();
+    const out = await call(s, 'GET', '/api/export');
+    expect(out.res.status).toBe(200);
+    const body = out.res.body as { backup: unknown; extra: { account: unknown } };
+    expect(body.extra.account).toBeNull();
+    expect(JSON.stringify(body)).not.toMatch(/device_[0-9a-f]{8}/);
+  });
+});

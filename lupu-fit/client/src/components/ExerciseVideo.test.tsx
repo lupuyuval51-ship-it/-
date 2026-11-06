@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LangProvider } from '../i18n/index.tsx';
 import { ExerciseVideo } from './ExerciseVideo.tsx';
 
@@ -31,5 +31,33 @@ describe('ExerciseVideo', () => {
     expect(controls).not.toBeNull();
     expect(media?.contains(controls)).toBe(false);
     expect(media?.nextElementSibling).toBe(controls);
+  });
+});
+
+describe('ExerciseVideo: the clip list arrives after the first render', () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  it('autoplays once the <video> exists, and the Play button starts it when autoplay did not (it used to do nothing)', async () => {
+    const play = vi.fn(() => Promise.resolve()); const pause = vi.fn();
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(play);
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(pause);
+    class InView { constructor(private cb: IntersectionObserverCallback) {} observe(el: Element) { this.cb([{ isIntersecting: true, intersectionRatio: 1, target: el } as IntersectionObserverEntry], this as unknown as IntersectionObserver); } unobserve() {} disconnect() {} takeRecords() { return []; } }
+    vi.stubGlobal('IntersectionObserver', InView); // in view from the first frame, long before the clip list arrives
+    let resolveManifest: (r: Response) => void = () => undefined;
+    // The manifest module caches its promise: load a fresh copy for this test.
+    vi.resetModules();
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((res) => { resolveManifest = res; })));
+    const { ExerciseVideo: Fresh } = await import('./ExerciseVideo.tsx');
+    const { LangProvider: Lang } = await import('../i18n/index.tsx');
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<Lang initialLang="en"><QueryClientProvider client={qc}><Fresh exerciseId="split_squat" alt={ALT} /></QueryClientProvider></Lang>);
+    expect(document.querySelector('video')).toBeNull(); // no manifest yet: poster only
+    await act(async () => { resolveManifest(new Response(JSON.stringify({ items: [{ id: 'split_squat', fidelity: 'specific', reviewed: false }] }))); });
+    await screen.findByLabelText(ALT, { selector: 'video' });
+    expect(play).toHaveBeenCalled(); // the effect re-ran when the element appeared
+    play.mockClear();
+    const video = document.querySelector('video') as HTMLVideoElement;
+    Object.defineProperty(video, 'paused', { value: true, configurable: true }); // the browser refused autoplay: the element is paused
+    fireEvent.click(screen.getByRole('button', { name: /^(Play|Pause)$/ }));
+    expect(play).toHaveBeenCalled(); // an explicit tap plays even when nothing else changed
   });
 });

@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
 import { LegalDoc } from '../components/onboarding/LegalDoc.tsx';
+import { IS_DEVICE } from '../env.ts';
 
-export default function Privacy(): ReactNode { return <LegalDoc base="legal.privacy" />; }
+/** The standalone Device Mode build has its own text (no account, no server); the hosted build keeps the operator-based one. */
+export default function Privacy(): ReactNode { return <LegalDoc base={IS_DEVICE ? 'legalDev.privacy' : 'legal.privacy'} />; }

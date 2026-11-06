@@ -11,6 +11,7 @@ import { nk, useCustomFoods, type FoodDay } from '../components/nutrition/data.t
 import { addDaysIso, isIsoDate, SLOTS, todayIso } from '../components/nutrition/logic.ts';
 import { DISHES, FOODS, FOOD_BY_ID, DISH_BY_ID, MEAL_TEMPLATES } from '../data/content.ts';
 import { useProfile } from '../app/session.ts';
+import { AI_AVAILABLE } from '../env.ts';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
 import { allergenHits, deriveRecents, fromCustom, fromDish, fromFood, fromTemplate, searchLoggables, type Loggable } from '../lib/foodSearch.ts';
 import { Button, Chip, EmptyState, Segmented, TextInput } from '../ui/kit.tsx';
@@ -55,9 +56,10 @@ export default function NutritionLog(): ReactNode {
   const toggleOpen = (k: string) => setOpen((cur) => (cur === k ? null : k));
   const chips = recents.slice(0, 8);
   const openRecent = chips.find((r) => r.key === open) ?? null;
+  // The photo estimate is an AI feature: without an AI service (Device Mode without a proxy) the tile is not offered at all.
   const TILES: { mode: Exclude<Mode, 'search'>; icon: ReactNode; label: string; hint: string }[] = [
     { mode: 'barcode', icon: <IconBarcode />, label: t('nutrition.log.mode.barcode'), hint: t('nutrition.nu.tile.barcode') },
-    { mode: 'photo', icon: <IconCamera />, label: t('nutrition.log.mode.photo'), hint: t('nutrition.nu.tile.photo') },
+    ...(AI_AVAILABLE ? [{ mode: 'photo' as const, icon: <IconCamera />, label: t('nutrition.log.mode.photo'), hint: t('nutrition.nu.tile.photo') }] : []),
     { mode: 'quick', icon: <IconPlus />, label: t('nutrition.log.mode.quick'), hint: t('nutrition.nu.tile.quick') },
     { mode: 'custom', icon: <IconFork />, label: t('nutrition.log.mode.custom'), hint: t('nutrition.nu.tile.custom') },
   ];
@@ -75,7 +77,7 @@ export default function NutritionLog(): ReactNode {
 
       {!hasQuery || mode !== 'search' ? (
       <section className="stack-sm nu-ways" aria-label={t('nutrition.log.modes')}>
-        <div className="nu-tiles">
+        <div className="nu-tiles" data-count={TILES.length}>
           {TILES.map((x) => (
             <button key={x.mode} type="button" className="nu-tile" aria-pressed={mode === x.mode} onClick={() => setMode(mode === x.mode ? 'search' : x.mode)}>
               {x.icon}<strong>{x.label}</strong><span className="tiny muted">{x.hint}</span>
@@ -104,7 +106,7 @@ export default function NutritionLog(): ReactNode {
       ) : null}
 
       {mode === 'barcode' ? <div className="card"><BarcodePanel onFound={setPicked} /></div> : null}
-      {mode === 'photo' ? <div className="card"><PhotoPanel date={date} slot={slot} allergies={allergies} /></div> : null}
+      {mode === 'photo' && AI_AVAILABLE ? <div className="card"><PhotoPanel date={date} slot={slot} allergies={allergies} /></div> : null}
       {mode === 'quick' ? <div className="card"><QuickAddPanel date={date} slot={slot} /></div> : null}
       {mode === 'custom' ? <div className="card"><CustomFoodPanel onCreated={() => setMode('search')} /></div> : null}
 

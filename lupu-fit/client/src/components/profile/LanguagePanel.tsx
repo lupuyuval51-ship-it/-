@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, ApiRequestError } from '../../api/client.ts';
+import { AI_AVAILABLE } from '../../env.ts';
 import { DICT, useLang, useT } from '../../i18n/index.tsx';
 import { LANGUAGES_LIST, customCode, dirFor, searchLanguages, type LangInfo } from '../../i18n/custom/languages.ts';
 import { ensureTranslation, flatten, idbStore, type LangStore, type Poster, type StoredLang } from '../../i18n/custom/translate.ts';
@@ -47,6 +48,9 @@ export function LanguagePanel({ onBuiltIn, onCustomActivated, store = idbStore, 
     }
   }, [store, post, activateCustom, onCustomActivated, toast, t, refresh]);
 
+  // Translation is an AI feature. Without an AI service (Device Mode without a proxy) only the two built-in languages are offered, and
+  // a machine-translated language that is already active (from a backup of an older build) can still be switched away from.
+  const canTranslate = AI_AVAILABLE;
   const results = useMemo(() => searchLanguages(q), [q]);
   const busy = phase.k === 'run';
   const useSaved = (s: StoredLang) => { activateCustom(s); onCustomActivated?.(); setOpen(false); toast(t('profile.ml.switched', { lang: s.name }), 'ok'); };
@@ -63,10 +67,14 @@ export function LanguagePanel({ onBuiltIn, onCustomActivated, store = idbStore, 
       <Segmented label={t('profile.f.language')} value={custom ? 'custom' : lang} onChange={(v) => { if (v !== 'custom') onBuiltIn(v); }}
         options={[{ value: 'he' as const, label: t('profile.lang.he') }, { value: 'en' as const, label: t('profile.lang.en') }, ...(custom ? [{ value: 'custom' as const, label: custom.name }] : [])]} />
       {custom ? <span className="small muted" data-testid="ml-now">{t('profile.ml.now', { lang: custom.name })}</span> : null}
-      <button type="button" className="list-link ml-open" onClick={() => setOpen(true)}><span className="grow"><strong>{t('profile.ml.more')}</strong><br /><span className="small muted">{t('profile.ml.moreHint')}</span></span><IconChevron className="chev" /></button>
-      <span className="small muted">{t('profile.ml.note')}</span>
+      {canTranslate ? (
+        <>
+          <button type="button" className="list-link ml-open" onClick={() => setOpen(true)}><span className="grow"><strong>{t('profile.ml.more')}</strong><br /><span className="small muted">{t('profile.ml.moreHint')}</span></span><IconChevron className="chev" /></button>
+          <span className="small muted">{t('profile.ml.note')}</span>
+        </>
+      ) : <span className="small muted" data-testid="ml-builtin-only">{t('profile.ml.builtInOnly')}</span>}
 
-      <Sheet open={open} onClose={() => { abort.current?.abort(); setPhase({ k: 'idle' }); setOpen(false); }} title={t('profile.ml.sheetTitle')}>
+      {canTranslate ? <Sheet open={open} onClose={() => { abort.current?.abort(); setPhase({ k: 'idle' }); setOpen(false); }} title={t('profile.ml.sheetTitle')}>
         {phase.k === 'run' ? (
           <div className="stack ml-progress" role="status" aria-live="polite">
             <div className="row"><span className="spinner" aria-hidden="true" /><strong>{phase.total === 0 ? t('profile.ml.preparing') : t('profile.ml.progress', { lang: phase.lang, n: Math.min(phase.n + 1, phase.total), total: phase.total })}</strong></div>
@@ -98,7 +106,7 @@ export function LanguagePanel({ onBuiltIn, onCustomActivated, store = idbStore, 
             <Banner>{t('profile.ml.note')}</Banner>
           </>
         )}
-      </Sheet>
+      </Sheet> : null}
     </div>
   );
 }

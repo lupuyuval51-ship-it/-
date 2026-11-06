@@ -13,6 +13,7 @@ import { OutboxPanel } from '../components/profile/OutboxPanel.tsx';
 import { BodyGoalsFields, PreferenceFields, validateProfile } from '../components/profile/ProfileForm.tsx';
 import { VideoPanel } from '../components/profile/VideoPanel.tsx';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
+import { IS_DEVICE } from '../env.ts';
 import { setTheme } from '../lib/theme.ts';
 import { Banner, Button, Card, EmptyState, ErrorState, errorMessage } from '../ui/kit.tsx';
 import { IconChevron } from '../ui/icons.tsx';
@@ -100,7 +101,8 @@ export default function Profile(): ReactNode {
       </Card>
 
       <Card className="stack pf-section"><h2 className="section-title">{t('automation.title')}</h2><AutomationCard profile={q.data.profile} /></Card>
-      <Card className="stack pf-section"><h2 className="section-title">{t('profile.nu.storage')}</h2><VideoPanel /><OutboxPanel /></Card>
+      {/* Device Mode: the clips are inside the app and nothing waits to sync, so there is nothing to manage here. */}
+      {IS_DEVICE ? null : <Card className="stack pf-section"><h2 className="section-title">{t('profile.nu.storage')}</h2><VideoPanel /><OutboxPanel /></Card>}
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.backup.title')}</h2><BackupPanel /></Card>
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.account.title')}</h2><AccountPanel /></Card>
       <p className="small muted">{t('disclaimer.health')}</p>

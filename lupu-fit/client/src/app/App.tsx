@@ -42,7 +42,10 @@ function Gate({ children }: { children: ReactNode }): ReactNode {
 }
 
 export function makeQueryClient(): QueryClient {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: (n, e) => !(e instanceof ApiRequestError && e.status < 500) && n < 2, refetchOnWindowFocus: false, staleTime: 10_000 }, mutations: { retry: false } } });
+  // Device Mode has no server: the API is the database worker on the phone, so airplane mode must not pause queries or mutations
+  // (TanStack's default 'online' mode would leave them "paused" with no data and no error, i.e. a blank screen).
+  const networkMode = IS_DEVICE ? 'always' : 'online';
+  const qc = new QueryClient({ defaultOptions: { queries: { networkMode, retry: (n, e) => !(e instanceof ApiRequestError && e.status < 500) && n < 2, refetchOnWindowFocus: false, staleTime: 10_000 }, mutations: { networkMode, retry: false } } });
   // A different person signed in on this device (e.g. after a session expired): nothing cached for the previous one may be shown to them,
   // not even for the moment before the refetch. `me` stays: the sign-in screen refreshes it itself.
   // (`me` itself is in flight when this fires for the first sign-in answer: it must never be cancelled.)

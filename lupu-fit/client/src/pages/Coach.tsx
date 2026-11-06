@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { api, ApiRequestError } from '../api/client.ts';
+import { IS_DEVICE } from '../env.ts';
 import { Message } from '../components/coach/Message.tsx';
 import { ck, type CoachStatus, type ThreadDetail, type ThreadRow } from '../components/coach/types.ts';
 import { fmt, uiLanguageHint, useLang, useT } from '../i18n/index.tsx';
@@ -129,6 +130,7 @@ export default function Coach(): ReactNode {
             </div>
           ) } : {})}
         />
+        {IS_DEVICE && status.data?.provider === 'rules' ? <p className="tiny muted" data-testid="coach-device-note">{t('coach.deviceNote')}</p> : null}
         {status.data?.freeTierNotice ? <Banner tone="warn">{t('coach.freeTier')}</Banner> : null}
 
         <div className="chat-scroll" ref={scroller} role="log" aria-live="polite" aria-label={t('coach.messages')}>

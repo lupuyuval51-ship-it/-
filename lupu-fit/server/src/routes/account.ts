@@ -78,7 +78,8 @@ export function accountRoutes(r: Router, d: Deps): void {
     const items = await ctx.db.query<{ saved_meal_id: string; food_id: string | null; name: string; grams: number; kcal: number; protein_g: number; carbs_g: number; fat_g: number }>('SELECT i.saved_meal_id, i.food_id, i.name, i.grams, i.kcal, i.protein_g, i.carbs_g, i.fat_g FROM saved_meal_items i JOIN saved_meals m ON m.id = i.saved_meal_id WHERE m.user_id = $1 ORDER BY i.saved_meal_id, i.id', [u]);
     const itemsBy = groupBy(items, 'saved_meal_id'); const msgsBy = groupBy(msgs, 'thread_id');
     const extra = {
-      account: account ? { username: account.username, createdAt: account.created_at } : null,
+      // Device Mode has no account: the hidden local identifier is an implementation detail and stays out of the file the person keeps.
+      account: account && d.mode !== 'device' ? { username: account.username, createdAt: account.created_at } : null,
       plans: await ctx.db.query('SELECT id, name, active, archived, plan, created_at FROM workout_plans WHERE user_id = $1', [u]),
       personalRecords: await ctx.db.query('SELECT exercise_id, max_weight, est_1rm, max_reps, max_volume, max_duration FROM personal_records WHERE user_id = $1', [u]),
       readiness: await ctx.db.query('SELECT local_date, sleep, energy, soreness, pain, state FROM readiness_checkins WHERE user_id = $1', [u]),

@@ -3,7 +3,7 @@ import { TRANSLATE_MAX_KEYS } from '@lupu-fit/shared';
 
 export type Tree = { [k: string]: string | Tree };
 /** Keys that are deliberately never machine-translated (legal text must stay as authored). */
-export const EXCLUDED_PREFIXES = ['legal.'];
+export const EXCLUDED_PREFIXES = ['legal.', 'legalDev.', 'dev.'];
 
 export function flatten(tree: Tree, prefix = '', out: Record<string, string> = {}): Record<string, string> {
   for (const [k, v] of Object.entries(tree)) { const p = prefix ? `${prefix}.${k}` : k; if (typeof v === 'string') out[p] = v; else flatten(v, p, out); }

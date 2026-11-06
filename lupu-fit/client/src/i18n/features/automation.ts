@@ -28,7 +28,7 @@ export default defineFeature({
       restTimer: 'Start the rest timer after each set',
       weeklyCheckin: 'Weekly check-in on Home',
       backupReminder: 'Monthly backup reminder',
-      backupHint: 'Shown only in device mode, which has no server copy of your data.',
+      backupHint: 'There is no cloud copy of your data, so the app reminds you once a month to export a backup file.',
     },
     msg: {
       workout: { title: 'Workout time', body: 'Today\'s workout is ready. Even a short session counts.' },
@@ -83,7 +83,7 @@ export default defineFeature({
       restTimer: 'התחלה אוטומטית של טיימר המנוחה אחרי כל סט',
       weeklyCheckin: 'סיכום שבועי במסך הבית',
       backupReminder: 'תזכורת חודשית לגיבוי',
-      backupHint: 'מוצגת רק במצב מכשיר, שבו אין עותק של הנתונים בשרת.',
+      backupHint: 'אין עותק של הנתונים בענן, ולכן האפליקציה מזכירה פעם בחודש לייצא קובץ גיבוי.',
     },
     msg: {
       workout: { title: 'זמן אימון', body: 'האימון של היום מוכן. גם אימון קצר נחשב.' },

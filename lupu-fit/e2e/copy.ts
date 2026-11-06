@@ -28,10 +28,11 @@ export async function loadCopy(): Promise<{ en: Record<string, string>; he: Reco
 }
 
 export type TFn = (key: string, vars?: Record<string, string | number>) => string;
-export async function makeT(lang: 'he' | 'en'): Promise<TFn> {
+/** `device: true` mirrors the standalone build: `dev.<key>` (features/deviceCopy.ts) wins over `<key>`. */
+export async function makeT(lang: 'he' | 'en', opts: { device?: boolean } = {}): Promise<TFn> {
   const dict = (await loadCopy())[lang];
   return (key, vars) => {
-    const s = dict[key];
+    const s = (opts.device ? dict[`dev.${key}`] : undefined) ?? dict[key];
     if (s === undefined) throw new Error(`e2e copy: missing key ${key} (${lang})`);
     return vars ? s.replace(/\{(\w+)\}/g, (_m, name: string) => String(vars[name] ?? `{${name}}`)) : s;
   };

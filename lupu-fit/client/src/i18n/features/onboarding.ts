@@ -3,7 +3,7 @@ import { defineFeature } from '../core.ts';
 export default defineFeature({
   welcome: {
     title: 'Welcome to LUPU-FIT', lead: 'Strength training, nutrition and progress in one app.',
-    deviceData: 'Your data stays on this device. It is stored in the browser database and is not uploaded to a server.',
+    deviceData: 'Your data stays on this device. It is stored in the app’s own database and is not uploaded to a server.',
     cta: 'Set up my profile', legalPrefix: 'By continuing you agree to the',
     v1: 'Today\'s workout, fitted to your gear and time', v2: 'Nutrition targets with safety floors built in', v3: 'Weight, sets and records in one place', setupTime: 'Setup takes about two minutes.',
   },
@@ -72,7 +72,7 @@ export default defineFeature({
 }, {
   welcome: {
     title: 'ברוכים הבאים ל-LUPU-FIT', lead: 'אימוני כוח, תזונה והתקדמות באפליקציה אחת.',
-    deviceData: 'הנתונים נשארים על המכשיר הזה. הם נשמרים במסד הנתונים של הדפדפן ואינם מועלים לשרת.',
+    deviceData: 'הנתונים נשארים על המכשיר הזה. הם נשמרים במסד הנתונים של האפליקציה ואינם מועלים לשרת.',
     cta: 'הגדרת הפרופיל שלי', legalPrefix: 'בהמשך מאשרים את',
     v1: 'אימון להיום, מותאם לציוד ולזמן', v2: 'יעדי תזונה עם מינימום בטוח מובנה', v3: 'משקל, סטים ושיאים במקום אחד', setupTime: 'ההגדרה לוקחת כשתי דקות.',
   },

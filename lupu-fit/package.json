@@ -33,6 +33,7 @@
     "test:client": "vitest run --root client",
     "dev:pglite": "tsx server/src/devServer.ts",
     "e2e": "playwright test -c e2e/playwright.config.ts",
+    "e2e:device": "playwright test -c e2e/playwright.device.config.ts",
     "e2e:typecheck": "tsc --noEmit -p e2e/tsconfig.json"
   },
   "devDependencies": {

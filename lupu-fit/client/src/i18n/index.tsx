@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Language } from '@lupu-fit/shared';
+import { IS_DEVICE } from '../env.ts';
 import { idbStore, overlayTree, type StoredLang } from './custom/translate.ts';
 
 type Tree = { [k: string]: string | Tree };
@@ -16,10 +17,14 @@ function merge(a: Tree, b: Tree): Tree {
 export const DICT: Record<Language, Tree> = { en: {}, he: {} };
 for (const m of Object.values(mods)) { merge(DICT.en, structuredClone(m.default.en)); merge(DICT.he, structuredClone(m.default.he)); }
 
-export function lookup(lang: Language, key: string): string | undefined {
+function lookupRaw(lang: Language, key: string): string | undefined {
   let cur: string | Tree | undefined = DICT[lang];
   for (const part of key.split('.')) { if (typeof cur !== 'object' || cur === null) return undefined; cur = cur[part]; }
   return typeof cur === 'string' ? cur : undefined;
+}
+/** Device Mode (standalone build: no account, no server) prefers `dev.<key>` (features/deviceCopy.ts) over `<key>`; hosted never reads `dev.*`. */
+export function lookup(lang: Language, key: string): string | undefined {
+  return (IS_DEVICE ? lookupRaw(lang, `dev.${key}`) : undefined) ?? lookupRaw(lang, key);
 }
 export type TFn = (key: string, params?: Record<string, string | number>) => string;
 function lookupIn(tree: Tree | null, key: string): string | undefined {

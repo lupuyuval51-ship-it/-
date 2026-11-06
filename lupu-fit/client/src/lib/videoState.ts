@@ -1,3 +1,5 @@
+import { IS_DEVICE } from '../env.ts';
+
 /** Tiny cross-component store: which video is playing (only ONE at a time) and whether a rest timer is running. */
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -25,7 +27,7 @@ export function autoplayAllowed(): boolean {
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
   const c = (navigator as unknown as { connection?: { saveData?: boolean; type?: string; effectiveType?: string } }).connection;
   if (c?.saveData) return false;
-  if (videoPrefs.wifiOnly && c && (c.type === 'cellular' || c.effectiveType === '2g' || c.effectiveType === 'slow-2g')) return false;
+  if (!IS_DEVICE && videoPrefs.wifiOnly && c && (c.type === 'cellular' || c.effectiveType === '2g' || c.effectiveType === 'slow-2g')) return false;
   return true;
 }
 
