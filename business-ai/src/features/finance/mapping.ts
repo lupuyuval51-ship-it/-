@@ -888,6 +888,70 @@ export function proposalItemToDraft(item: ProposalItem, fallbackLabel: string): 
   }
 }
 
+/** One line of the `accept_finance_proposal` RPC payload (DB column names). */
+export type AcceptProposalLine =
+  | { kind: 'startup'; label: string; category: string; amount_minor: number; source_ref: string }
+  | { kind: 'expense'; label: string; category: string; monthly_amount_minor: number; source_ref: string }
+  | {
+      kind: 'revenue';
+      label: string;
+      unit_price_minor: number;
+      unit_variable_cost_minor: number;
+      monthly_units: number;
+      monthly_growth_pct: number;
+      source_ref: string;
+    };
+
+export interface AcceptProposalPayload {
+  lines: AcceptProposalLine[];
+  /** null = leave the starting capital unchanged. */
+  startingCapitalMinor: number | null;
+  /** Item keys to mark as reviewed — only after the whole transaction committed. */
+  acceptedKeys: string[];
+}
+
+/**
+ * Everything the user accepted, as ONE `accept_finance_proposal` call: all lines and the starting
+ * capital are written in a single transaction (all-or-nothing), each line idempotent by source_ref.
+ * Values go through the same sanitising as single-line accepts (`proposalItemToDraft`).
+ */
+export function proposalAcceptPayload(items: readonly ProposalItem[], fallbackLabel: string): AcceptProposalPayload {
+  const lines: AcceptProposalLine[] = [];
+  const acceptedKeys: string[] = [];
+  let startingCapitalMinor: number | null = null;
+  for (const item of items) {
+    if (item.kind === 'capital') {
+      const capital = proposalCapitalMinor(item);
+      if (capital === null) continue;
+      startingCapitalMinor = capital;
+      acceptedKeys.push(item.key);
+      continue;
+    }
+    const draft = proposalItemToDraft(item, fallbackLabel);
+    if (!draft) continue;
+    const source_ref = draft.sourceRef ?? proposalSourceRef(item);
+    switch (draft.kind) {
+      case 'startup':
+        lines.push({ kind: 'startup', ...draftToRow(draft), source_ref });
+        break;
+      case 'expense':
+        lines.push({ kind: 'expense', ...draftToRow(draft), source_ref });
+        break;
+      case 'revenue':
+        lines.push({ kind: 'revenue', ...draftToRow(draft), source_ref });
+        break;
+    }
+    acceptedKeys.push(item.key);
+  }
+  return { lines: lines.map(stripBasis), startingCapitalMinor, acceptedKeys };
+}
+
+/** The RPC always stores `basis = 'ai_estimate'`; don't send a client-chosen basis. */
+function stripBasis(line: AcceptProposalLine): AcceptProposalLine {
+  const { basis: _basis, ...rest } = line as AcceptProposalLine & { basis?: unknown };
+  return rest as AcceptProposalLine;
+}
+
 /** Idempotency key stored in `source_ref` for a line accepted from a proposal (≤ 200 chars). */
 export function proposalSourceRef(item: ProposalItem): string {
   return `proposal:${item.key}`.slice(0, 200);

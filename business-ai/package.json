@@ -65,7 +65,9 @@
     "db:types": "supabase gen types typescript --local > supabase/functions/_shared/database.types.ts",
     "export:web": "expo export --platform web",
     "export:android": "expo export --platform android",
-    "verify": "npm run typecheck && npm run lint && npm test -- --ci && npm run check:functions && npm run test:functions"
+    "verify": "npm run typecheck && npm run lint && npm test -- --ci && npm run check:functions && npm run test:functions",
+    "verify:all": "bash scripts/verify-all.sh",
+    "test:race": "node e2e/race-checks.mjs"
   },
   "private": true,
   "jest": {

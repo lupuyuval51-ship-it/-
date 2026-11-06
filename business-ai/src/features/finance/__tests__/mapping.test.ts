@@ -34,6 +34,7 @@ import {
   pendingProposalItems,
   proposalCapitalMinor,
   proposalItemToDraft,
+  proposalAcceptPayload,
   proposalSourceRef,
   proposalItems,
   reformatMoneyText,
@@ -546,6 +547,38 @@ describe('AI proposals', () => {
       expect(proposalItemToDraft(again[i + 1]!, 'AI suggestion')?.sourceRef).toBe(ref);
     }
     expect(new Set([startup, expense, revenue].map((i) => proposalSourceRef(i!))).size).toBe(3);
+  });
+
+  it('builds ONE all-or-nothing accept payload for "Accept all" (lines + capital, no client basis)', () => {
+    const items = proposalItems(proposal);
+    const payload = proposalAcceptPayload(items, 'AI suggestion');
+    expect(payload.startingCapitalMinor).toBe(5_000_000);
+    expect(payload.lines.map((l) => l.kind)).toEqual(['startup', 'expense', 'revenue']);
+    expect(payload.acceptedKeys).toEqual(items.map((i) => i.key));
+    for (const line of payload.lines) {
+      expect(line.source_ref.startsWith('proposal:')).toBe(true);
+      expect('basis' in line).toBe(false); // the RPC always stores ai_estimate
+    }
+    expect(payload.lines[0]).toEqual({
+      kind: 'startup',
+      label: 'Espresso machine',
+      category: 'equipment',
+      amount_minor: 1_500_000,
+      source_ref: proposalSourceRef(items[1]!),
+    });
+    // Same proposal → same payload keys (retry-safe).
+    expect(proposalAcceptPayload(proposalItems(proposal), 'AI suggestion').lines.map((l) => l.source_ref)).toEqual(
+      payload.lines.map((l) => l.source_ref),
+    );
+  });
+
+  it('accepting only the capital item sends no lines', () => {
+    const [capital] = proposalItems(proposal);
+    expect(proposalAcceptPayload([capital!], 'AI suggestion')).toEqual({
+      lines: [],
+      startingCapitalMinor: 5_000_000,
+      acceptedKeys: [capital!.key],
+    });
   });
 
   it('hashes deterministically', () => {

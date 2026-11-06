@@ -481,7 +481,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "advisor_action_ids":
+            "accept_finance_proposal":
+{ Args: { "p_business_id": string,"p_lines": Json,"p_starting_capital_minor"?: number }; Returns: Json
+                           },
+"advisor_action_ids":
 { Args: { "p_actions": Json }; Returns: (string)[]
                            },
 "ai_usage_month_start":

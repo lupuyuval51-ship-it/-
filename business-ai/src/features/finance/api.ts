@@ -16,6 +16,7 @@ import { useLocale } from '@/i18n/I18nProvider';
 import { AppErrorException, toAppError, type AppError } from '@/lib/errors';
 import { invokeAi } from '@/lib/functions';
 import { qk } from '@/lib/queryKeys';
+import type { Json } from '@/lib/database';
 import { supabase } from '@/lib/supabase';
 import { unwrap } from '@/lib/supabaseResult';
 import {
@@ -32,8 +33,7 @@ import {
   parseFinanceProposal,
   parseMaxForecastMonths,
   pendingProposalItems,
-  proposalCapitalMinor,
-  proposalItemToDraft,
+  proposalAcceptPayload,
   toFinanceInputs,
   type FinanceLines,
   type FinancialModelPatch,
@@ -477,35 +477,29 @@ export function useActiveProposal(businessId: string | null | undefined): Active
 export function useAcceptProposalItems(businessId: string | null | undefined, fallbackLabel: string) {
   const queryClient = useQueryClient();
   const invalidate = useInvalidateFinance(businessId);
-  const cachedLines = useCachedLines(businessId);
   const markReviewed = useFinanceUiStore((s) => s.markReviewed);
-  const updateModel = useUpdateFinancialModel(businessId);
   return useMutation<number, AppError, readonly ProposalItem[]>({
     mutationFn: async (items) => {
       const bid = requireBusiness(businessId);
-      let applied = 0;
+      const payload = proposalAcceptPayload(items, fallbackLabel);
+      if (payload.lines.length === 0 && payload.startingCapitalMinor === null) return 0;
       try {
-        const lineItems = items.filter((i) => i.kind !== 'capital');
-        const drafts = lineItems.map((i) => proposalItemToDraft(i, fallbackLabel)).filter((d): d is LineDraft => d !== null);
-        if (drafts.length > 0) {
-          await insertLines(bid, drafts, cachedLines());
-          markReviewed(
-            bid,
-            lineItems.map((i) => i.key),
-          );
-          applied += drafts.length;
-        }
-        const capital = items.find((i) => i.kind === 'capital');
-        const capitalMinor = capital ? proposalCapitalMinor(capital) : null;
-        if (capital && capitalMinor !== null) {
-          await updateModel.mutateAsync({ startingCapitalMinor: capitalMinor });
-          markReviewed(bid, [capital.key]);
-          applied += 1;
-        }
-        return applied;
+        // ONE transaction: every accepted line and the starting capital are saved together, or
+        // nothing is (a failure part-way can no longer leave "Accept all" half applied). Lines are
+        // idempotent by source_ref, so retrying after an error or a lost response is safe.
+        unwrap(
+          await supabase.rpc('accept_finance_proposal', {
+            p_business_id: bid,
+            p_lines: payload.lines as unknown as Json,
+            ...(payload.startingCapitalMinor !== null ? { p_starting_capital_minor: payload.startingCapitalMinor } : {}),
+          }),
+        );
       } catch (e) {
         throw toAppError(e);
       }
+      // Only now, after the commit, hide these items from the review list on this device.
+      markReviewed(bid, payload.acceptedKeys);
+      return payload.acceptedKeys.length;
     },
     onSettled: () => {
       void invalidate();

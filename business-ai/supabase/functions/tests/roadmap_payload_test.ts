@@ -1,5 +1,6 @@
-import { assert, assertEquals, assertThrows } from '@std/assert';
-import { buildRoadmapPayload } from '../ai/actions.ts';
+import { assert, assertEquals, assertRejects, assertThrows } from '@std/assert';
+import { buildRoadmapPayload, persistRoadmap } from '../ai/actions.ts';
+import type { Db } from '../_shared/auth.ts';
 import { AiCallError } from '../_shared/ai/errors.ts';
 import type { AiRoadmap } from '../_shared/domain/plan.ts';
 
@@ -104,4 +105,36 @@ Deno.test('buildRoadmapPayload: a roadmap without any usable task is invalid out
   const input = roadmap();
   for (const p of input.phases) p.tasks = [];
   assertThrows(() => buildRoadmapPayload(input, STARTS), AiCallError);
+});
+
+/** A mock database that records every call (any method) without touching a real database. */
+function recordingDb() {
+  const calls: { method: string; args: unknown[] }[] = [];
+  const handler: ProxyHandler<Record<string, unknown>> = {
+    get: (_target, method: string) => (...args: unknown[]) => {
+      calls.push({ method, args });
+      return Promise.resolve({ data: { phases: 3, milestones: 1, tasks: 1 }, error: null });
+    },
+  };
+  return { db: new Proxy({}, handler) as unknown as Db, calls };
+}
+
+Deno.test('persistRoadmap: invalid AI output is rejected before ANY database call', async () => {
+  const input = roadmap();
+  for (const p of input.phases) p.tasks = [];
+  const { db, calls } = recordingDb();
+  await assertRejects(() => persistRoadmap(db, 'business-1', input, STARTS, 'create'), AiCallError);
+  assertEquals(calls.length, 0, 'no write (or read) was attempted');
+});
+
+Deno.test('persistRoadmap: a valid roadmap is written in exactly ONE transactional RPC', async () => {
+  const { db, calls } = recordingDb();
+  const counts = await persistRoadmap(db, 'business-1', roadmap(), STARTS, 'replace_ai_items');
+  assertEquals(calls.length, 1);
+  assertEquals(calls[0]!.method, 'rpc');
+  assertEquals(calls[0]!.args[0], 'persist_ai_roadmap');
+  const params = calls[0]!.args[1] as { p_business_id: string; p_mode: string };
+  assertEquals(params.p_business_id, 'business-1');
+  assertEquals(params.p_mode, 'replace_ai_items');
+  assertEquals(counts, { phases: 3, milestones: 1, tasks: 4 });
 });

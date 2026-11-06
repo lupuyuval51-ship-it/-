@@ -4,11 +4,11 @@
  * Order inside each action: validate preconditions (cheap reads through RLS) → reserve usage →
  * call the model → validate output → persist (only where the contract says so).
  */
-import type { AiProvider } from "../_shared/ai/provider.ts";
-import { generateStructured } from "../_shared/ai/structured.ts";
-import { AiCallError } from "../_shared/ai/errors.ts";
-import { ZERO_USAGE } from "../_shared/ai/pricing.ts";
-import type { AuthedUser, Db } from "../_shared/auth.ts";
+import type { AiProvider } from '../_shared/ai/provider.ts';
+import { generateStructured } from '../_shared/ai/structured.ts';
+import { AiCallError } from '../_shared/ai/errors.ts';
+import { ZERO_USAGE } from '../_shared/ai/pricing.ts';
+import type { AuthedUser, Db } from '../_shared/auth.ts';
 import {
   businessIdeaAnswer,
   type BusinessInfo,
@@ -17,18 +17,10 @@ import {
   loadBusinessContext,
   loadOnboarding,
   renderBusinessContext,
-} from "../_shared/context.ts";
-import type {
-  AiRequest,
-  AiResponseMap,
-  Locale,
-} from "../_shared/domain/ai-api.ts";
-import type { TierLimits } from "../_shared/domain/entitlements.ts";
-import {
-  AiMarketingContentSchema,
-  type MarketingAsset,
-  type MarketingKind,
-} from "../_shared/domain/marketing.ts";
+} from '../_shared/context.ts';
+import type { AiRequest, AiResponseMap, Locale } from '../_shared/domain/ai-api.ts';
+import type { TierLimits } from '../_shared/domain/entitlements.ts';
+import { AiMarketingContentSchema, type MarketingAsset, type MarketingKind } from '../_shared/domain/marketing.ts';
 import {
   AiFinanceProposalSchema,
   AiPlanSectionSchema,
@@ -37,13 +29,8 @@ import {
   PLAN_GENERATION_GROUPS,
   type PlanSectionContent,
   type PlanSectionKey,
-} from "../_shared/domain/plan.ts";
-import {
-  AppError,
-  fromPostgrestError,
-  logError,
-  toAppError,
-} from "../_shared/errors.ts";
+} from '../_shared/domain/plan.ts';
+import { AppError, fromPostgrestError, logError, toAppError } from '../_shared/errors.ts';
 import {
   addDaysIso,
   AiRoadmapSuggestionsSchema,
@@ -54,36 +41,24 @@ import {
   toMarketingContent,
   toPlanSectionContent,
   toRoadmapSuggestions,
-} from "../_shared/outputs.ts";
-import { financeProposalPrompt } from "../_shared/prompts/finance.ts";
-import { marketingPrompt } from "../_shared/prompts/marketing.ts";
-import {
-  planGroupPrompt,
-  sectionRegenerationPrompt,
-} from "../_shared/prompts/plan.ts";
-import {
-  roadmapPrompt,
-  roadmapRecommendationPrompt,
-} from "../_shared/prompts/roadmap.ts";
-import { todayUtc, toJson, type WaitUntil } from "../_shared/runtime.ts";
-import {
-  finalizeUsage,
-  reserveUsage,
-  runMetered,
-  runReserved,
-  type UsageScope,
-} from "../_shared/usage.ts";
-import type { AiFeature } from "../_shared/domain/entitlements.ts";
+} from '../_shared/outputs.ts';
+import { financeProposalPrompt } from '../_shared/prompts/finance.ts';
+import { marketingPrompt } from '../_shared/prompts/marketing.ts';
+import { planGroupPrompt, sectionRegenerationPrompt } from '../_shared/prompts/plan.ts';
+import { roadmapPrompt, roadmapRecommendationPrompt } from '../_shared/prompts/roadmap.ts';
+import { todayUtc, toJson, type WaitUntil } from '../_shared/runtime.ts';
+import { finalizeUsage, reserveUsage, runMetered, runReserved, type UsageScope } from '../_shared/usage.ts';
+import type { AiFeature } from '../_shared/domain/entitlements.ts';
 
 /** Output budgets per call. Thinking tokens count towards max_tokens on always-thinking models. */
 export const AI_BUDGETS = Object.freeze(
   {
-    planGroup: { effort: "medium", maxTokens: 32_000 },
-    financeProposal: { effort: "medium", maxTokens: 16_000 },
-    sectionRegeneration: { effort: "medium", maxTokens: 16_000 },
-    roadmap: { effort: "medium", maxTokens: 32_000 },
-    roadmapRecommendation: { effort: "medium", maxTokens: 16_000 },
-    marketing: { effort: "low", maxTokens: 16_000 },
+    planGroup: { effort: 'medium', maxTokens: 32_000 },
+    financeProposal: { effort: 'medium', maxTokens: 16_000 },
+    sectionRegeneration: { effort: 'medium', maxTokens: 16_000 },
+    roadmap: { effort: 'medium', maxTokens: 32_000 },
+    roadmapRecommendation: { effort: 'medium', maxTokens: 16_000 },
+    marketing: { effort: 'low', maxTokens: 16_000 },
   } as const,
 );
 
@@ -100,7 +75,7 @@ export interface ActionContext {
   newId: IdFactory;
 }
 
-export type ActionResult<A extends AiRequest["action"]> = {
+export type ActionResult<A extends AiRequest['action']> = {
   status: number;
   body: AiResponseMap[A];
 };
@@ -126,53 +101,53 @@ function usageScope(
 
 export async function planGenerate(
   a: ActionContext,
-  req: Extract<AiRequest, { action: "plan.generate" }>,
-): Promise<ActionResult<"plan.generate">> {
+  req: Extract<AiRequest, { action: 'plan.generate' }>,
+): Promise<ActionResult<'plan.generate'>> {
   const business = await loadBusiness(a.db, req.businessId);
   const onboarding = await loadOnboarding(a.db, business.id);
   if (!businessIdeaAnswer(onboarding)) {
     throw new AppError(
-      "precondition_failed",
-      "Answer the business idea question before generating a plan.",
+      'precondition_failed',
+      'Answer the business idea question before generating a plan.',
       {
-        details: { missing: "business_idea" },
+        details: { missing: 'business_idea' },
       },
     );
   }
 
-  const plan = await a.db.rpc("ensure_business_plan", {
+  const plan = await a.db.rpc('ensure_business_plan', {
     p_business_id: business.id,
   });
   if (plan.error) {
-    throw fromPostgrestError(plan.error, "rpc:ensure_business_plan");
+    throw fromPostgrestError(plan.error, 'rpc:ensure_business_plan');
   }
   const planId = plan.data.id;
   await guardConcurrentGeneration(a, planId);
 
   // One plan_generation reservation covers every model call of this plan.
   const reservationId = await reserveUsage(
-    usageScope(a, business.id, "plan_generation"),
+    usageScope(a, business.id, 'plan_generation'),
   );
   let versionId: string;
   try {
     const version = await a.db
-      .from("plan_versions")
+      .from('plan_versions')
       .insert({
         plan_id: planId,
-        origin: "ai_generated",
+        origin: 'ai_generated',
         model: a.provider.model.slice(0, 100),
       })
-      .select("id")
+      .select('id')
       .single();
     if (version.error) {
-      throw fromPostgrestError(version.error, "plan_versions.insert");
+      throw fromPostgrestError(version.error, 'plan_versions.insert');
     }
     versionId = version.data.id;
   } catch (err) {
     await finalizeUsage(
       a.svc,
       reservationId,
-      "error",
+      'error',
       { ...ZERO_USAGE },
       toAppError(err).code,
     );
@@ -185,12 +160,12 @@ export async function planGenerate(
     versionId,
     reservationId,
     locale: req.locale,
-  }).catch((err) => logError("plan.generate.background", err));
+  }).catch((err) => logError('plan.generate.background', err));
   const pending = a.waitUntil(task);
   if (pending) await pending;
   return {
     status: 202,
-    body: { planVersionId: versionId, status: "generating" },
+    body: { planVersionId: versionId, status: 'generating' },
   };
 }
 
@@ -208,28 +183,28 @@ async function guardConcurrentGeneration(
   const cutoff = new Date(a.now().getTime() - STALE_GENERATION_MS)
     .toISOString();
   const stale = await a.db
-    .from("plan_versions")
-    .update({ status: "failed", error_code: "ai_unavailable" })
-    .eq("plan_id", planId)
-    .eq("status", "generating")
-    .lt("created_at", cutoff);
+    .from('plan_versions')
+    .update({ status: 'failed', error_code: 'ai_unavailable' })
+    .eq('plan_id', planId)
+    .eq('status', 'generating')
+    .lt('created_at', cutoff);
   if (stale.error) {
-    throw fromPostgrestError(stale.error, "plan_versions.fail_stale");
+    throw fromPostgrestError(stale.error, 'plan_versions.fail_stale');
   }
   const running = await a.db
-    .from("plan_versions")
-    .select("id", { count: "exact", head: true })
-    .eq("plan_id", planId)
-    .eq("status", "generating");
+    .from('plan_versions')
+    .select('id', { count: 'exact', head: true })
+    .eq('plan_id', planId)
+    .eq('status', 'generating');
   if (running.error) {
-    throw fromPostgrestError(running.error, "plan_versions.count_generating");
+    throw fromPostgrestError(running.error, 'plan_versions.count_generating');
   }
   if ((running.count ?? 0) > 0) {
     throw new AppError(
-      "conflict",
-      "A plan is already being generated for this business.",
+      'conflict',
+      'A plan is already being generated for this business.',
       {
-        details: { state: "generating" },
+        details: { state: 'generating' },
       },
     );
   }
@@ -291,7 +266,7 @@ export async function runPlanGeneration(
         .then((r) => toFinanceProposal(r.data, a.newId))
         .catch((err: unknown) => {
           if (!controller.signal.aborted) {
-            logError("plan.generate.finance_proposal", err);
+            logError('plan.generate.finance_proposal', err);
           }
           return null;
         });
@@ -299,16 +274,16 @@ export async function runPlanGeneration(
       const settled = await Promise.allSettled(groupCalls);
       const proposal = await financeCall;
       // Report the root cause, not the cancellation of a sibling call.
-      if (settled.some((s) => s.status === "rejected")) throw firstError;
+      if (settled.some((s) => s.status === 'rejected')) throw firstError;
 
       const rows: {
         plan_version_id: string;
         section_key: PlanSectionKey;
         content: PlanSectionContent;
-        origin: "ai";
+        origin: 'ai';
       }[] = [];
       settled.forEach((s, gi) => {
-        if (s.status !== "fulfilled") return;
+        if (s.status !== 'fulfilled') return;
         const keys = PLAN_GENERATION_GROUPS[gi] ?? [];
         const sections = s.value.data.sections as Record<
           string,
@@ -317,7 +292,7 @@ export async function runPlanGeneration(
         for (const key of keys) {
           const section = sections[key];
           if (!section) {
-            throw new AiCallError("ai_invalid_output", undefined, {
+            throw new AiCallError('ai_invalid_output', undefined, {
               details: { op: `plan:missing:${key}` },
             });
           }
@@ -325,70 +300,70 @@ export async function runPlanGeneration(
             plan_version_id: job.versionId,
             section_key: key,
             content: toPlanSectionContent(section),
-            origin: "ai",
+            origin: 'ai',
           });
         }
       });
 
       const ins = await a.db
-        .from("plan_sections")
+        .from('plan_sections')
         .upsert(rows.map((r) => ({ ...r, content: toJson(r.content) })), {
-          onConflict: "plan_version_id,section_key",
+          onConflict: 'plan_version_id,section_key',
         });
       if (ins.error) {
-        throw fromPostgrestError(ins.error, "plan_sections.upsert");
+        throw fromPostgrestError(ins.error, 'plan_sections.upsert');
       }
 
       const ready = await a.db
-        .from("plan_versions")
+        .from('plan_versions')
         .update({
-          status: "ready",
+          status: 'ready',
           finance_proposal: proposal ? toJson(proposal) : null,
         })
-        .eq("id", job.versionId);
+        .eq('id', job.versionId);
       if (ready.error) {
-        throw fromPostgrestError(ready.error, "plan_versions.ready");
+        throw fromPostgrestError(ready.error, 'plan_versions.ready');
       }
 
-      const cur = await a.db.from("business_plans").update({
+      const cur = await a.db.from('business_plans').update({
         current_version_id: job.versionId,
-      }).eq("id", job.planId);
+      }).eq('id', job.planId);
       if (cur.error) {
         throw fromPostgrestError(
           cur.error,
-          "business_plans.current_version_id",
+          'business_plans.current_version_id',
         );
       }
     });
   } catch (err) {
     const code = toAppError(err).code;
-    logError("plan.generate", err);
-    const failed = await a.db.from("plan_versions").update({
-      status: "failed",
+    logError('plan.generate', err);
+    const failed = await a.db.from('plan_versions').update({
+      status: 'failed',
       error_code: code,
     }).eq(
-      "id",
+      'id',
       job.versionId,
     );
     if (failed.error) {
       logError(
-        "plan.generate.mark_failed",
-        fromPostgrestError(failed.error, "plan_versions.failed"),
+        'plan.generate.mark_failed',
+        fromPostgrestError(failed.error, 'plan_versions.failed'),
       );
     }
     return;
   }
 
-  if (job.business.stage === "idea") {
-    const stage = await a.db.from("businesses").update({ stage: "planning" })
-      .eq("id", job.business.id).eq(
-        "stage",
-        "idea",
+  if (job.business.stage === 'idea') {
+    const stage = await a.db.from('businesses').update({ stage: 'planning' })
+      .eq('id', job.business.id).eq(
+        'stage',
+        'idea',
       );
     if (stage.error) {
       logError(
-        "plan.generate.stage",
-        fromPostgrestError(stage.error, "businesses.stage"),
+        'plan.generate.stage',
+        fromPostgrestError(stage.error, 'businesses.stage'),
       );
     }
   }
@@ -396,10 +371,10 @@ export async function runPlanGeneration(
   // First roadmap after the first plan. Failures here never affect the plan.
   try {
     if ((await countAiTasks(a.db, job.business.id)) === 0) {
-      await generateRoadmap(a, job.business, job.locale, "create");
+      await generateRoadmap(a, job.business, job.locale, 'create');
     }
   } catch (err) {
-    logError("plan.generate.roadmap", err);
+    logError('plan.generate.roadmap', err);
   }
 }
 
@@ -409,21 +384,21 @@ export async function runPlanGeneration(
 
 export async function planRegenerateSection(
   a: ActionContext,
-  req: Extract<AiRequest, { action: "plan.regenerateSection" }>,
-): Promise<ActionResult<"plan.regenerateSection">> {
+  req: Extract<AiRequest, { action: 'plan.regenerateSection' }>,
+): Promise<ActionResult<'plan.regenerateSection'>> {
   const ctx = await loadBusinessContext(a.db, req.businessId, {
     plan: true,
     finance: true,
   });
   if (!ctx.plan) {
     throw new AppError(
-      "precondition_failed",
-      "Generate a business plan first.",
-      { details: { missing: "plan" } },
+      'precondition_failed',
+      'Generate a business plan first.',
+      { details: { missing: 'plan' } },
     );
   }
   const content = await runMetered(
-    usageScope(a, ctx.business.id, "section_regeneration"),
+    usageScope(a, ctx.business.id, 'section_regeneration'),
     async (meter) => {
       const contextText = renderBusinessContext(ctx, {
         focusSection: req.sectionKey,
@@ -453,8 +428,8 @@ export async function planRegenerateSection(
 
 export async function roadmapGenerate(
   a: ActionContext,
-  req: Extract<AiRequest, { action: "roadmap.generate" }>,
-): Promise<ActionResult<"roadmap.generate">> {
+  req: Extract<AiRequest, { action: 'roadmap.generate' }>,
+): Promise<ActionResult<'roadmap.generate'>> {
   const business = await loadBusiness(a.db, req.businessId);
   const counts = await generateRoadmap(a, business, req.locale, req.mode);
   return { status: 200, body: counts };
@@ -464,12 +439,12 @@ export async function generateRoadmap(
   a: ActionContext,
   business: BusinessInfo,
   locale: Locale,
-  mode: "create" | "replace_ai_items",
+  mode: 'create' | 'replace_ai_items',
 ): Promise<{ phases: number; milestones: number; tasks: number }> {
-  if (mode === "create" && (await countAiTasks(a.db, business.id)) > 0) {
+  if (mode === 'create' && (await countAiTasks(a.db, business.id)) > 0) {
     throw new AppError(
-      "conflict",
-      "An AI roadmap already exists. Use replace mode to regenerate it.",
+      'conflict',
+      'An AI roadmap already exists. Use replace mode to regenerate it.',
     );
   }
   const ctx = await loadBusinessContext(a.db, business.id, {
@@ -480,14 +455,14 @@ export async function generateRoadmap(
   });
   if (!ctx.plan) {
     throw new AppError(
-      "precondition_failed",
-      "Generate a business plan first.",
-      { details: { missing: "plan" } },
+      'precondition_failed',
+      'Generate a business plan first.',
+      { details: { missing: 'plan' } },
     );
   }
 
   return await runMetered(
-    usageScope(a, business.id, "roadmap_generation"),
+    usageScope(a, business.id, 'roadmap_generation'),
     async (meter) => {
       const startsOn = todayUtc(a.now());
       const res = await meter.track(() =>
@@ -537,7 +512,7 @@ export function buildRoadmapPayload(
   roadmap: AiRoadmap,
   startsOn: string,
 ): RoadmapPayload {
-  const milestones: RoadmapPayload["milestones"] = [];
+  const milestones: RoadmapPayload['milestones'] = [];
   roadmap.phases.forEach((p, pi) => {
     p.milestones.forEach((m, mi) => {
       const title = nonBlank(m.title, 200);
@@ -553,24 +528,20 @@ export function buildRoadmapPayload(
   });
   const milestoneKeys = new Set(milestones.map((m) => m.key));
 
-  const tasks: RoadmapPayload["tasks"] = [];
+  const tasks: RoadmapPayload['tasks'] = [];
   const depsByRef = new Map<string, string[]>();
   roadmap.phases.forEach((p, pi) => {
     for (const t of p.tasks) {
       const title = nonBlank(t.title, 200);
       if (!title) continue;
       const ref = t.ref.trim();
-      const isFirstRef = ref !== "" && !depsByRef.has(ref);
+      const isFirstRef = ref !== '' && !depsByRef.has(ref);
       if (isFirstRef) depsByRef.set(ref, t.depends_on.map((d) => d.trim()));
-      const milestoneKey = t.milestone_index === null
-        ? null
-        : `${pi}:${t.milestone_index}`;
+      const milestoneKey = t.milestone_index === null ? null : `${pi}:${t.milestone_index}`;
       tasks.push({
         ref: isFirstRef ? ref : null,
         phase: p.phase,
-        milestone_key: milestoneKey && milestoneKeys.has(milestoneKey)
-          ? milestoneKey
-          : null,
+        milestone_key: milestoneKey && milestoneKeys.has(milestoneKey) ? milestoneKey : null,
         title,
         description: nonBlank(t.description, 2000),
         priority: t.priority,
@@ -580,13 +551,13 @@ export function buildRoadmapPayload(
     }
   });
   if (tasks.length === 0) {
-    throw new AiCallError("ai_invalid_output", undefined, {
-      details: { op: "roadmap:no_tasks" },
+    throw new AiCallError('ai_invalid_output', undefined, {
+      details: { op: 'roadmap:no_tasks' },
     });
   }
 
   const graph = new Map<string, Set<string>>();
-  const dependencies: RoadmapPayload["dependencies"] = [];
+  const dependencies: RoadmapPayload['dependencies'] = [];
   for (const [ref, dependsOn] of depsByRef) {
     for (const dep of dependsOn) {
       if (!depsByRef.has(dep) || dep === ref) continue;
@@ -638,15 +609,15 @@ export async function persistRoadmap(
   businessId: string,
   roadmap: AiRoadmap,
   startsOn: string,
-  mode: "create" | "replace_ai_items" = "create",
+  mode: 'create' | 'replace_ai_items' = 'create',
 ): Promise<{ phases: number; milestones: number; tasks: number }> {
   const payload = buildRoadmapPayload(roadmap, startsOn);
-  const res = await db.rpc("persist_ai_roadmap", {
+  const res = await db.rpc('persist_ai_roadmap', {
     p_business_id: businessId,
     p_mode: mode,
     p_payload: toJson(payload),
   });
-  if (res.error) throw fromPostgrestError(res.error, "rpc:persist_ai_roadmap");
+  if (res.error) throw fromPostgrestError(res.error, 'rpc:persist_ai_roadmap');
   return {
     phases: payload.phases.length,
     milestones: payload.milestones.length,
@@ -660,8 +631,8 @@ export async function persistRoadmap(
 
 export async function roadmapRecommend(
   a: ActionContext,
-  req: Extract<AiRequest, { action: "roadmap.recommend" }>,
-): Promise<ActionResult<"roadmap.recommend">> {
+  req: Extract<AiRequest, { action: 'roadmap.recommend' }>,
+): Promise<ActionResult<'roadmap.recommend'>> {
   const now = a.now();
   const ctx = await loadBusinessContext(a.db, req.businessId, {
     plan: true,
@@ -672,7 +643,7 @@ export async function roadmapRecommend(
     now,
   });
   const suggestions = await runMetered(
-    usageScope(a, ctx.business.id, "roadmap_recommendation"),
+    usageScope(a, ctx.business.id, 'roadmap_recommendation'),
     async (meter) => {
       const res = await meter.track(() =>
         generateStructured(a.provider, {
@@ -688,8 +659,8 @@ export async function roadmapRecommend(
       );
       const list = toRoadmapSuggestions(res.data, a.newId);
       if (list.length === 0) {
-        throw new AiCallError("ai_invalid_output", undefined, {
-          details: { op: "roadmap:suggestions" },
+        throw new AiCallError('ai_invalid_output', undefined, {
+          details: { op: 'roadmap:suggestions' },
         });
       }
       return list;
@@ -704,11 +675,11 @@ export async function roadmapRecommend(
 
 export async function marketingGenerate(
   a: ActionContext,
-  req: Extract<AiRequest, { action: "marketing.generate" }>,
-): Promise<ActionResult<"marketing.generate">> {
+  req: Extract<AiRequest, { action: 'marketing.generate' }>,
+): Promise<ActionResult<'marketing.generate'>> {
   const ctx = await loadBusinessContext(a.db, req.businessId, { plan: true });
   const asset = await runMetered(
-    usageScope(a, ctx.business.id, "marketing_generation"),
+    usageScope(a, ctx.business.id, 'marketing_generation'),
     async (meter) => {
       const res = await meter.track(() =>
         generateStructured(a.provider, {
@@ -728,22 +699,22 @@ export async function marketingGenerate(
         req.locale,
       );
       const ins = await a.db
-        .from("marketing_assets")
+        .from('marketing_assets')
         .insert({
           business_id: ctx.business.id,
           kind: req.kind,
           title,
           content: toJson(content),
-          origin: "ai",
+          origin: 'ai',
         })
         .select(
-          "id,business_id,kind,title,content,origin,created_at,updated_at",
+          'id,business_id,kind,title,content,origin,created_at,updated_at',
         )
         .single();
       if (ins.error) {
         throw fromPostgrestError(
           ins.error,
-          "marketing_assets.insert",
+          'marketing_assets.insert',
         );
       }
       const row = ins.data;
@@ -753,7 +724,7 @@ export async function marketingGenerate(
         kind: row.kind as MarketingKind,
         title: row.title,
         content,
-        origin: "ai",
+        origin: 'ai',
         created_at: row.created_at,
         updated_at: row.updated_at,
       };
@@ -769,14 +740,14 @@ export async function marketingGenerate(
 
 export async function financePropose(
   a: ActionContext,
-  req: Extract<AiRequest, { action: "finance.propose" }>,
-): Promise<ActionResult<"finance.propose">> {
+  req: Extract<AiRequest, { action: 'finance.propose' }>,
+): Promise<ActionResult<'finance.propose'>> {
   const ctx = await loadBusinessContext(a.db, req.businessId, {
     plan: true,
     finance: true,
   });
   const proposal = await runMetered(
-    usageScope(a, ctx.business.id, "finance_proposal"),
+    usageScope(a, ctx.business.id, 'finance_proposal'),
     async (meter) => {
       const res = await meter.track(() =>
         generateStructured(a.provider, {

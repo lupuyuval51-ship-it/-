@@ -118,6 +118,9 @@ with the same `with check`.
 - `apply_advisor_action(p_message_id uuid, p_action_id text, p_today date default null) returns jsonb` — applies one advisor
   proposal **atomically and exactly once**: the row (built from the stored proposal) and the `applied_action_ids` marker are
   written in the same transaction under a row lock; repeats return `already_applied`.
+- `accept_finance_proposal(p_business_id uuid, p_lines jsonb, p_starting_capital_minor bigint default null) returns jsonb` —
+  "Accept all" for an AI finance proposal: every accepted line and the starting capital in one transaction (all-or-nothing),
+  each line idempotent by `source_ref`.
 - `set_task_dependencies(p_task_id uuid, p_depends_on uuid[])` — replaces a task's dependency set in one transaction.
 - `persist_ai_roadmap(p_business_id uuid, p_mode text, p_payload jsonb) returns jsonb` — the `ai` function writes a generated
   roadmap in one transaction (all or nothing; create-mode conflict check inside the transaction).
