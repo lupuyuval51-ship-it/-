@@ -48,19 +48,19 @@ export const ideas: Idea[] = [
       },
       coreFeatures: {
         he: [
-          'לכידה ששואלת תמיד "על איזו שאלה זה עונה?" עם הצעות חכמות',
+          'לכידה ששואלת תמיד "על איזו שאלה זה עונה?" ומציעה שאלות שעסקתם בהן לאחרונה והתאמות לפי מילות מפתח',
           'מסך בית של שאלות פתוחות, מדורג לפי גיל וכמות ראיות',
           'סגירת שאלה בתשובה של שורה אחת שהופכת ל-Lemma שאפשר לצטט',
-          'סימון סתירה: פתק שסותר Lemma פותח את השאלה מחדש',
-          'סקירה שבועית של Lemmas ישנות מסף גיל שבוחרים',
+          'סימון סתירה: מסמנים פתק כסותר Lemma קיימת, והשאלה נפתחת מחדש',
+          'סקירה שבועית של Lemmas שעברו סף גיל שאתם קובעים',
           'עץ שאלות: תת-שאלות מתגלגלות לשאלת האם',
           'חיפוש טקסט מלא בשאלות, בפתקים וב-Lemmas',
         ],
         en: [
-          'Capture that always asks "which question does this answer?" with smart suggestions',
+          'Capture that always asks "which question does this answer?", suggesting recently used questions and keyword matches',
           'Open-questions home ranked by age and evidence count',
           'Close a question with a one-line answer that becomes a citable lemma',
-          'Contradiction flag: a note that disagrees with a lemma reopens the question',
+          'Contradiction flag: mark a note as disagreeing with an existing lemma and its question reopens',
           'Weekly review of stale lemmas older than a chosen threshold',
           'Question tree: sub-questions roll up into the parent',
           'Full-text search across questions, notes and lemmas',
@@ -80,23 +80,23 @@ export const ideas: Idea[] = [
           'במשך שבועיים היא מתייקת תחתיה שבעה פתקים מראיונות ומאנליטיקס',
           'השאלה מטפסת לראש מסך הבית ככל שהראיות מצטברות',
           'היא סוגרת אותה בתשובה של שורה אחת, שהופכת ל-Lemma ששאלת התמחור שלה יכולה לצטט',
-          'חודש אחר כך פתק מראיון חדש סותר את ה-Lemma והשאלה נפתחת מחדש',
+          'חודש אחר כך היא מסמנת פתק מראיון חדש כסותר את ה-Lemma, והשאלה נפתחת מחדש',
         ],
         en: [
           'A product manager opens the app with the question "why do trial users drop off on day three?"',
           'Over two weeks she files seven notes from interviews and analytics under it',
           'The question climbs to the top of the home screen as evidence accumulates',
           'She closes it with a one-line answer, which becomes a lemma her pricing question can cite',
-          'A month later a new interview note contradicts the lemma and the question reopens',
+          'A month later she flags a new interview note as contradicting the lemma, and the question reopens',
         ],
       },
       uxDirection: {
-        he: 'עריכתי וממוקד טקסט: רקע שמנת חמים, סריף לשאלות וסאנס אנושי לפתקים, ריווח שורות נדיב. לכל שאלה פתוחה פס גיל דק שמתכהה עם הזמן. בלי תצוגות גרף ובלי אימוג׳ים – הממשק צריך להרגיש כמו יומן מחקר מסודר.',
+        he: 'עריכתי וממוקד טקסט: רקע שמנת חמים, סריף לשאלות וסאנס-סריף הומניסטי לפתקים, ריווח שורות נדיב. לכל שאלה פתוחה פס גיל דק שמתכהה עם הזמן. בלי תצוגות גרף ובלי אימוג׳ים – הממשק צריך להרגיש כמו יומן מחקר מסודר.',
         en: 'Editorial and text-first: a warm off-white canvas, a serif for questions and a humanist sans for notes, generous line height. Open questions carry a thin age bar that darkens over time. No graph views and no emojis – the interface should feel like a well-kept research journal.',
       },
       architecture: {
-        he: 'Expo עם Expo Router למובייל וגרסת ווב מאותו קוד. אחסון local-first ב-expo-sqlite כדי שהלכידה לעולם לא תחכה לרשת, עם Supabase (Postgres + Auth) כיעד סנכרון ומיזוג last-write-wins פשוט לכל שורה. חיפוש טקסט מלא רץ מקומית על SQLite. הדירוג וזיהוי ההתיישנות הם פונקציות טהורות על נתונים מקומיים, כך שהאפליקציה עובדת לגמרי אופליין.',
-        en: 'Expo with Expo Router for mobile and a web build from the same codebase. Local-first storage in expo-sqlite so capture never waits on the network, with Supabase (Postgres + Auth) as the sync target and a simple last-write-wins merge per row. Full-text search runs locally over SQLite. Ranking and stale detection are pure functions over local data, so the app works fully offline.',
+        he: 'Expo עם Expo Router למובייל וגרסת ווב מאותו קוד. אחסון local-first ב-expo-sqlite כדי שהלכידה לעולם לא תחכה לרשת, עם Supabase (Postgres + Auth) כיעד סנכרון ומיזוג last-write-wins פשוט לכל שורה. חיפוש טקסט מלא רץ מקומית על SQLite. הדירוג, זיהוי ההתיישנות והצעת השאלות (שאלות שעסקתם בהן לאחרונה פלוס חפיפת מילות מפתח) הם פונקציות טהורות על נתונים מקומיים, בלי מודל שפה, כך שהאפליקציה עובדת לגמרי אופליין.',
+        en: 'Expo with Expo Router for mobile and a web build from the same codebase. Local-first storage in expo-sqlite so capture never waits on the network, with Supabase (Postgres + Auth) as the sync target and a simple last-write-wins merge per row. Full-text search runs locally over SQLite. Ranking, stale detection and question suggestions (recently used questions plus keyword overlap) are pure functions over local data, with no language model, so the app works fully offline.',
       },
       stack: ['Expo', 'Expo Router', 'expo-sqlite', 'Supabase', 'Supabase Auth', 'Zustand'],
       database: {
@@ -127,7 +127,7 @@ export const ideas: Idea[] = [
   },
   {
     id: 'leftoff',
-    name: { he: 'Leftoff – להמשיך מאיפה שעצרת', en: 'Leftoff' },
+    name: { he: 'Leftoff – להמשיך מאיפה שעצרתם', en: 'Leftoff' },
     tagline: {
       he: 'שומרים את נקודת העצירה בלחיצה אחת לפני ההפרעה, וחוזרים לעבודה תוך שניות – עם מפה שבועית של מי ומה מוציא אתכם מהריכוז.',
       en: 'Park what you were doing in one tap before an interruption, and get back into it in seconds – with a weekly map of who and what keeps pulling you out.',
@@ -135,7 +135,7 @@ export const ideas: Idea[] = [
     category: 'productivity',
     secondaryCategories: ['devtools', 'business'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 3, weeksMax: 5 },
+    effort: { weeksMin: 5, weeksMax: 8 },
     budget: 'free',
     businessModel: 'one-time',
     platforms: ['ios', 'android'],
@@ -145,7 +145,7 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'medium', experimental: false, trending: true, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'Leftoff מתייחסת להפרעה – לא למשימה – כיחידת העבודה. כשעמית מגיע לשולחן, פגישה מתחילה או הילד קורא, לוחצים על כפתור אחד ומקלידים שורה אחת: מה עשיתם ומה הצעד הבא ממש. השורה נדחפת לערימה. כשחוזרים, הערימה מציגה בדיוק את המשפט שצריך כדי להמשיך, והאפליקציה מודדת בשקט כמה זמן נעדרתם וכמה זמן לקח לכם באמת לחזור לעבודה. במהלך שבוע המדידות האלה הופכות למפת הפרעות: אילו שעות, אילו אנשים ואילו סוגי עבודה מתפצלים הכי הרבה. במקום לנדנד לכם להתרכז, היא נותנת לכם את הראיות שצריך כדי לנהל מחדש את היום – להזיז פגישה קבועה, לרכז את הסלאק, או להגן על השעה שתמיד הולכת לאיבוד.',
+        he: 'Leftoff מתייחסת להפרעה – לא למשימה – כיחידת העבודה. כשעמית מגיע לשולחן, פגישה מתחילה או הילד קורא, לוחצים על כפתור אחד ומקלידים שורה אחת: מה עשיתם ומה הצעד הבא ממש. השורה נדחפת לערימה. כשחוזרים, הערימה מציגה בדיוק את המשפט שצריך כדי להמשיך, והאפליקציה מודדת בשקט כמה זמן נעדרתם וכמה זמן לקח לכם באמת לחזור לעבודה. במהלך שבוע המדידות האלה הופכות למפת הפרעות: אילו שעות, אילו אנשים ואילו סוגי עבודה מתפצלים הכי הרבה. במקום לנדנד לכם להתרכז, היא נותנת לכם את הראיות שצריך כדי לנהל מחדש את היום – להזיז פגישה קבועה, לרכז את הודעות הסלאק, או להגן על השעה שתמיד הולכת לאיבוד.',
         en: 'Leftoff treats the interruption, not the task, as the unit of work. When a colleague taps you on the shoulder, a meeting starts or a child calls, you hit one button and type a single line: what you were doing and the very next step. That line is pushed onto a stack. When you come back, the stack shows the exact sentence you need to resume, and the app quietly measures how long you were away and how long it took you to actually pick the work back up. Over a week those measurements become an interruption map: which hours, which people and which kinds of work get fragmented most. Instead of nagging you to focus, it hands you the evidence you need to renegotiate your day – move a recurring meeting, batch Slack, or protect the one hour that is always lost.',
       },
       problem: {
@@ -153,12 +153,12 @@ export const ideas: Idea[] = [
         en: 'Knowledge workers lose time not only to the interruption itself but to re-entry: after a five-minute question, finding your place again, reopening the right files and rebuilding the mental model can take longer than the question did. Focus timers assume you control your calendar; most people do not. And nobody has data on what actually fragments their day, so nothing changes.',
       },
       solution: {
-        he: 'כפתור "עצירה" אחד שלוכד מה עשיתם ומה הצעד הבא, ערימת חזרה שמציבה את המשפט הזה מולכם כשאתם חוזרים, ומדידה פסיבית של זמן ההיעדרות וזמן החזרה לעבודה. מפת ההפרעות השבועית מקבצת הפרעות לפי שעה, מקור וסוג עבודה, עם רשימה קצרה של שינויים קונקרטיים לנסות. אינטגרציה ליומן יכולה לעצור אוטומטית כשפגישה מתחילה.',
-        en: 'A one-tap "park" that captures what you were doing and the next step, a resume stack that puts that sentence in front of you when you return, and passive measurement of time away and re-entry time. The weekly interruption map groups interruptions by hour, source and type of work, with a short list of concrete changes to try. Calendar integration can auto-park when a meeting starts.',
+        he: 'כפתור "עצירה" אחד שלוכד מה עשיתם ומה הצעד הבא, ערימת חזרה שמציבה את המשפט הזה מולכם כשאתם חוזרים, ומדידה פסיבית של זמן ההיעדרות וזמן החזרה לעבודה. מפת ההפרעות השבועית מקבצת הפרעות לפי שעה, מקור וסוג עבודה, עם רשימה קצרה של שינויים קונקרטיים לנסות. חיבור ליומן יכול להציע עצירה בלחיצה אחת כשפגישה מתחילה.',
+        en: 'A one-tap "park" that captures what you were doing and the next step, a resume stack that puts that sentence in front of you when you return, and passive measurement of time away and re-entry time. The weekly interruption map groups interruptions by hour, source and type of work, with a short list of concrete changes to try. Calendar integration can prompt a one-tap park when a meeting starts.',
       },
       usp: {
-        he: 'לא טיימר ריכוז ולא חוסם אפליקציות: Leftoff היא הכלי היחיד שהאובייקט המרכזי שלו הוא ההפרעה, ולכן היא עובדת גם בימים שלא אתם שולטים בהם – ונותנת ראיות במקום רגשות אשם.',
-        en: 'Not a focus timer and not a blocker: Leftoff is the only tool whose core object is the interruption, so it works on the days you do not control – and gives you evidence instead of guilt.',
+        he: 'לא טיימר ריכוז ולא חוסם אפליקציות: ב-Leftoff ההפרעה היא האובייקט המרכזי, ולכן היא עובדת גם בימים שלא אתם שולטים בהם – ונותנת ראיות במקום רגשות אשם.',
+        en: 'Not a focus timer and not a blocker: Leftoff makes the interruption its core object, so it works on the days you do not control – and gives you evidence instead of guilt.',
       },
       targetUsers: {
         he: ['מפתחים ומעצבים שהעבודה שלהם דורשת רצפים ארוכים של ריכוז', 'מנהלים שקופצים בין פגישות לבין תוצרים משלהם', 'הורים שעובדים מהבית עם הפרעות בלתי צפויות'],
@@ -172,7 +172,7 @@ export const ideas: Idea[] = [
           'תיוג המקור בלחיצה: אדם, פגישה, סלאק, בית, אני',
           'מפת הפרעות שבועית לפי שעה, מקור וסוג עבודה',
           'ניסויים מוצעים: להזיז פגישה, לרכז הודעות, להגן על שעה אחת',
-          'עצירה אוטומטית כשאירוע ביומן מתחיל',
+          'הצעת עצירה כשאירוע ביומן מתחיל, ממולאת מראש מכותרת האירוע',
         ],
         en: [
           'One-tap park from the lock screen or a widget: what I was doing + next step',
@@ -181,14 +181,14 @@ export const ideas: Idea[] = [
           'Tag the source in one tap: person, meeting, Slack, home, self',
           'Weekly interruption map by hour, source and type of work',
           'Suggested experiments: move a meeting, batch messages, protect one hour',
-          'Auto-park when a calendar event starts',
+          'Park prompt when a calendar event starts, pre-filled from the event title',
         ],
       },
       screens: [
         { name: { he: 'עצירה', en: 'Park' }, description: { he: 'שדה טקסט במסך מלא עם השאלה "מה עשית ומה הצעד הבא?", שורת צ׳יפים למקור וכפתור עצירה אחד גדול.', en: 'A full-screen text field with the prompt "What were you doing and what is the next step?", a row of source chips and one big Park button.' } },
         { name: { he: 'ערימת חזרה', en: 'Resume stack' }, description: { he: 'כרטיסים בערימה, החדש למעלה; הכרטיס העליון מציג את משפט החזרה, זמן ההיעדרות וכפתור "חזרתי" שעוצר את השעון.', en: 'Cards stacked newest-first; the top card shows the resume sentence, time away and a "picked up" button that stops the clock.' } },
         { name: { he: 'היום', en: 'Today' }, description: { he: 'ציר זמן אופקי של היום עם בלוקים של עבודה ופערי הפרעות בקנה מידה אמיתי.', en: 'A horizontal timeline of the day with work blocks and interruption gaps drawn to scale.' } },
-        { name: { he: 'מפת השבוע', en: 'Weekly map' }, description: { he: 'רשת חום של שעות לפי יום, רשימה מדורגת של מקורות, ושלושת הניסויים המוצעים לשבוע הבא.', en: 'A heat grid of hours by weekday, a ranked list of sources, and the three experiments suggested for next week.' } },
+        { name: { he: 'מפת השבוע', en: 'Weekly map' }, description: { he: 'מפת חום של שעות לפי יום, רשימה מדורגת של מקורות, ושלושת הניסויים המוצעים לשבוע הבא.', en: 'A heat grid of hours by weekday, a ranked list of sources, and the three experiments suggested for next week.' } },
         { name: { he: 'הקשרים שננטשו', en: 'Abandoned' }, description: { he: 'הקשרים שנעצרו ומעולם לא חזרו אליהם, כדי שעבודה שנשכחה תוכל להינצל או להיסגר.', en: 'Contexts that were parked but never resumed, so forgotten work can be rescued or closed.' } },
         { name: { he: 'הגדרות', en: 'Settings' }, description: { he: 'חיבור יומן, הגדרת ווידג׳ט, רשימת מקורות וייצוא נתונים; הכול נשאר במכשיר.', en: 'Calendar connection, widget setup, source list and data export; everything stays on the device.' } },
       ],
@@ -197,24 +197,24 @@ export const ideas: Idea[] = [
           'מפתחת באמצע באג מסובך כשחבר לצוות מבקש עזרה',
           'היא לוחצת על הווידג׳ט, מקלידה "באג: משתמש null בצ׳ק-אאוט – הבא: לבדוק את ה-session hook" ומתייגת "אדם"',
           'אחרי עשרים דקות היא פותחת את ערימת החזרה וממשיכה בדיוק מהמשפט הזה',
-          'ביום שישי מפת השבוע מראה שרוב ההפרעות נוחתות בין 10 ל-11',
+          'בסוף השבוע המפה מראה שרוב ההפרעות נוחתות בין 10 ל-11',
           'היא מזיזה את הסנכרון היומי ומגנה על השעה הזאת בשבוע שאחרי',
         ],
         en: [
           'A developer is mid-way through a tricky bug when a teammate asks for help',
           'She taps the widget, types "bug: null user in checkout – next: check the session hook" and tags "person"',
           'Twenty minutes later she opens the resume stack and continues from that exact sentence',
-          'On Friday the weekly map shows that most interruptions land between 10 and 11',
+          'At the end of the week the map shows that most interruptions land between 10 and 11',
           'She moves her daily sync and protects that hour the following week',
         ],
       },
       uxDirection: {
-        he: 'בנוי ליד שכבר נמשכת החוצה: מסך העצירה נפתח בפחות משנייה, עם שדה קלט ענק וכפתור אחד, ולעולם לא שואל שאלה שנייה. ניטרלים חמים עם צבע הדגשה אחד להקשר הפעיל. מפת השבוע שואלת ממפות חום של יומנים ולא מדשבורדים; מסך אחד, בלי גרפים שגוללים.',
+        he: 'מעוצב למי שכבר נגרר מהעבודה: מסך העצירה נפתח בפחות משנייה, עם שדה קלט ענק וכפתור אחד, ולעולם לא שואל שאלה שנייה. ניטרלים חמים עם צבע הדגשה אחד להקשר הפעיל. מפת השבוע שואבת השראה ממפות חום של יומנים ולא מדשבורדים; מסך אחד, בלי גרפים שגוללים.',
         en: 'Built for a hand that is already being pulled away: the park screen opens in under a second, uses a huge input and one button, and never asks a second question. Warm neutrals with a single accent for the active context. The weekly map borrows from calendar heat maps rather than dashboards; one screen, no scrolling charts.',
       },
       architecture: {
-        he: 'Expo עם Expo Router; כל הנתונים ב-expo-sqlite על המכשיר, בלי שרת בכלל. ווידג׳טים למסך הנעילה ולמסך הבית דרך הרחבות ווידג׳ט נייטיב (אבן דרך מאוחרת ב-iOS). expo-calendar קורא אירועים לעצירה אוטומטית; expo-notifications מזכיר הקשר שלא חזרו אליו. הצבירה השבועית רצה מקומית; הייצוא הוא קובץ CSV דרך ה-share sheet.',
-        en: 'Expo with Expo Router; all data in expo-sqlite on the device, no server at all. Lock-screen and home-screen widgets through native widget extensions (a later milestone on iOS). expo-calendar reads events to auto-park; expo-notifications reminds you of a context that was never picked up. Weekly aggregation runs locally; export is a CSV through the share sheet.',
+        he: 'Expo עם Expo Router; כל הנתונים ב-expo-sqlite על המכשיר, בלי שרת בכלל. ווידג׳טים למסך הנעילה ולמסך הבית דרך הרחבות ווידג׳ט נייטיב (אבן דרך מאוחרת ב-iOS). expo-calendar קורא אירועים קרובים כדי שהתראה תציע עצירה ממולאת מראש בתחילת פגישה; expo-notifications מזכיר הקשר שלא חזרו אליו. הצבירה השבועית רצה מקומית; הייצוא הוא קובץ CSV דרך ה-share sheet.',
+        en: 'Expo with Expo Router; all data in expo-sqlite on the device, no server at all. Lock-screen and home-screen widgets through native widget extensions (a later milestone on iOS). expo-calendar reads upcoming events so a notification can offer a pre-filled park at meeting start; expo-notifications reminds you of a context that was never picked up. Weekly aggregation runs locally; export is a CSV through the share sheet.',
       },
       stack: ['Expo', 'Expo Router', 'expo-sqlite', 'expo-calendar', 'expo-notifications', 'Reanimated'],
       database: {
@@ -226,12 +226,12 @@ export const ideas: Idea[] = [
         en: 'No account and no sign-in: everything lives on the device. Optional device backup through the OS, and a local export for people who switch phones.',
       },
       monetization: {
-        he: ['רכישה חד-פעמית אחרי תקופת ניסיון, בלי מנוי', 'אפליקציית דסקטופ נלווית שנמכרת בנפרד', 'תוסף אופציונלי לדוח צוותי עם דפוסים מצטברים ואנונימיים'],
+        he: ['רכישה חד-פעמית אחרי תקופת ניסיון חינם, בלי מנוי', 'אפליקציית דסקטופ נלווית שנמכרת בנפרד', 'תוסף אופציונלי לדוח צוותי עם דפוסים מצטברים ואנונימיים'],
         en: ['One-time purchase after a free trial, no subscription', 'Paid desktop companion app sold separately', 'Optional team report add-on with aggregated, anonymised patterns'],
       },
       mvpMilestones: {
-        he: ['תהליך עצירה וחזרה עם אחסון מקומי', 'תזמון פסיבי וציר הזמן של היום', 'תיוג מקורות ומפת ההפרעות השבועית', 'עצירה אוטומטית מהיומן ותזכורות על הקשרים שלא חזרו אליהם', 'ווידג׳טים ופתיחה בתשלום'],
-        en: ['Park and resume flow with local storage', 'Passive timing and the Today timeline', 'Source tagging and the weekly interruption map', 'Calendar auto-park and never-resumed reminders', 'Widgets and paid unlock'],
+        he: ['תהליך עצירה וחזרה עם אחסון מקומי', 'תזמון פסיבי וציר הזמן של היום', 'תיוג מקורות ומפת ההפרעות השבועית', 'הצעות עצירה מהיומן ותזכורות על הקשרים שלא חזרו אליהם', 'ווידג׳טים ופתיחה בתשלום'],
+        en: ['Park and resume flow with local storage', 'Passive timing and the Today timeline', 'Source tagging and the weekly interruption map', 'Calendar park prompts and never-resumed reminders', 'Widgets and paid unlock'],
       },
       risks: {
         he: ['כל המודל תלוי בלחיצה על עצירה לפני ההפרעה – הווידג׳ט חייב להיות מהיר יותר מהרפלקס פשוט להסתובב', 'מדידת החזרה דורשת לחיצת "חזרתי" כנה; לחיצות עצלניות יעוותו את המפה', 'ווידג׳טים נייטיב הם החלק הקשה ביותר בבנייה למפתח Expo'],
@@ -248,12 +248,12 @@ export const ideas: Idea[] = [
     name: { he: 'Runsheet – השיעור נגמר בזמן', en: 'Runsheet' },
     tagline: {
       he: 'תוכנית שיעור שמריצה את עצמה בכיתה: מקטעים מתוזמנים על שעון גדול, וכשהדיון מתארך היא מתכננת מחדש את שארית השיעור ואומרת מה לקצר.',
-      en: 'A lesson plan that runs itself in class: timed segments on a big clock that re-plan the rest of the period when a discussion runs long.',
+      en: 'A lesson plan that runs itself in class: timed segments on a big clock that re-plan the rest of the period and say what to cut when a discussion runs long.',
     },
     category: 'productivity',
     secondaryCategories: ['education'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 4, weeksMax: 6 },
+    effort: { weeksMin: 5, weeksMax: 7 },
     budget: 'low',
     businessModel: 'freemium',
     platforms: ['cross-platform'],
@@ -267,7 +267,7 @@ export const ideas: Idea[] = [
         en: 'Runsheet borrows an idea from live television: every lesson is a run sheet of timed segments – warm-up, explanation, group work, exit ticket – and the app runs it on a big, glanceable clock on the teacher’s phone or tablet. The point is what happens when the plan breaks. A discussion that should have taken five minutes takes twelve; instead of a static timer quietly going red, Runsheet recalculates the remaining segments, shrinks the ones marked flexible, and shows the teacher exactly what to cut so the lesson still ends with the exit ticket, before the bell. After class, one tap records what actually happened versus the plan, so next year’s version of the lesson starts from reality instead of optimism. Segments are reusable, so a teacher builds a personal bank of openers, activities and closers that snap together into new lessons in minutes.',
       },
       problem: {
-        he: 'שיעורים כמעט אף פעם לא הולכים לפי התוכנית, והקורבן הוא כמעט תמיד הסוף: הסיכום, כרטיס היציאה, הסבר שיעורי הבית. מורים מתכננים על נייר או במסמך, ואז מנהלים את הזמן במבט לשעון הקיר תוך כדי ניהול שלושים ילדים. טיימרים רגילים לא יודעים מה הבא בתור, ולכן לא יכולים להגיד על מה לוותר.',
+        he: 'שיעורים כמעט אף פעם לא הולכים לפי התוכנית, והקורבן הוא כמעט תמיד הסוף: הסיכום, כרטיס היציאה, הסבר שיעורי הבית. מורים מתכננים על נייר או במסמך, ואז מנהלים את הזמן במבט לשעון הקיר תוך כדי ניהול שלושים תלמידים. טיימרים רגילים לא יודעים מה הבא בתור, ולכן לא יכולים להגיד על מה לוותר.',
         en: 'Lessons rarely go to plan, and the casualty is almost always the end: the summary, the exit ticket, the homework explanation. Teachers plan on paper or in a doc, then manage time by glancing at a wall clock while also managing thirty people. Generic timers do not know what comes next, so they cannot tell you what to drop.',
       },
       solution: {
@@ -275,8 +275,8 @@ export const ideas: Idea[] = [
         en: 'A run sheet of segments with a duration, a flexibility level and an optional note, executed on a large live clock. When a segment overruns, the remaining plan is re-balanced automatically and the cut is shown as a single suggestion. A post-lesson log captures actual timings, and a segment bank turns past lessons into building blocks.',
       },
       usp: {
-        he: 'הטיימר היחיד לכיתה שמכיר את שארית השיעור: הוא מתכנן מחדש תוך כדי תנועה במקום רק להאדים, ולומד ממה שקרה בפועל כדי שהתוכניות ייעשו כנות יותר משנה לשנה.',
-        en: 'The only classroom timer that knows the rest of the lesson: it re-plans on the fly instead of just turning red, and it learns from what actually happened so plans get more honest every year.',
+        he: 'טיימר לכיתה שמכיר את שארית השיעור: הוא מתכנן מחדש תוך כדי תנועה במקום רק להאדים, ולומד ממה שקרה בפועל כדי שהתוכניות ייעשו כנות יותר משנה לשנה.',
+        en: 'A classroom timer that knows the rest of the lesson: it re-plans on the fly instead of just turning red, and it learns from what actually happened so plans get more honest every year.',
       },
       targetUsers: {
         he: ['מורים בחטיבה ובתיכון שמלמדים שיעורים של 45–90 דקות', 'מורים חדשים וסטודנטים להוראה שמתקשים בקצב', 'מרצים, מנחי סדנאות ומדריכים בארגונים'],
@@ -321,9 +321,9 @@ export const ideas: Idea[] = [
         en: [
           'A history teacher builds a 45-minute lesson from five segments the evening before',
           'In class she props the tablet on the desk and taps run',
-          'The debate segment overruns by six minutes; the re-plan sheet suggests shortening the worksheet',
+          'The discussion segment overruns by six minutes; the re-plan sheet suggests shortening the worksheet',
           'She accepts, and the exit ticket still happens before the bell',
-          'After class she logs the actual timings and saves the debate segment to her bank',
+          'After class she logs the actual timings and saves the discussion segment to her bank',
         ],
       },
       uxDirection: {
@@ -331,7 +331,7 @@ export const ideas: Idea[] = [
         en: 'Designed to be read from two metres away: the run screen is mostly a single number in a heavy typeface, high contrast, no decoration. Everything else is calm and form-like. Colour is used only for flexibility levels and the overrun state; nothing flashes, because thirty students are watching the same screen.',
       },
       architecture: {
-        he: 'Expo עם Expo Router, רץ על טלפון, טאבלט וווב מאותו קוד. שיעורים ומקטעים ב-expo-sqlite כדי שמצב הריצה לעולם לא יהיה תלוי ב-Wi-Fi של בית הספר; expo-keep-awake משאיר את המסך דולק בזמן ריצה. Supabase מסנכרן את בנק המקטעים ואת היסטוריית השיעורים למשתמשים משלמים. לוגיקת התכנון מחדש היא פונקציה טהורה קטנה על משכי מקטעים ורמות גמישות, עם בדיקות יחידה מול אורכי השיעור המקובלים.',
+        he: 'Expo עם Expo Router, רץ על טלפון, על טאבלט ובדפדפן מאותו קוד. שיעורים ומקטעים ב-expo-sqlite כדי שמצב הריצה לעולם לא יהיה תלוי ב-Wi-Fi של בית הספר; expo-keep-awake משאיר את המסך דולק בזמן ריצה. Supabase מסנכרן את בנק המקטעים ואת היסטוריית השיעורים למשתמשים משלמים. לוגיקת התכנון מחדש היא פונקציה טהורה קטנה על משכי מקטעים ורמות גמישות, עם בדיקות יחידה מול אורכי השיעור המקובלים.',
         en: 'Expo with Expo Router, running on phone, tablet and the web from one codebase. Lessons and segments in expo-sqlite so run mode never depends on school Wi-Fi; expo-keep-awake keeps the screen on during a run. Supabase syncs the segment bank and lesson history for paying users. The re-plan logic is a small pure function over segment durations and flexibility levels, unit-tested against the standard period lengths.',
       },
       stack: ['Expo', 'Expo Router', 'expo-sqlite', 'expo-keep-awake', 'Supabase', 'RevenueCat'],
@@ -363,9 +363,9 @@ export const ideas: Idea[] = [
   },
   {
     id: 'holdup',
-    name: { he: 'Holdup – על מי הצוות מחכה', en: 'Holdup' },
+    name: { he: 'Holdup – למי הצוות מחכה', en: 'Holdup' },
     tagline: {
-      he: 'כלי קטן שמתחיל בסלאק ועוקב מי מחכה למי בצוות, מזכיר לאדם הנכון פעם ביום, ומודד כמה זמן לוקח לשחרר חסימה.',
+      he: 'כלי קטן שחי בסלאק ועוקב אחרי מי מחכה למי בצוות, מזכיר לאדם הנכון פעם ביום, ומודד כמה זמן לוקח לשחרר חסימה.',
       en: 'A tiny Slack-first tool that tracks who is waiting on whom across a team, nudges the right person once a day, and measures time-to-unblock.',
     },
     category: 'productivity',
@@ -393,8 +393,8 @@ export const ideas: Idea[] = [
         en: 'A Slack command and message action that turn "waiting on X" into a tracked dependency, a once-a-day digest to each blocker ranked by impact, waiting-chain detection across people, and a dashboard built around time-to-unblock. Resolving is one click from either side, and nothing in Holdup requires changing how the team already manages tasks.',
       },
       usp: {
-        he: 'היחידה היא המסירה, לא המשימה: Holdup יושבת לצד Jira או Linear במקום להחליף אותם, מצמצמת נדנודים לדייג׳סט יומי מדורג אחד, וחושפת שרשראות המתנה של כמה אנשים ששום לוח לא מראה.',
-        en: 'The unit is the handoff, not the task: Holdup sits beside Jira or Linear instead of replacing them, reduces nagging to one ranked daily digest, and surfaces multi-person waiting chains that no board can show.',
+        he: 'היחידה היא המסירה, לא המשימה: Holdup יושבת לצד Jira או Linear במקום להחליף אותם, מצמצמת נדנודים לדייג׳סט יומי מדורג אחד, וחושפת שרשראות המתנה של כמה אנשים שלוחות משימות לא מראים.',
+        en: 'The unit is the handoff, not the task: Holdup sits beside Jira or Linear instead of replacing them, reduces nagging to one ranked daily digest, and surfaces multi-person waiting chains that task boards do not show.',
       },
       targetUsers: {
         he: ['צוותי מוצר ופיתוח של 10–80 אנשים שחיים בסלאק', 'סוכנויות וסטודיואים שמתמודדים עם אישורי לקוחות', 'צוותי תפעול עם תהליכים עתירי אישורים'],
@@ -426,7 +426,7 @@ export const ideas: Idea[] = [
         { name: { he: 'אדם', en: 'Person' }, description: { he: 'מה אדם אחד חוסם ומה חוסם אותו, עם זמן-עד-שחרור מתגלגל שלו.', en: 'What one person is blocking and what they are blocked by, with their rolling time-to-unblock.' } },
         { name: { he: 'שרשראות', en: 'Chains' }, description: { he: 'דיאגרמה פשוטה של שרשראות ההמתנה הפעילות הארוכות ביותר והאדם האחד ששחרור שלו יפתח הכי הרבה.', en: 'A simple diagram of the longest active waiting chains and the single person whose unblock would free the most.' } },
         { name: { he: 'תובנות', en: 'Insights' }, description: { he: 'מגמת זמן-עד-שחרור לפי שבוע וסוגי הבקשות שנתקעים הכי הרבה, עם סינון לפי צוות.', en: 'Time-to-unblock trend per week and the request types that stall most, filterable by team.' } },
-        { name: { he: 'הגדרות סביבת עבודה', en: 'Workspace settings' }, description: { he: 'חיבור סלאק, שעות שקט, סנכרון חופשות, שעת הדייג׳סט וחיוב.', en: 'Slack connection, quiet hours, vacation sync, digest time and billing.' } },
+        { name: { he: 'הגדרות סביבת עבודה', en: 'Workspace settings' }, description: { he: 'חיבור סלאק, שעות שקט, תאריכי חופשה (מסטטוס סלאק או ידנית), שעת הדייג׳סט וחיוב.', en: 'Slack connection, quiet hours, vacation dates (from Slack status or entered by hand), digest time and billing.' } },
       ],
       userJourney: {
         he: [
@@ -434,14 +434,14 @@ export const ideas: Idea[] = [
           'הדייג׳סט של דנה בבוקר מציג את זה תחת שתי בקשות אחרות, מדורג לפי כמה אנשים מחכים',
           'היא סוגרת אחת בסלאק ומסמנת שהאפיון "צריך עוד יומיים", מה שמעדכן את המעצבת',
           'לוח הצוות מראה שההמתנה של המעצבת חוסמת בעצמה מפתח – שרשרת',
-          'הסיכום של יום שישי מציין שאפיוני API הם המסירה האיטית ביותר של הצוות החודש',
+          'סיכום סוף השבוע מציין שאפיוני API הם המסירה האיטית ביותר של הצוות החודש',
         ],
         en: [
           'A designer types /holdup waiting on @Dana for the API spec, due Thursday',
           'Dana’s morning digest lists it under two other requests, ranked by how many people are waiting',
           'She resolves one in Slack and marks the spec "needs two more days", which notifies the designer',
           'The team board shows the designer’s wait is itself blocking a developer – a chain',
-          'Friday’s summary notes that API specs are the team’s slowest handoff this month',
+          'The end-of-week summary notes that API specs are the team’s slowest handoff this month',
         ],
       },
       uxDirection: {
@@ -470,7 +470,7 @@ export const ideas: Idea[] = [
         en: ['Slack app with /holdup, message action and resolve buttons', 'Daily digest job with ranking and quiet hours', 'Web board of open waits with sign-in-with-Slack', 'Chain detection and the person view', 'Time-to-unblock insights, Stripe billing and the weekly summary'],
       },
       risks: {
-        he: ['אם רישום המתנה מרגיש כמו הלשנה על עמית, אף אחד לא ישתמש – הטון והפרטיות של הדייג׳סט קריטיים למוצר', 'אישור האפליקציה בסלאק והגדרת ההרשאות לוקחים זמן אמיתי ביומן', 'צוותים עשויים לצפות לסנכרון עם Jira או Linear מהיום הראשון; המוצר חייב להיות שווה גם בלעדיו'],
+        he: ['אם רישום המתנה מרגיש כמו הלשנה על עמית, אף אחד לא ישתמש – הטון והפרטיות של הדייג׳סט קריטיים למוצר', 'תהליך האישור של אפליקציות בסלאק והגדרת ההרשאות לוקחים זמן אמיתי', 'צוותים עשויים לצפות לסנכרון עם Jira או Linear מהיום הראשון; המוצר חייב להיות שווה גם בלעדיו'],
         en: ['If logging a wait feels like reporting a colleague, nobody will use it – tone and privacy of the digest are product-critical', 'Slack app review and permission scopes take real calendar time', 'Teams may expect Jira or Linear sync from day one; the wedge must be valuable without it'],
       },
       expansion: {
@@ -489,7 +489,7 @@ export const ideas: Idea[] = [
     category: 'productivity',
     secondaryCategories: ['education', 'lifestyle'],
     difficulty: 'beginner',
-    effort: { weeksMin: 1, weeksMax: 3 },
+    effort: { weeksMin: 2, weeksMax: 3 },
     budget: 'free',
     businessModel: 'free',
     platforms: ['ios', 'android'],
@@ -511,8 +511,8 @@ export const ideas: Idea[] = [
         en: 'A three-field setup (total, deadline, days off), a nightly log of progress, and a recalculated daily quota with a burndown chart. The app is intentionally limited to one active goal, so the whole experience fits in two screens and a notification.',
       },
       usp: {
-        he: 'לא מנהל משימות: Quota הופכת תוצר אחד מפחיד למספר אחד כן שמתעדכן כל יום, ומסרבת להוסיף פיצ׳רים שיהפכו אותה בחזרה לרשימת מטלות.',
-        en: 'Not a task manager: Quota turns one scary deliverable into a single honest number that adapts every day, and refuses to add features that would turn it back into a to-do list.',
+        he: 'לא מנהל משימות: Quota הופכת תוצר אחד מפחיד למספר אחד שתמיד משקף את הקצב האמיתי – מה שהחמצתם מתחלק על הימים שנותרו – ומסרבת להוסיף פיצ׳רים שיהפכו אותה בחזרה לרשימת מטלות.',
+        en: 'Not a task manager: Quota turns one scary deliverable into a single number that is always the true pace – whatever you missed is spread over the days you have left – and refuses to add features that would turn it back into a to-do list.',
       },
       targetUsers: {
         he: ['סטודנטים שכותבים תזה או מתכוננים למבחן גדול', 'כותבים שעובדים לקראת ספירת מילים עם דדליין', 'כל מי שיש לו מטרה מדידה אחת ותאריך קשיח: קורס, הסמכה, תוכנית אימונים'],
@@ -521,7 +521,7 @@ export const ideas: Idea[] = [
       coreFeatures: {
         he: [
           'הגדרה בשלושה שדות: סך היחידות, דדליין וימי חופש',
-          'מכסה יומית שמחושבת מחדש בכל ערב לפי ההתקדמות שתועדה',
+          'מכסה יומית שמחושבת מחדש בכל ערב: מה שהחמצתם מתחלק על ימי העבודה שנותרו, לא נוחת כולו על מחר',
           'גרף burndown עם קו אידיאלי מול קו בפועל',
           'התראה יומית אחת עם המספר של היום',
           'חיווי לפני/אחרי הקצב במילים פשוטות, לא באחוזים',
@@ -529,7 +529,7 @@ export const ideas: Idea[] = [
         ],
         en: [
           'Three-field setup: total units, deadline and days off',
-          'Daily quota recalculated every evening from logged progress',
+          'Daily quota recalculated every evening: missed units are spread over the remaining working days, never dumped on tomorrow',
           'Burndown chart with the ideal line versus the actual line',
           'A single daily notification with today’s number',
           'Ahead/behind indicator in plain words, not percentages',
@@ -547,19 +547,19 @@ export const ideas: Idea[] = [
           'סטודנטית מזינה "תזה – 80 עמודים – עד 30 ביוני" ומסמנת סופי שבוע וחג כימי חופש',
           'Quota מציגה מכסה יומית של קצת פחות משני עמודים',
           'בכל ערב היא מתעדת כמה כתבה; אחרי שבוע איטי המספר עולה מעט',
-          'הגרף מראה שהיא מאחורי הקצב, אז היא מוסיפה שתי שבתות עבודה והמכסה יורדת בחזרה',
+          'הגרף מראה שהיא מאחורי הקצב, אז היא הופכת שני ימי סוף שבוע לימי עבודה והמכסה יורדת בחזרה',
           'ביום הדדליין המטרה עוברת לארכיון עם הגרף הסופי שלה',
         ],
         en: [
           'A student enters "thesis – 80 pages – due 30 June" and taps her weekends and a holiday as days off',
           'Quota shows a daily quota of just under two pages',
           'Each evening she logs what she wrote; after a slow week the number rises slightly',
-          'The chart shows she is behind, so she adds two working Saturdays and the quota drops back',
+          'The chart shows she is behind, so she turns two weekend days into working days and the quota drops back',
           'On deadline day the goal moves to the archive with its final chart',
         ],
       },
       uxDirection: {
-        he: 'מספר אחד, ענק, במרכז, בפונט תצוגה בטוח; כל השאר טקסט משני. צבע הדגשה צהוב חם שנוטה לירוק כשמקדימים ולענבר כשמפגרים – אף פעם לא אדום. בלי מסכי אונבורדינג: מסך ההגדרה הוא האונבורדינג.',
+        he: 'מספר אחד, ענק, במרכז, בפונט תצוגה בולט; כל השאר טקסט משני. צבע הדגשה צהוב חם שנוטה לירוק כשמקדימים ולענבר כשמפגרים – אף פעם לא אדום. בלי מסכי אונבורדינג: מסך ההגדרה הוא האונבורדינג.',
         en: 'One number, huge, centred, in a confident display typeface; everything else is secondary text. A warm yellow accent that shifts towards green when ahead and amber when behind – never red. No onboarding slides: the setup screen is the onboarding.',
       },
       architecture: {

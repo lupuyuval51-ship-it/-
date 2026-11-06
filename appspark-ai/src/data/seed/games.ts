@@ -10,13 +10,13 @@ export const ideas: Idea[] = [
     id: 'shoresh',
     name: { he: 'Shoresh – משחק השורשים', en: 'Shoresh' },
     tagline: {
-      he: 'מקבלים שורש אחד – כ.ת.ב – ומגלים כמה מילים מסתתרות בו: כותב, מכתב, כתובת, הכתבה. משחק מילים שאפשר לבנות רק בעברית.',
-      en: 'Get one root – K.T.V – and uncover the words hiding inside it: write, letter, address, dictation. A word game that only Hebrew makes possible.',
+      he: 'מקבלים שורש אחד – כ.ת.ב – ומגלים כמה מילים מסתתרות בו: כותב, מכתב, כתובת, הכתבה. משחק מילים שנולד מהעברית, לא תורגם אליה.',
+      en: 'Get one root – K.T.V – and uncover the words hiding inside it: write, letter, address, dictation. A word game born from Hebrew, not translated into it.',
     },
     category: 'games',
     secondaryCategories: ['education', 'entertainment'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 4, weeksMax: 6 },
+    effort: { weeksMin: 5, weeksMax: 8 },
     budget: 'low',
     businessModel: 'freemium',
     platforms: ['ios', 'android'],
@@ -120,7 +120,7 @@ export const ideas: Idea[] = [
       },
       risks: {
         he: ['נתוני מורפולוגיה פתוחים מכילים שגיאות ומילים נדירות מדי בשביל להיות כיף – צריך סינון ידני לפי שכיחות לפני ההשקה', 'גזרות כמו פ"נ ול"י, שבהן אות מהשורש נעלמת, יבלבלו שחקנים – להסביר אותן בפעם הראשונה שהן מופיעות', 'כתיב מלא מול חסר: שחקן שיקליד "תכנית" במקום "תוכנית" יתעצבן אם המילה לא תתקבל – לקבל את שני הכתיבים', 'המילון הוא היתרון התחרותי, אבל אם הוא נארז באפליקציה הוא גם ניתן לחילוץ'],
-        en: ['Open morphology data contains errors and words too rare to be fun – manual filtering by frequency is needed before launch', 'Root classes where a letter vanishes will confuse players – explain them the first time they appear', 'Full versus defective spelling: a player who types a variant spelling will be annoyed if it is rejected – accept both', 'The lexicon is the competitive edge, but shipping it inside the app also makes it extractable'],
+        en: ['Open morphology data contains errors and words too rare to be fun – manual filtering by frequency is needed before launch', 'Root classes such as pe-nun and lamed-yod, where a root letter vanishes, will confuse players – explain them the first time they appear', 'Full versus defective spelling: a player who types "tochnit" without the vav will be annoyed if the word is rejected – accept both spellings', 'The lexicon is the competitive edge, but shipping it inside the app also makes it extractable'],
       },
       expansion: {
         he: ['דו-קרב שורשים: שני שחקנים, אותו שורש, מי מוצא יותר מילים ב-90 שניות', 'מצב ערבית: אותה מכניקה על שורשים ערביים, לדוברי ערבית וללומדים', 'שורשים משותפים לעברית ולערבית כגשר בין השפות', 'לוח כיתה למורים עם שורשים לפי תוכנית הלימודים'],
@@ -138,7 +138,7 @@ export const ideas: Idea[] = [
     category: 'games',
     secondaryCategories: ['entertainment', 'business'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 4, weeksMax: 7 },
+    effort: { weeksMin: 5, weeksMax: 8 },
     budget: 'low',
     businessModel: 'b2b',
     platforms: ['web', 'ios', 'android'],
@@ -152,16 +152,16 @@ export const ideas: Idea[] = [
         en: 'Placecard is a small daily ritual: every day one seating chart is published, identical for every player, with a table, a guest list and six to ten "demands" that read like gossip – "Noa and Tomer broke up this week", "Grandpa must sit by the door", "the twins never sit together". You drag guests onto chairs until every demand holds, and the solution is always unique. Difficulty climbs through the week like a crossword: Sunday is a breeze, Saturday is a monster. At the end you share an emoji board of the table without spoiling the answer. The events rotate – Friday dinner, a wedding, a board meeting, a kindergarten party – which turns dry logic into a tiny story worth coming back for.',
       },
       problem: {
-        he: 'משחקי הפאזל היומיים הגדולים מגיעים מאנגלית ומניחים שבוע שמתחיל בשני ושפה אחת. מי שרוצה טקס יומי קטן בעברית מקבל תשבצים מתורגמים או משחקי מילים שנלחמים באותיות הסופיות. ואתרי תוכן ישראליים שרוצים משחק יומי משלהם – כמו שיש לעיתונים הגדולים בעולם – צריכים לבנות אותו מאפס.',
-        en: 'The big daily puzzle games come from English and assume a week that starts on Monday and a single language. Anyone wanting a small daily ritual in Hebrew gets translated crosswords or word games that fight with final letters. And Israeli content sites that want a daily game of their own – the way major newspapers abroad have one – must build it from scratch.',
+        he: 'משחקי הפאזל היומיים הגדולים מגיעים מאנגלית ומניחים שבוע עבודה שמתחיל בשני ושפה אחת. מי שרוצה טקס יומי קטן בעברית מקבל תשבצים מתורגמים או משחקי מילים שנלחמים באותיות הסופיות. ואתרי תוכן ישראליים שרוצים משחק יומי משלהם – כמו שיש לעיתונים הגדולים בעולם – צריכים לבנות אותו מאפס.',
+        en: 'The big daily puzzle games come from English and assume a working week that starts on Monday and a single language. Anyone wanting a small daily ritual in Hebrew gets translated crosswords or word games that fight with final letters. And Israeli content sites that want a daily game of their own – the way major newspapers abroad have one – must build it from scratch.',
       },
       solution: {
         he: 'פאזל לוגי שלא תלוי בשפה: הושבה, דרישות, שולחן. מנוע שמייצר כל יום סידור עם פתרון יחיד ומדרג אותו לפי קושי אמיתי (כמה הסקות נדרשות), כך שעקומת השבוע עקבית. גרסת ווב ניתנת להטמעה בכל אתר תוכן, וגרסת מובייל לשחקנים הישירים – אותו פאזל בשתיהן.',
         en: 'A logic puzzle that does not depend on language: seating, demands, a table. An engine that generates one chart a day with a unique solution and grades it by real difficulty (how many deductions it takes), so the weekly curve stays consistent. A web version embeds in any content site, and a mobile app serves direct players – the same puzzle in both.',
       },
       usp: {
-        he: 'הדרישות מנוסחות כרכילות, לא כמשוואות – זה מה שגורם לאנשים ש"לא אוהבים פאזלי לוגיקה" לפתור אחד כל בוקר. ומאחורי הקלעים: מנוע יצירה עם פתרון יחיד מוכח ודירוג קושי מדיד, שאפשר למכור כמשחק יומי ממותג לכל אתר תוכן.',
-        en: 'The demands read as gossip, not as equations – which is why people who "don’t do logic puzzles" solve one every morning. Behind the scenes: a generator with provably unique solutions and measurable difficulty that can be sold as a branded daily game to any content site.',
+        he: 'הדרישות מנוסחות כרכילות, לא כמשוואות – וזה מה שיכול למשוך גם אנשים ש"לא אוהבים פאזלי לוגיקה" לפתור אחד כל בוקר. ומאחורי הקלעים: מנוע יצירה עם פתרון יחיד מוכח ודירוג קושי מדיד, שאפשר למכור כמשחק יומי ממותג לכל אתר תוכן.',
+        en: 'The demands read as gossip, not as equations – which is what can pull in people who "don’t do logic puzzles" to solve one every morning. Behind the scenes: a generator with provably unique solutions and measurable difficulty that can be sold as a branded daily game to any content site.',
       },
       targetUsers: {
         he: ['אנשים שכבר יש להם טקס פאזל יומי ורוצים עוד אחד קצר', 'חובבי סודוקו שרוצים משהו עם סיפור', 'אתרי תוכן ואפליקציות חדשות שרוצים משחק יומי משלהם', 'מתכנני אירועים ואולמות שרוצים משחק ממותג להזמנות'],
@@ -271,20 +271,20 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'low', experimental: false, trending: false, featuredWeight: 3 },
     spec: {
       overview: {
-        he: 'Matkot לוקח את המשחק הכי ישראלי שיש בחוף והופך אותו למשחק פיזיקה לשניים על מכשיר אחד: הטלפון נשכב לרוחב, כל שחקן מחזיק צד ושולט במטקה שלו באגודל, והמטרה המשותפת היא ראלי ארוך ככל האפשר. אין נקודות נגד יריב – יש מונה חבטות אחד לשניכם. הפיזיקה פשוטה אבל כנה: זווית המטקה וקצב התנופה קובעים את הגובה והסיבוב של הכדור, הרוח משתנה כל כמה חבטות, גל מגיע ומזיז את החול, ולפעמים ילד או כלב חוצים את המגרש. מצב סולו מול קיר מאפשר להתאמן לבד, ו"החוף של היום" הוא תנאי רוח קבועים לכולם עם טבלת שיא יומית. ממכר בדיוק כמו בחוף: עוד ראלי אחד, הפעם שוברים את ה-50.',
-        en: 'Matkot takes the most Israeli beach game and turns it into a two-player physics game on one device: the phone lies in landscape, each player holds a side and controls a paddle with a thumb, and the shared goal is the longest rally possible. No points against an opponent – one hit counter for the two of you. The physics is simple but honest: paddle angle and swing speed set the ball’s height and spin, the wind shifts every few hits, a wave moves the sand, and sometimes a kid or a dog crosses the court. A solo wall mode lets you practise alone, and "today’s beach" sets the same wind for everyone with a daily leaderboard. Addictive like the real thing: one more rally, this time we break 50.',
+        he: 'Matkot לוקח את המשחק הכי ישראלי שיש בחוף והופך אותו למשחק פיזיקה לשניים על מכשיר אחד: הטלפון נשכב לרוחב, כל שחקן מחזיק צד ושולט במטקה שלו באגודל, והמטרה המשותפת היא ראלי ארוך ככל האפשר. אין נקודות נגד יריב – יש מונה חבטות אחד לשניכם. הפיזיקה פשוטה אבל כנה: זווית המטקה וקצב התנופה קובעים את הגובה והסיבוב של הכדור, הרוח משתנה כל כמה חבטות, גל מגיע ומזיז את החול, ולפעמים ילד או כלב חוצים את המגרש. מצב סולו מול קיר מאפשר להתאמן לבד, ו"החוף של היום" הוא תנאי רוח קבועים לכולם עם טבלת שיא יומית. וכמו בחוף, תמיד יש עוד ראלי אחד: הפעם שוברים את ה-50.',
+        en: 'Matkot takes the most Israeli beach game and turns it into a two-player physics game on one device: the phone lies in landscape, each player holds a side and controls a paddle with a thumb, and the shared goal is the longest rally possible. No points against an opponent – one hit counter for the two of you. The physics is simple but honest: paddle angle and swing speed set the ball’s height and spin, the wind shifts every few hits, a wave moves the sand, and sometimes a kid or a dog crosses the court. A solo wall mode lets you practise alone, and "today’s beach" sets the same wind for everyone with a daily leaderboard. And just like at the beach, there is always one more rally: this time we break 50.',
       },
       problem: {
-        he: 'משחקי מובייל לשניים כמעט תמיד דורשים שני מכשירים ואינטרנט, ומשחקי "מכה בכדור" בנויים על ניצחון – מישהו תמיד מפסיד, וילדים קטנים נוטשים. מטקות הוא ספורט שיתופי מטבעו, אבל אף משחק לא תפס את הרגע הזה של שני אנשים שמנסים יחד להציל ראלי.',
-        en: 'Two-player mobile games almost always require two devices and a connection, and ball games are built around winning – someone always loses, and younger kids walk away. Paddleball is cooperative by nature, yet no game has captured that moment of two people trying together to save a rally.',
+        he: 'משחקי מובייל לשניים כמעט תמיד דורשים שני מכשירים ואינטרנט, ומשחקי הכדור בנויים על ניצחון – מישהו תמיד מפסיד, וילדים קטנים נוטשים. מטקות הוא ספורט שיתופי מטבעו, אבל מעט מאוד משחקים מנסים לתפוס את הרגע הזה של שני אנשים שמנסים יחד להציל ראלי.',
+        en: 'Two-player mobile games almost always require two devices and a connection, and ball games are built around winning – someone always loses, and younger kids walk away. Paddleball is cooperative by nature, yet very few games try to capture that moment of two people trying together to save a rally.',
       },
       solution: {
         he: 'משחק שיתופי על מכשיר אחד: שני אגודלים, מטקה לכל צד, מונה אחד. פיזיקה כנה שמתגמלת תזמון וזווית, הפרעות סביבה שמתחלפות כדי שכל ראלי ירגיש אחרת, ומצב סולו מול קיר ו"החוף של היום" למי שמשחק לבד. הכול עובד בלי אינטרנט ובלי חשבון.',
         en: 'A cooperative game on one device: two thumbs, a paddle per side, one counter. Honest physics that rewards timing and angle, environmental interference that changes so every rally feels different, plus a solo wall mode and "today’s beach" for whoever plays alone. Everything works offline and without an account.',
       },
       usp: {
-        he: 'הדבר היחיד שחשוב הוא הראלי המשותף: משחק פיזיקה לשניים על טלפון אחד שבו אין מפסיד, ולכן הורה וילד בן חמש, או שני חברים בתור לרופא, משחקים את אותו משחק עם אותה כמות של כיף.',
-        en: 'The only thing that matters is the shared rally: a two-player physics game on one phone with no loser, so a parent and a five-year-old, or two friends in a waiting room, play the same game with the same amount of fun.',
+        he: 'הדבר היחיד שחשוב הוא הראלי המשותף: משחק פיזיקה לשניים על טלפון אחד שבו אין מפסיד, ולכן הורה וילד בן חמש, או שני חברים בתור לרופא, משחקים את אותו משחק ונהנים באותה מידה.',
+        en: 'The only thing that matters is the shared rally: a two-player physics game on one phone with no loser, so a parent and a five-year-old, or two friends in a waiting room, play the same game and enjoy it just as much.',
       },
       targetUsers: {
         he: ['הורים וילדים שמחפשים משחק לשניים בלי מסך לכל אחד', 'חברים שמחכים יחד – בתור, באוטובוס, בחוף בלי מטקות', 'שחקנים שאוהבים משחקי ארקייד פיזיקליים קצרים'],
@@ -347,12 +347,12 @@ export const ideas: Idea[] = [
       },
       stack: ['Expo', 'react-native-skia', 'Reanimated', 'React Native Gesture Handler', 'expo-haptics', 'expo-audio', 'AsyncStorage', 'Supabase'],
       database: {
-        he: ['local_records – שיא זוגי, שיא סולו, הגדרות (מקומי)', 'daily_conditions – תאריך, seed של רוח וגלים, רשימת הפרעות', 'daily_scores – תאריך, כינוי, מספר חבטות, מצב (סולו או שניים)', 'purchases – מזהה מכשיר אנונימי, רכישה מאומתת'],
-        en: ['local_records – duo record, solo record, settings (on device)', 'daily_conditions – date, wind and wave seed, interference list', 'daily_scores – date, nickname, hits, mode (solo or duo)', 'purchases – anonymous device id, verified purchase'],
+        he: ['local_records – שיא זוגי, שיא סולו, הגדרות (מקומי)', 'daily_conditions – תאריך, seed של רוח וגלים, רשימת הפרעות', 'daily_scores – תאריך, כינוי מרשימה מוכנה, מספר חבטות, מצב (סולו או שניים)', 'purchases – מזהה מכשיר אנונימי, רכישה מאומתת'],
+        en: ['local_records – duo record, solo record, settings (on device)', 'daily_conditions – date, wind and wave seed, interference list', 'daily_scores – date, preset nickname, hits, mode (solo or duo)', 'purchases – anonymous device id, verified purchase'],
       },
       auth: {
-        he: 'בלי חשבון. טבלת השיא היומית משתמשת בכינוי ובמזהה מכשיר אנונימי בלבד, כי חלק מהשחקנים הם ילדים. הרכישה החד-פעמית מאומתת מול חנות האפליקציות.',
-        en: 'No account. The daily high-score table uses a nickname and an anonymous device id only, because some players are children. The one-time purchase is verified against the app store.',
+        he: 'בלי חשבון. טבלת השיא היומית משתמשת במזהה מכשיר אנונימי ובכינוי שנבחר מרשימה מוכנה – בלי טקסט חופשי – כי חלק מהשחקנים הם ילדים. הרכישה החד-פעמית מאומתת מול חנות האפליקציות.',
+        en: 'No account. The daily high-score table uses an anonymous device id and a nickname picked from a preset list – no free text – because some players are children. The one-time purchase is verified against the app store.',
       },
       monetization: {
         he: ['רכישה חד-פעמית אחרי חוף הניסיון החינמי – בלי פרסומות, מתאים להורים', 'חבילת חופים נוספים (אילת, חיפה, תל אביב בחורף) ברכישה אחת', 'גרסת "חוף ממותג" לרשתות גלידה או משקאות כקמפיין קיץ'],
@@ -382,7 +382,7 @@ export const ideas: Idea[] = [
     category: 'games',
     secondaryCategories: ['social', 'entertainment'],
     difficulty: 'advanced',
-    effort: { weeksMin: 8, weeksMax: 12 },
+    effort: { weeksMin: 10, weeksMax: 14 },
     budget: 'medium',
     businessModel: 'subscription',
     platforms: ['cross-platform'],
@@ -392,12 +392,12 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'medium', experimental: true, trending: true, featuredWeight: 3 },
     spec: {
       overview: {
-        he: 'Nightfall לוקח את משחק המאפיה – המשחק החברתי שכולם אוהבים ואף פעם לא מצליחים לארגן – ופורש אותו על שבוע. מישהו פותח "כפר", שולח קישור לקבוצה, וכל אחד מצטרף מהטלפון מתי שנוח לו. האפליקציה מחלקת תפקידים בסוד, פותחת כל ערב "לילה" שבו המאפיה בוחרת קורבן והבלש בודק חשוד, ובבוקר מכריזה מה קרה ופותחת יום של דיון והצבעה עם דדליין ב-21:00. אף אחד לא צריך להיות פנוי באותו רגע: כל פעולה לוקחת חצי דקה, והדיון מתנהל בשרשור של המשחק או בקבוצת הוואטסאפ הקיימת. המנחה האוטומטי מוסיף קטע סיפור קצר לכל בוקר, מזכיר למי ששכח להצביע, ומסכם בסוף השבוע מי שיקר הכי טוב. זה המשחק שמחזיר קבוצת חברים שכבר לא נפגשת לדבר כל יום.',
-        en: 'Nightfall takes Mafia – the party game everyone loves and nobody can organise – and spreads it over a week. Someone opens a "village" and sends a link; players join whenever it suits them. The app deals roles in secret, runs a "night" each evening – the mafia picks a victim, the detective checks a suspect – and each morning opens a day of debate with a 21:00 deadline. Nobody has to be online at once: each move takes half a minute, and the arguing happens in the game thread or the group’s WhatsApp. An automatic narrator adds a daily story beat, nudges whoever forgot to vote, and closes the week with a recap of who lied best. The game that gets friends who no longer meet talking every day.',
+        he: 'Nightfall לוקח את משחק המאפיה – משחק החברה שכולם מכירים ואף פעם לא מצליחים לארגן – ופורש אותו על שבוע. מישהו פותח "כפר", שולח קישור לקבוצה, וכל אחד מצטרף מהטלפון מתי שנוח לו. האפליקציה מחלקת תפקידים בסוד, פותחת כל ערב "לילה" שבו המאפיה בוחרת קורבן והבלש בודק חשוד, ובבוקר מכריזה מה קרה ופותחת יום של דיון והצבעה עם דדליין ב-21:00. אף אחד לא צריך להיות פנוי באותו רגע: כל פעולה לוקחת חצי דקה, והדיון מתנהל בשרשור של המשחק או בקבוצת הוואטסאפ הקיימת. המנחה האוטומטי מוסיף קטע סיפור קצר לכל בוקר, מזכיר למי ששכח להצביע, ומסכם בסוף השבוע מי שיקר הכי טוב. משחק שיכול להחזיר קבוצת חברים שכבר לא נפגשת לדבר כל יום.',
+        en: 'Nightfall takes Mafia – the party game everyone knows and nobody manages to organise – and spreads it over a week. Someone opens a "village" and sends a link; players join whenever it suits them. The app deals roles in secret, runs a "night" each evening – the mafia picks a victim, the detective checks a suspect – and each morning opens a day of debate with a 21:00 deadline. Nobody has to be online at once: each move takes half a minute, and the arguing happens in the game thread or the group’s WhatsApp. An automatic narrator adds a daily story beat, nudges whoever forgot to vote, and closes the week with a recap of who lied best. A game that can get friends who no longer meet talking every day.',
       },
       problem: {
-        he: 'משחקי חברה מבוססי חשד עובדים נהדר בסלון, אבל דורשים שמונה אנשים באותו חדר באותה שעה ומישהו שמוותר על המשחק כדי להנחות. בגיל שבו לכולם יש ילדים ועבודה זה כמעט בלתי אפשרי, והגרסאות המקוונות הקיימות הן משחקים של עשר דקות מול זרים – בלי האנשים שבאמת כיף לחשוד בהם.',
-        en: 'Social deduction games are brilliant in a living room, but they need eight people in the same place at the same hour and someone who gives up playing to be the narrator. At the age when everyone has kids and jobs that is nearly impossible, and the existing online versions are ten-minute matches against strangers – without the people it is actually fun to suspect.',
+        he: 'משחקי חברה מבוססי חשד עובדים נהדר בסלון, אבל דורשים שמונה אנשים באותו חדר באותה שעה ומישהו שמוותר על המשחק כדי להנחות. בגיל שבו לכולם יש ילדים ועבודה זה כמעט בלתי אפשרי, והגרסאות המקוונות הקיימות הן ברובן משחקים של עשר דקות מול זרים – בלי האנשים שבאמת כיף לחשוד בהם.',
+        en: 'Social deduction games are brilliant in a living room, but they need eight people in the same place at the same hour and someone who gives up playing to be the narrator. At the age when everyone has kids and jobs that is nearly impossible, and the existing online versions are mostly ten-minute matches against strangers – without the people it is actually fun to suspect.',
       },
       solution: {
         he: 'משחק מאפיה אסינכרוני שנמשך שבוע: סיבוב ביום, דדליינים קבועים, מנחה אוטומטי שמחלק תפקידים ומנהל לילה ויום, ושכבת סיפור קלה שמחזיקה את המתח. מצטרפים בקישור בלי התקנה, והדיון יכול להישאר בקבוצה שכבר קיימת.',
@@ -449,7 +449,7 @@ export const ideas: Idea[] = [
           'בלילה הראשון המאפיה בוחרת קורבן, והבלש בודק את מי שהכי שקט בקבוצה',
           'בבוקר המנחה מודיע שרועי "נעלם", והקבוצה מתפוצצת מתיאוריות עד הערב',
           'ב-21:00 החשיפה: הודח אזרח תמים, והמאפיה מתפקעת מצחוק בשקט',
-          'ביום השישי האזרחים מנצחים, והסיכום מכתיר את נעה כשקרנית של השבוע',
+          'ביום השישי של המשחק האזרחים מנצחים, והסיכום מכתיר את נעה כשקרנית של השבוע',
         ],
         en: [
           'Yuval opens a village with the "office" theme and sends the link to his army friends’ group',
@@ -505,12 +505,12 @@ export const ideas: Idea[] = [
     category: 'games',
     secondaryCategories: ['entertainment'],
     difficulty: 'beginner',
-    effort: { weeksMin: 1, weeksMax: 2 },
+    effort: { weeksMin: 2, weeksMax: 3 },
     budget: 'free',
     businessModel: 'free',
     platforms: ['ios', 'android'],
     audience: ['kids', 'consumers'],
-    tags: ['haptics', 'accessibility', 'hot and cold', 'blind', 'one finger', 'tiny game', 'reaction'],
+    tags: ['haptics', 'accessibility', 'hot and cold', 'blind', 'one finger', 'tiny game', 'daily challenge'],
     identity: { hue: 130, glyph: 'Mc', pattern: 'dots' },
     flags: { beginnerFriendly: true, profitPotential: 'low', experimental: true, trending: false, featuredWeight: 2 },
     spec: {
@@ -519,27 +519,27 @@ export const ideas: Idea[] = [
         en: 'Marco is a small game you play without looking: a point is hidden on a black screen, you put a finger down and move it, and the phone buzzes softly when you are far and hard when you are close – hot-and-cold spoken through your palm. Find it and you get a long buzz, then the next point hides. A round is five points and the score is your time. Play alone against your record, or "today’s Marco" – the same five points for everyone. Because there is nothing to see, blind and low-vision players compete on exactly the same terms as everyone else, and a two-minute game becomes a nice way to explain accessibility to kids. A perfect first project: one screen, one gesture, one vibration API.',
       },
       problem: {
-        he: 'כמעט כל משחק מובייל הוא ויזואלי מהשנייה הראשונה, ולכן שחקנים עיוורים נשארים בחוץ, ומשחקים ל"רגע קטן של שעמום" דורשים את כל תשומת הלב של העיניים. גם מפתחים מתחילים מחפשים פרויקט ראשון שאפשר לסיים בשבועיים ושיש מאחוריו רעיון אמיתי, לא עוד שיבוט של משחק הנחש.',
-        en: 'Nearly every mobile game is visual from the first second, so blind players are left out, and games for "a small moment of boredom" demand all of your eyes’ attention. New developers, too, are looking for a first project that can be finished in two weeks and has a real idea behind it, not another Snake clone.',
+        he: 'כמעט כל משחק מובייל הוא ויזואלי מהשנייה הראשונה, ולכן שחקנים עיוורים נשארים בחוץ, ומשחקים ל"רגע קטן של שעמום" דורשים את כל תשומת הלב של העיניים – בדיוק מה שאין במיטה בלילה, במושב האחורי או בחדר המתנה. גם הורה שמחפש לילד משחק שקט בלי מסך מסנוור מתקשה למצוא כזה.',
+        en: 'Nearly every mobile game is visual from the first second, so blind players are left out, and games for "a small moment of boredom" demand all of your eyes’ attention – exactly what you do not have in bed at night, in the back seat or in a waiting room. A parent looking for a quiet game for a kid without a glaring screen struggles to find one too.',
       },
       solution: {
         he: 'משחק שבו הרטט הוא כל הממשק: עוצמה שגדלה ככל שמתקרבים לנקודה, רטט ייחודי למציאה, ומצב קול אופציונלי שבו גובה הצליל מחליף את הרטט במכשירים חלשים. אפס גרפיקה, אפס תפריטים מורכבים, אפס שרת.',
         en: 'A game where vibration is the entire interface: intensity that grows as you approach the point, a distinct buzz for finding it, and an optional sound mode where pitch replaces vibration on weak devices. Zero graphics, zero complex menus, zero server.',
       },
       usp: {
-        he: 'משחק מובייל שבו הראייה לא נותנת שום יתרון: רטט בלבד, נגיש מהיום הראשון, עם "מרקו של היום" שמאפשר להשוות זמנים בין חברים – ואפשר לבנות אותו מאפס בשבועיים.',
-        en: 'A mobile game in which sight gives no advantage at all: haptics only, accessible from day one, with "today’s Marco" for comparing times with friends – and buildable from scratch in two weeks.',
+        he: 'משחק מובייל שבו הראייה לא נותנת שום יתרון: רטט בלבד, נגיש מהיום הראשון, עם "מרקו של היום" שמאפשר להשוות זמנים בין חברים – ואפשר לבנות אותו מאפס בשבועיים-שלושה.',
+        en: 'A mobile game in which sight gives no advantage at all: haptics only, accessible from day one, with "today’s Marco" for comparing times with friends – and buildable from scratch in two or three weeks.',
       },
       targetUsers: {
-        he: ['מפתחים מתחילים שרוצים משחק ראשון קטן ומוגמר', 'שחקנים עיוורים ולקויי ראייה שמחפשים משחק שנבנה בשבילם', 'הורים שרוצים משחק שקט לילדים באוטו או לפני השינה'],
-        en: ['Beginner developers who want a small, finished first game', 'Blind and low-vision players looking for a game built for them', 'Parents who want a quiet game for kids in the car or before bed'],
+        he: ['אנשים שרוצים משחק של דקה לרגע של שעמום – בלי להסתכל במסך', 'שחקנים עיוורים ולקויי ראייה שמחפשים משחק שנבנה בשבילם', 'הורים שרוצים משחק שקט לילדים באוטו או לפני השינה'],
+        en: ['People who want a one-minute game for a bored moment – without looking at the screen', 'Blind and low-vision players looking for a game built for them', 'Parents who want a quiet game for kids in the car or before bed'],
       },
       coreFeatures: {
         he: [
           'מסך שחור ומגע אחד: הרטט מתחזק ככל שמתקרבים לנקודה',
           'רטט "מצאתי" ייחודי ומעבר אוטומטי לנקודה הבאה',
           'סיבוב של חמש נקודות עם סטופר',
-          '"מרקו של היום": אותו seed לכולם ושיתוף הזמן',
+          '"מרקו של היום": אותן חמש נקודות לכולם ושיתוף הזמן',
           'מצב קול: גובה הצליל מחליף את הרטט',
           'תמיכה מלאה בקורא מסך ובהודעות קוליות',
           'שיא אישי ו"מצב לילה" שבו המסך נשאר שחור לגמרי',
@@ -548,7 +548,7 @@ export const ideas: Idea[] = [
           'A black screen and one touch: the buzz strengthens as you near the point',
           'A distinct "found it" buzz and an automatic move to the next point',
           'A five-point round with a stopwatch',
-          '"Today’s Marco": the same seed for everyone and time sharing',
+          '"Today’s Marco": the same five points for everyone and time sharing',
           'Sound mode: pitch replaces vibration',
           'Full screen-reader support and spoken announcements',
           'A personal record and a "night mode" in which the screen stays entirely black',
@@ -583,8 +583,8 @@ export const ideas: Idea[] = [
         en: 'Almost no interface: full black during play, large white type on the start and end screens, and no element a screen reader cannot read. No colour carries information – only buzz, sound and words. The start button fills half the screen so it can be found without looking.',
       },
       architecture: {
-        he: 'Expo עם מסך אחד ו-Gesture Handler למעקב אחרי האצבע. בכל פריים מחושב המרחק לנקודה ומתורגם לעוצמת רטט דרך expo-haptics (דרגות עוצמה ב-iOS, תבניות רטט באורכים שונים באנדרואיד). "מרקו של היום" נגזר מ-seed לפי התאריך, בלי שרת; השיאים ב-AsyncStorage. מצב הקול משתמש ב-expo-audio עם צליל שמשנה גובה. כל הלוגיקה של האפליקציה היא כמה מאות שורות.',
-        en: 'Expo with a single screen and Gesture Handler to track the finger. Every frame the distance to the point is computed and mapped to vibration intensity via expo-haptics (intensity levels on iOS, vibration patterns of varying length on Android). "Today’s Marco" is derived from a date-based seed with no server; records live in AsyncStorage. Sound mode uses expo-audio with a pitch-shifting tone. The whole app is a few hundred lines of logic.',
+        he: 'Expo עם מסך אחד ו-Gesture Handler למעקב אחרי האצבע. בכל פריים מחושב המרחק לנקודה ומתורגם לעוצמת רטט דרך expo-haptics (דרגות עוצמה ב-iOS, תבניות רטט באורכים שונים באנדרואיד). "מרקו של היום" נגזר מ-seed לפי התאריך, בלי שרת; השיאים ב-AsyncStorage. מצב הקול משתמש ב-expo-audio עם צליל קצר בלולאה שקצב הניגון שלו עולה ככל שמתקרבים. כל הלוגיקה של האפליקציה היא כמה מאות שורות.',
+        en: 'Expo with a single screen and Gesture Handler to track the finger. Every frame the distance to the point is computed and mapped to vibration intensity via expo-haptics (intensity levels on iOS, vibration patterns of varying length on Android). "Today’s Marco" is derived from a date-based seed with no server; records live in AsyncStorage. Sound mode uses expo-audio with a short looped tone whose playback rate rises as you get closer. The whole app is a few hundred lines of logic.',
       },
       stack: ['Expo', 'expo-haptics', 'React Native Gesture Handler', 'expo-audio', 'AsyncStorage'],
       database: {

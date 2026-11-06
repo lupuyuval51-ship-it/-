@@ -15,7 +15,7 @@ export const ideas: Idea[] = [
     category: 'business',
     secondaryCategories: ['finance', 'productivity'],
     difficulty: 'advanced',
-    effort: { weeksMin: 8, weeksMax: 12 },
+    effort: { weeksMin: 10, weeksMax: 14 },
     budget: 'medium',
     businessModel: 'freemium',
     platforms: ['ios', 'android'],
@@ -26,10 +26,10 @@ export const ideas: Idea[] = [
     spec: {
       overview: {
         he: 'Sagur נבנתה לבעלי מקצוע ונותני שירות בישראל – חשמלאים, מעצבות פנים, צלמים, מאמני כושר – שמאבדים עבודות לא בגלל המחיר אלא בגלל ההמשך: הצעת המחיר נשלחת כתמונה בוואטסאפ, הלקוח כותב "מעולה, נדבר", ואז שתיקה. באפליקציה בונים הצעה בדקה מתוך פריטים שמורים ושולחים קישור בוואטסאפ. הלקוח רואה עמוד נקי עם הפירוט, מע״מ (או הערת עוסק פטור), תוקף ההצעה ותנאי הביטול, מאשר בחתימה אחת ומשלם מקדמה דרך קישור תשלום. ברגע האישור העבודה נכנסת ליומן של בעל המקצוע, והלקוח מקבל תזכורת יום לפני. הפרט החשוב: Sagur לא מייצרת מסמכי מס בעצמה אלא מפיקה חשבונית עסקה או קבלה דרך ספק חשבוניות מוסמך שהעסק כבר עובד איתו – כך אף לקוח לא נתקע עם מסמך לא תקין.',
-        en: 'Sagur is built for Israeli tradespeople and service providers – electricians, designers, photographers, trainers – who lose jobs not on price but on follow-through: the quote goes out as a photo on WhatsApp, the customer replies "great, let’s talk" and then goes quiet. In the app you build a quote in a minute from saved items and send a WhatsApp link. The customer sees a clean page with the breakdown, VAT (or an exempt-dealer note), the quote’s expiry and the cancellation terms, approves with one signature and pays a deposit through a payment link. On approval the job lands in the provider’s calendar and the customer gets a reminder the day before. The important detail: Sagur never generates tax documents itself – it issues the invoice or receipt through a certified invoicing provider the business already uses, so nobody is left holding a non-compliant document.',
+        en: 'Sagur is built for Israeli tradespeople and service providers – electricians, interior designers, photographers, fitness trainers – who lose jobs not on price but on follow-through: the quote goes out as a photo on WhatsApp, the customer replies "great, let’s talk" and then goes quiet. In the app you build a quote in a minute from saved items and send a WhatsApp link. The customer sees a clean page with the breakdown, VAT (or an exempt-dealer note), the quote’s expiry and the cancellation terms, approves with one signature and pays a deposit through a payment link. On approval the job lands in the provider’s calendar and the customer gets a reminder the day before. The important detail: Sagur never generates tax documents itself – it issues the invoice or receipt through a certified invoicing provider the business already uses, so nobody is left holding a non-compliant document.',
       },
       problem: {
-        he: 'בעלי מקצוע קטנים מנהלים הצעות מחיר בצילומי מסך ובהודעות קוליות. אין תוקף להצעה, אין מקדמה שמחייבת את הלקוח, ואין קשר בין ה"סגרנו" לבין היומן. התוצאה: ביטולים ברגע האחרון, ימים ריקים, והרבה שעות שהולכות על לרדוף אחרי לקוחות במקום לעבוד.',
+        he: 'בעלי מקצוע קטנים מנהלים הצעות מחיר בצילומי מסך ובהודעות קוליות. אין תוקף להצעה, אין מקדמה שמחייבת את הלקוח, ואין קשר בין ה"סגרנו" לבין היומן. התוצאה: ביטולים ברגע האחרון, ימים ריקים, והרבה שעות שהולכות על מרדף אחרי לקוחות במקום על עבודה.',
         en: 'Small service businesses run quotes through screenshots and voice notes. Quotes have no expiry, there is no deposit to commit the customer, and "we’re on" never makes it into the calendar. The result is last-minute cancellations, empty days, and hours spent chasing customers instead of working.',
       },
       solution: {
@@ -152,7 +152,7 @@ export const ideas: Idea[] = [
         en: 'Founders interview prospects and mostly hear politeness. "Great idea" gets logged as validation, leading questions produce leading answers, and a month later nobody remembers who said what or which hypothesis was being tested. The result is a product built on compliments.',
       },
       solution: {
-        he: 'מבנה כפוי אבל עדין: ראיון נפתח מהנחה, מדריך השאלות מסמן ניסוחים מובילים תוך כדי כתיבה, והסיום מחייב לבחור מה קרה באמת – סתירה, פתרון קיים, התחייבות. לוח ההנחות ופנקס ההתחייבויות הופכים את הראיונות לנתונים שאפשר להחליט לפיהם.',
+        he: 'מבנה מחייב אבל עדין: ראיון נפתח מהנחה, מדריך השאלות מסמן ניסוחים מובילים תוך כדי כתיבה, והסיום מחייב לבחור מה קרה באמת – סתירה, פתרון קיים, התחייבות. לוח ההנחות ופנקס ההתחייבויות הופכים את הראיונות לנתונים שאפשר להחליט לפיהם.',
         en: 'Gentle but enforced structure: an interview opens from a hypothesis, the question guide flags leading phrasing as you type, and closing requires choosing what really happened – a contradiction, an existing workaround, a commitment. The hypothesis board and the commitment ledger turn interviews into data you can decide on.',
       },
       usp: {
@@ -235,7 +235,7 @@ export const ideas: Idea[] = [
         en: ['Hypothesis board and interview with mandatory close', 'Quote tagging and the commitment ledger', 'Question guide with leading-phrase detection', 'Weekly summary and notification', 'Read-only sharing', 'Paywall'],
       },
       risks: {
-        he: ['המבנה הכפוי עלול להרגיש מעיק – להשאיר דרך מהירה לרשום ראיון "מלוכלך" ולהשלים אותו אחר כך', 'יזמים בודדים לא ישלמו הרבה – המודל העסקי נשען על תוכניות האצה ועל צוותי מוצר', 'זיהוי שאלות מובילות לפי תבניות יפספס ניסוחים ויתריע לשווא – לאפשר לבטל אזהרה בלחיצה'],
+        he: ['המבנה המחייב עלול להרגיש מעיק – להשאיר דרך מהירה לרשום ראיון "מלוכלך" ולהשלים אותו אחר כך', 'יזמים בודדים לא ישלמו הרבה – המודל העסקי נשען על תוכניות האצה ועל צוותי מוצר', 'זיהוי שאלות מובילות לפי תבניות יפספס ניסוחים ויתריע לשווא – לאפשר לבטל אזהרה בלחיצה'],
         en: ['Enforced structure can feel heavy – keep a fast way to log a "messy" interview and complete it later', 'Solo founders will not pay much – the business model leans on accelerators and product teams', 'Pattern-based leading-question detection will miss phrasings and raise false alarms – let the user dismiss a warning with one tap'],
       },
       expansion: {
@@ -254,7 +254,7 @@ export const ideas: Idea[] = [
     category: 'business',
     secondaryCategories: ['productivity'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 4, weeksMax: 6 },
+    effort: { weeksMin: 5, weeksMax: 8 },
     budget: 'low',
     businessModel: 'b2b',
     platforms: ['web'],
@@ -264,11 +264,11 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'high', experimental: false, trending: false, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'Lossbook היא מיקרו-מוצר שעושה דבר אחד שכל CRM מאפשר ואף צוות מכירות לא עושה באמת: לתעד למה עסקאות אובדות. כשעסקה מסומנת "הפסד" ב-HubSpot או ב-Pipedrive, איש המכירות מקבל קישור לתחקיר של דקה – לא שדה טקסט חופשי אלא עץ בחירה קצר: סיבה ראשית (מחיר, מתחרה, תזמון, אין החלטה, לא מתאים), למי הפסדנו, מה היה הרגע שבו העסקה התקררה, ומה היינו עושים אחרת. עד שהתחקיר לא הושלם העסקה מופיעה כ"פתוחה" בדוח השבועי של המנהל. אחרי כמה שבועות הדוחות מתחילים לדבר: אילו סיבות חוזרות לפי סגמנט, לפי מקור ליד ולפי איש מכירות, ואילו עסקאות "ללא החלטה" ראויות לניסיון נוסף בעוד רבעון. המוצר לא מנסה להחליף את ה-CRM – הוא נתלה עליו ומוסיף את השכבה שחסרה.',
-        en: 'Lossbook is a micro-product that does the one thing every CRM allows and no sales team actually does: record why deals are lost. When a deal is marked lost in HubSpot or Pipedrive, the rep gets a link to a one-minute debrief – not a free-text box but a short decision tree: primary reason (price, competitor, timing, no decision, bad fit), who we lost to, the moment the deal went cold, and what we would do differently. Until the debrief is done the deal shows as "open" in the manager’s weekly report. After a few weeks the reports start talking: which reasons recur by segment, by lead source and by rep, and which "no decision" deals deserve another attempt next quarter. The product does not try to replace the CRM – it hangs off it and adds the missing layer.',
+        he: 'Lossbook הוא מיקרו-מוצר שעושה דבר אחד שכל CRM מאפשר וכמעט אף צוות מכירות לא עושה באמת: לתעד למה עסקאות אובדות. כשעסקה מסומנת "הפסד" ב-HubSpot או ב-Pipedrive, איש המכירות מקבל קישור לתחקיר של דקה – לא שדה טקסט חופשי אלא עץ בחירה קצר: סיבה ראשית (מחיר, מתחרה, תזמון, אין החלטה, לא מתאים), למי הפסדנו, מה היה הרגע שבו העסקה התקררה, ומה היינו עושים אחרת. כל עוד התחקיר לא הושלם, העסקה מופיעה כ"פתוחה" בדוח השבועי של המנהל. אחרי כמה שבועות הדוחות מתחילים לדבר: אילו סיבות חוזרות לפי סגמנט, לפי מקור ליד ולפי איש מכירות, ואילו עסקאות "ללא החלטה" ראויות לניסיון נוסף בעוד רבעון. המוצר לא מנסה להחליף את ה-CRM – הוא יושב מעליו ומוסיף את השכבה שחסרה.',
+        en: 'Lossbook is a micro-product that does the one thing every CRM allows and almost no sales team actually does: record why deals are lost. When a deal is marked lost in HubSpot or Pipedrive, the rep gets a link to a one-minute debrief – not a free-text box but a short decision tree: primary reason (price, competitor, timing, no decision, bad fit), who we lost to, the moment the deal went cold, and what we would do differently. Until the debrief is done the deal shows as "open" in the manager’s weekly report. After a few weeks the reports start talking: which reasons recur by segment, by lead source and by rep, and which "no decision" deals deserve another attempt next quarter. The product does not try to replace the CRM – it hangs off it and adds the missing layer.',
       },
       problem: {
-        he: 'בכל CRM יש שדה "סיבת הפסד", ובפועל הוא ריק או מלא ב"אחר". אנשי מכירות לא כותבים תחקיר כשהם מתוסכלים, מנהלים מנחשים למה הרבעון היה חלש, ואותה טעות – תמחור, דמו מאוחר מדי, אין אלוף פנימי אצל הלקוח – חוזרת על עצמה.',
+        he: 'בכל CRM יש שדה "סיבת הפסד", ובפועל הוא ריק או מלא ב"אחר". אנשי מכירות לא כותבים תחקיר כשהם מתוסכלים, מנהלים מנחשים למה הרבעון היה חלש, ואותה טעות – תמחור, דמו מאוחר מדי, אין מישהו אצל הלקוח שדוחף מבפנים – חוזרת על עצמה.',
         en: 'Every CRM has a "lost reason" field, and in practice it is empty or set to "other". Reps do not write post-mortems when they are frustrated, managers guess why the quarter was weak, and the same mistake – pricing, a demo that came too late, no internal champion – repeats itself.',
       },
       solution: {
@@ -330,7 +330,7 @@ export const ideas: Idea[] = [
         ],
       },
       uxDirection: {
-        he: 'מסך התחקיר חייב להרגיש קל יותר מלהתעלם ממנו: כפתורים גדולים, בלי גלילה, בלי שדות חובה מעבר לעץ, ואישור שמופיע מיד. דוחות המנהלים הם טבלאות נקיות עם צבע הדגשה אחד; בלי מדי "בריאות" ובלי ציונים שמביכים אנשי מכירות מול הצוות.',
+        he: 'מסך התחקיר חייב להרגיש קל יותר מלהתעלם ממנו: כפתורים גדולים, בלי גלילה, בלי שדות חובה מעבר לעץ, ואישור שמופיע מיד. דוחות המנהלים הם טבלאות נקיות עם צבע הדגשה אחד; בלי מחווני "בריאות" ובלי ציונים שמביכים אנשי מכירות מול הצוות.',
         en: 'The debrief screen must feel easier than ignoring it: large buttons, no scrolling, no required fields beyond the tree, and instant confirmation. Manager reports are clean tables with a single accent colour; no "health" gauges and no scores that embarrass reps in front of the team.',
       },
       architecture: {
@@ -347,7 +347,7 @@ export const ideas: Idea[] = [
         en: 'Google Workspace or Microsoft sign-in, plus OAuth against the CRM to connect the org. Debrief links are signed and time-limited so a rep can fill one in without logging in. Per-org RLS, with a manager role for reports.',
       },
       monetization: {
-        he: ['מנוי חודשי לפי מושב לצוותי מכירות', 'תוכנית לסטארטאפים קטנים במחיר קבוע עד מספר מוגדר של אנשי מכירות', 'תוספת בתשלום: ניתוח win/loss גם על עסקאות שנסגרו בהצלחה'],
+        he: ['מנוי חודשי לפי משתמש לצוותי מכירות', 'תוכנית לסטארטאפים קטנים במחיר קבוע עד מספר מוגדר של אנשי מכירות', 'תוספת בתשלום: ניתוח win/loss גם על עסקאות שנסגרו בהצלחה'],
         en: ['Per-seat monthly subscription for sales teams', 'A flat small-startup plan up to a set number of reps', 'Paid add-on: win/loss analysis on deals that were won as well'],
       },
       mvpMilestones: {
@@ -368,13 +368,13 @@ export const ideas: Idea[] = [
     id: 'nigmar',
     name: { he: 'נגמר – מה אזל במטבח, בזמן אמת', en: 'Nigmar' },
     tagline: {
-      he: 'המטבח מקיש "נגמר" על המנה, ותוך שנייה המלצרים ואפליקציות המשלוחים יודעים – בלי צעקות דרך הפס ובלי לקוח שמזמין מנה שאין.',
+      he: 'המטבח מקיש "נגמר" על המנה, ותוך שניות המלצרים ואפליקציות המשלוחים יודעים – בלי צעקות דרך הפס ובלי לקוח שמזמין מנה שאין.',
       en: 'The kitchen taps "out" on a dish and within seconds the floor and the delivery apps know – no shouting over the pass, no guest ordering a dish that is gone.',
     },
     category: 'business',
     secondaryCategories: ['productivity'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 4, weeksMax: 6 },
+    effort: { weeksMin: 5, weeksMax: 7 },
     budget: 'low',
     businessModel: 'subscription',
     platforms: ['ios', 'android', 'web'],
@@ -384,8 +384,8 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'medium', experimental: false, trending: false, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'נגמר פותרת את הרגע המביך ביותר בשירות: המלצרית לוקחת הזמנה לפילה, חוזרת למטבח ומגלה שהדג נגמר לפני חצי שעה. באפליקציה יש לוח אחד משותף לכל המסעדה – טאבלט על הפס במטבח, טלפונים אצל המלצרים ומסך בעמדת הקופה. הטבח מקיש על מנה, בוחר "נגמר" או "נשארו 3", וכולם רואים את זה באותה שנייה עם צליל קצר. לפני השירות השף מסמן מה בכלל קיים היום ומה הספיישל, ולוח ההכנות של הבוקר נבנה מתוך מה שנגמר אתמול. בסוף הערב מתקבל דוח קצר: אילו מנות נגמרו, באיזו שעה, וכמה פעמים לקוחות ביקשו אותן אחרי שנגמרו – נתון שעוזר להזמין נכון מהספק. אפליקציות המשלוחים מתעדכנות במקביל, כך שגם הזמנה מבחוץ לא נופלת על מנה שאין.',
-        en: 'Nigmar fixes the most awkward moment in service: the waiter takes an order for the sea bass, walks back to the kitchen and learns the fish ran out half an hour ago. The app is one shared board for the whole restaurant – a tablet on the pass, phones in the waiters’ pockets and a screen at the POS station. A cook taps a dish, picks "out" or "3 left", and everyone sees it the same second with a short sound. Before service the chef marks what exists today and what the special is, and the morning prep list builds itself from what ran out last night. At close a short report shows which dishes ran out, at what time, and how many times guests asked for them afterwards – a number that helps order correctly from the supplier. Delivery apps are updated alongside, so an outside order never lands on a dish that is gone.',
+        he: 'נגמר פותרת את הרגע המביך ביותר בשירות: המלצרית לוקחת הזמנה ללברק, חוזרת למטבח ומגלה שהדג נגמר לפני חצי שעה. באפליקציה יש לוח אחד משותף לכל המסעדה – טאבלט על הפס במטבח, טלפונים אצל המלצרים ומסך בעמדת הקופה. הטבח מקיש על מנה, בוחר "נגמר" או "נשארו 3", וכולם רואים את זה באותה שנייה עם צליל קצר. לפני השירות השף מסמן מה בכלל קיים היום ומה הספיישל, ולוח ההכנות של הבוקר נבנה מתוך מה שנגמר אתמול. בסוף הערב מתקבל דוח קצר: אילו מנות נגמרו, באיזו שעה, וכמה פעמים לקוחות ביקשו אותן אחרי שנגמרו – נתון שעוזר להזמין נכון מהספק. אפליקציות המשלוחים מתעדכנות במקביל, כך שגם הזמנה מבחוץ לא נופלת על מנה שאין.',
+        en: 'Nigmar fixes the most awkward moment in service: the waitress takes an order for the sea bass, walks back to the kitchen and learns the fish ran out half an hour ago. The app is one shared board for the whole restaurant – a tablet on the pass, phones in the waiters’ pockets and a screen at the POS station. A cook taps a dish, picks "out" or "3 left", and everyone sees it the same second with a short sound. Before service the chef marks what exists today and what the special is, and the morning prep list builds itself from what ran out last night. At close a short report shows which dishes ran out, at what time, and how many times guests asked for them afterwards – a number that helps order correctly from the supplier. Delivery apps are updated alongside, so an outside order never lands on a dish that is gone.',
       },
       problem: {
         he: 'מסעדות מנהלות "מה נגמר" בצעקות, בפתק על הפס ובהודעה בקבוצת הוואטסאפ של הצוות שאף אחד לא רואה באמצע שירות. התוצאה: לקוחות מאוכזבים, מנות שחוזרות, הזמנות משלוח שמתבטלות, ואף אחד לא יודע למחרת כמה פעמים ביקשו את המנה שנגמרה.',
@@ -425,7 +425,7 @@ export const ideas: Idea[] = [
       },
       screens: [
         { name: { he: 'לוח הפס', en: 'Pass board' }, description: { he: 'מצב טאבלט: רשת של מנות בכפתורים גדולים בצבע לפי מצב; הקשה אחת משנה מצב, הקשה ארוכה מגדירה כמות.', en: 'Tablet mode: a grid of dishes as big colour-coded buttons; one tap changes the state, a long press sets a quantity.' } },
-        { name: { he: 'המלצרים', en: 'Floor view' }, description: { he: 'רשימה קומפקטית לטלפון עם המנות שנגמרו למעלה, חיפוש מהיר וכפתור "ביקשו" ליד כל מנה שנגמרה.', en: 'A compact phone list with out-of-stock dishes on top, quick search and an "asked for it" button beside each.' } },
+        { name: { he: 'תצוגת מלצרים', en: 'Floor view' }, description: { he: 'רשימה קומפקטית לטלפון עם המנות שנגמרו למעלה, חיפוש מהיר וכפתור "ביקשו" ליד כל מנה שנגמרה.', en: 'A compact phone list with out-of-stock dishes on top, quick search and an "asked for it" button beside each.' } },
         { name: { he: 'לפני השירות', en: 'Pre-service' }, description: { he: 'השף מסמן מה בתפריט היום, מה הספיישל וכמה מנות יש ממנו – בפחות מדקה.', en: 'The chef marks what is on today, the special and how many portions of it there are – in under a minute.' } },
         { name: { he: 'משלוחים', en: 'Delivery sync' }, description: { he: 'מצב הסנכרון מול כל אפליקציית משלוחים, מנות שהושהו, וכפתור ידני למקרה שהחיבור נפל.', en: 'Sync status per delivery app, paused dishes, and a manual button for when the connection drops.' } },
         { name: { he: 'דוח ערב', en: 'Nightly report' }, description: { he: 'ציר זמן של מה נגמר ומתי, מונה "ביקשו אחרי שנגמר" לכל מנה, והמלצת הזמנה מהספק.', en: 'A timeline of what ran out and when, the "asked after" counter per dish, and a supplier-order suggestion.' } },
@@ -450,8 +450,8 @@ export const ideas: Idea[] = [
         ],
       },
       uxDirection: {
-        he: 'עיצוב לסביבה עוינת: מסך מטבח בניגודיות גבוהה שנקרא גם מבעד לכיסוי ניילון, כפתורים בגודל כף יד, ושלושה צבעים בלבד – ירוק, כתום, אפור – בלי אדום שמלחיץ בשירות. בטלפון של המלצר הכול קריא בגלילה אחת במסדרון חשוך. בלי טקסט מיותר: שם המנה, מצב, כמות.',
-        en: 'Designed for a hostile environment: a high-contrast kitchen screen readable through a plastic cover, palm-sized buttons, and only three colours – green, amber, grey – with no red that adds stress in service. On the waiter’s phone everything is readable in one scroll in a dark corridor. No surplus text: dish name, state, quantity.',
+        he: 'עיצוב לתנאים קשים: מסך מטבח בניגודיות גבוהה שנקרא גם מבעד לכיסוי ניילון, כפתורים בגודל כף יד, ושלושה צבעים בלבד – ירוק, כתום, אפור – בלי אדום שמלחיץ בשירות. בטלפון של המלצר הכול קריא בגלילה אחת במסדרון חשוך. בלי טקסט מיותר: שם המנה, מצב, כמות.',
+        en: 'Designed for harsh conditions: a high-contrast kitchen screen readable through a plastic cover, palm-sized buttons, and only three colours – green, amber, grey – with no red that adds stress in service. On the waiter’s phone everything is readable in one scroll in a dark corridor. No surplus text: dish name, state, quantity.',
       },
       architecture: {
         he: 'Expo עם Expo Router, שרץ בטלפונים כאפליקציה ובטאבלט המטבח כאתר במסך מלא. Supabase Realtime מפיץ כל שינוי מצב לכל המכשירים של המסעדה דרך ערוץ לפי סניף; הטבלאות מוגנות ב-RLS לפי מסעדה ותפקיד. Edge Function מעדכנת את זמינות המנה בפלטפורמות משלוחים שחושפות API למסעדות, ומסמנת "לעדכן ידנית" אצל אלה שלא. דוח הערב ורשימת ההכנות מחושבים ב-SQL ונשלחים כהתראה למנהל.',
@@ -494,7 +494,7 @@ export const ideas: Idea[] = [
     category: 'business',
     secondaryCategories: ['finance'],
     difficulty: 'beginner',
-    effort: { weeksMin: 1, weeksMax: 3 },
+    effort: { weeksMin: 2, weeksMax: 3 },
     budget: 'free',
     businessModel: 'one-time',
     platforms: ['ios', 'android'],
@@ -504,19 +504,19 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: true, profitPotential: 'low', experimental: false, trending: false, featuredWeight: 2 },
     spec: {
       overview: {
-        he: 'Closeout היא אפליקציה קטנה לבעלי חנויות, בתי קפה ודוכנים שסוגרים קופה כל ערב. במקום לספור מזומן על הדלפק עם מחשבון ולכתוב את התוצאה על פתק, מקישים כמה שטרות של 200, 100, 50 ו-20 יש, כמה מטבעות מכל סוג, והאפליקציה מחשבת את הסכום תוך כדי. מזינים את סכום המזומן שהקופה הרושמת מצפה לו ואת הכסף הקטן שנשאר למחר, והפער מופיע מיד – ירוק, או אדום עם הסכום החסר. כל ספירה נשמרת עם שעה, שם הסוגר ותמונה אופציונלית של דוח ה-Z, ובסוף החודש מייצאים טבלה אחת לרואה החשבון. הכול עובד במכשיר, בלי חשבון ובלי אינטרנט – פרויקט מושלם למפתח ראשון שרוצה לשלוח אפליקציה אמיתית לחנות אמיתית.',
+        he: 'Closeout היא אפליקציה קטנה לבעלי חנויות, בתי קפה ודוכנים שסוגרים קופה כל ערב. במקום לספור מזומן על הדלפק עם מחשבון ולכתוב את התוצאה על פתק, מקישים כמה שטרות של 200, 100, 50 ו-20 יש, כמה מטבעות מכל סוג, והאפליקציה מחשבת את הסכום תוך כדי. מזינים את סכום המזומן שהקופה הרושמת מצפה לו ואת העודף שנשאר בקופה למחר, והפער מופיע מיד – ירוק, או אדום עם הסכום החסר. כל ספירה נשמרת עם שעה, שם הסוגר ותמונה אופציונלית של דוח ה-Z, ובסוף החודש מייצאים טבלה אחת לרואה החשבון. הכול עובד במכשיר, בלי חשבון ובלי אינטרנט – פרויקט מושלם למפתח מתחיל שרוצה לשלוח אפליקציה אמיתית לחנות אמיתית.',
         en: 'Closeout is a small app for shop owners, cafés and market stalls that close a till every evening. Instead of counting cash on the counter with a calculator and writing the result on a slip, you tap how many 200, 100, 50 and 20 notes there are, how many coins of each kind, and the total updates as you go. Enter the cash the register expects and the float you leave for tomorrow, and the variance appears immediately – green, or red with the missing amount. Every count is saved with the time, who closed and an optional photo of the Z report, and at month end you export one table for the accountant. Everything runs on the device, with no account and no internet – a perfect project for a first-time developer who wants to ship a real app to a real shop.',
       },
       problem: {
-        he: 'סגירת קופה היא טקס יומי שנעשה עייפים, בלחץ ועם טעויות חיבור. הפתקים הולכים לאיבוד, אף אחד לא זוכר אם הפער של יום שלישי היה 40 או 140 שקל, ורואה החשבון מקבל בסוף החודש ערימת צילומים.',
+        he: 'סגירת קופה היא טקס יומי שעושים עייפים, בלחץ ועם טעויות חיבור. הפתקים הולכים לאיבוד, אף אחד לא זוכר אם הפער של יום שלישי היה 40 או 140 שקל, ורואה החשבון מקבל בסוף החודש ערימת צילומים.',
         en: 'Closing the till is a daily ritual done tired, in a hurry, with arithmetic mistakes. The slips get lost, nobody remembers whether Tuesday’s gap was 40 or 140 shekels, and the accountant receives a pile of photos at month end.',
       },
       solution: {
-        he: 'מסך ספירה לפי ערכי שטרות ומטבעות עם סכום שמתעדכן חי, חישוב פער אוטומטי מול הקופה ומול הכסף הקטן, היסטוריה עם תמונה ושם סוגר, ויצוא חודשי לטבלה. בלי שרת ובלי הרשמה.',
+        he: 'מסך ספירה לפי ערכי שטרות ומטבעות עם סכום שמתעדכן חי, חישוב פער אוטומטי מול הקופה ומול העודף לפתיחה, היסטוריה עם תמונה ושם סוגר, ויצוא חודשי לטבלה. בלי שרת ובלי הרשמה.',
         en: 'A count screen by note and coin denomination with a live total, automatic variance against the register and the float, a history with photo and closer name, and a monthly table export. No server and no sign-up.',
       },
       usp: {
-        he: 'אפליקציה של מסך אחד שעושה את הטקס הזה מהר יותר ממחשבון, זוכרת את הכסף הקטן של אתמול, ומייצרת בסוף החודש בדיוק את הקובץ שרואה החשבון ביקש – ולא עוד מערכת ניהול חנות שלמה שאף אחד לא יטמיע בשביל זה.',
+        he: 'אפליקציה של מסך אחד שעושה את הטקס הזה מהר יותר ממחשבון, זוכרת את העודף שנשאר אתמול, ומייצרת בסוף החודש בדיוק את הקובץ שרואה החשבון ביקש – ולא עוד מערכת ניהול חנות שלמה שאף אחד לא יטמיע בשביל זה.',
         en: 'A one-screen app that makes the ritual faster than a calculator, remembers yesterday’s float, and produces at month end exactly the file the accountant asked for – not a full shop-management system nobody would adopt just for this.',
       },
       targetUsers: {
@@ -527,7 +527,7 @@ export const ideas: Idea[] = [
         he: [
           'ספירה לפי ערכי שטרות ומטבעות עם סכום חי',
           'פער אוטומטי מול הסכום שהקופה מצפה לו',
-          'הגדרת כסף קטן שנשאר למחר ונספר מחדש בפתיחה',
+          'הגדרת עודף לפתיחה שנשאר למחר ונספר מחדש בבוקר',
           'תמונה של דוח ה-Z ושם הסוגר לכל ספירה',
           'היסטוריה עם סימון ימים בפער חריג',
           'יצוא חודשי ל-CSV או ל-PDF ושליחה לרואה החשבון',
@@ -543,23 +543,23 @@ export const ideas: Idea[] = [
       },
       screens: [
         { name: { he: 'ספירה', en: 'Count' }, description: { he: 'עמודה של שטרות ומטבעות עם כפתורי פלוס ומינוס והקלדה ישירה, סכום גדול שמתעדכן למעלה, וכפתור "הלאה" בתחתית.', en: 'A column of notes and coins with plus and minus buttons and direct entry, a big running total on top, and a "next" button at the bottom.' } },
-        { name: { he: 'סיכום', en: 'Summary' }, description: { he: 'סכום שנספר, סכום צפוי מהקופה, כסף קטן למחר והפער בצבע; שדה הערה ותמונה של דוח ה-Z.', en: 'Counted total, expected total from the register, float for tomorrow and the variance in colour; a note field and a Z-report photo.' } },
+        { name: { he: 'סיכום', en: 'Summary' }, description: { he: 'סכום שנספר, סכום צפוי מהקופה, עודף לפתיחה למחר והפער בצבע; שדה הערה ותמונה של דוח ה-Z.', en: 'Counted total, expected total from the register, float for tomorrow and the variance in colour; a note field and a Z-report photo.' } },
         { name: { he: 'היסטוריה', en: 'History' }, description: { he: 'רשימת ספירות לפי תאריך עם הפער, שם הסוגר ואייקון תמונה; ימים חריגים מסומנים.', en: 'Counts by date with the variance, closer name and a photo icon; unusual days flagged.' } },
         { name: { he: 'יצוא חודשי', en: 'Monthly export' }, description: { he: 'בחירת חודש, תצוגה מקדימה של הטבלה, ושליחה כ-CSV או PDF דרך תפריט השיתוף.', en: 'Pick a month, preview the table, and send it as CSV or PDF through the share sheet.' } },
-        { name: { he: 'הגדרות', en: 'Settings' }, description: { he: 'מטבע וערכים פעילים, שמות הסוגרים, כסף קטן ברירת מחדל ושפה.', en: 'Currency and active denominations, closer names, default float and language.' } },
+        { name: { he: 'הגדרות', en: 'Settings' }, description: { he: 'מטבע וערכים פעילים, שמות הסוגרים, עודף פתיחה ברירת מחדל ושפה.', en: 'Currency and active denominations, closer names, default float and language.' } },
       ],
       userJourney: {
         he: [
           'בעלת בית קפה סוגרת ב-19:30 ופותחת את Closeout',
-          'מקישה 3 שטרות של 200, 11 של 100 ו-14 מטבעות של 10 תוך כדי שהיא סופרת',
-          'מזינה שהקופה מצפה ל-2,640 ושומרת 300 ככסף קטן למחר',
+          'מקישה את השטרות והמטבעות מכל סוג תוך כדי שהיא סופרת; הסכום מגיע ל-2,900',
+          'מזינה שהקופה מצפה ל-2,640 ומשאירה 300 כעודף לפתיחה מחר',
           'הפער מופיע באדום: חסרים 40 שקל; היא מוסיפה הערה "החזר ללקוח ללא קבלה"',
           'מצלמת את דוח ה-Z ושומרת; הספירה מצטרפת להיסטוריה',
           'ב-1 לחודש היא שולחת את טבלת החודש לרואה החשבון בוואטסאפ',
         ],
         en: [
           'A café owner closes at 19:30 and opens Closeout',
-          'She taps 3 notes of 200, 11 of 100 and 14 coins of 10 as she counts',
+          'She taps the notes and coins of each kind as she counts; the total comes to 2,900',
           'She enters that the register expects 2,640 and keeps 300 as tomorrow’s float',
           'The variance shows in red: 40 shekels short; she adds the note "customer refund without receipt"',
           'She photographs the Z report and saves; the count joins the history',
@@ -571,12 +571,12 @@ export const ideas: Idea[] = [
         en: 'One screen, one hand, shop lighting at night: huge numbers, large plus and minus buttons, and a numeric keypad that opens only when you tap a quantity. Green and red for the variance only. No onboarding – the first count is the tutorial.',
       },
       architecture: {
-        he: 'Expo עם Expo Router ושלושה מסכים עיקריים. כל הנתונים ב-SQLite במכשיר דרך expo-sqlite; התמונות נשמרות בתיקיית האפליקציה. היצוא נבנה במכשיר (CSV כטקסט, PDF דרך expo-print) ונשלח בתפריט השיתוף. אין שרת ואין מפתחות API, ולכן גם אין עלויות שוטפות – כל המורכבות היא בחישוב נכון ובמסך ספירה שנעים להשתמש בו.',
-        en: 'Expo with Expo Router and three main screens. All data lives in SQLite on the device via expo-sqlite; photos are stored in the app’s folder. Export is built on device (CSV as text, PDF via expo-print) and sent through the share sheet. No server and no API keys, so no running costs – all the complexity is in getting the arithmetic right and a count screen that feels good to use.',
+        he: 'Expo עם Expo Router וחמישה מסכים פשוטים. כל הנתונים ב-SQLite במכשיר דרך expo-sqlite; התמונות נשמרות בתיקיית האפליקציה. היצוא נבנה במכשיר (CSV כטקסט, PDF דרך expo-print) ונשלח בתפריט השיתוף. אין שרת ואין מפתחות API, ולכן גם אין עלויות שוטפות – כל המורכבות היא בחישוב נכון ובמסך ספירה שנעים להשתמש בו.',
+        en: 'Expo with Expo Router and five simple screens. All data lives in SQLite on the device via expo-sqlite; photos are stored in the app’s folder. Export is built on device (CSV as text, PDF via expo-print) and sent through the share sheet. No server and no API keys, so no running costs – all the complexity is in getting the arithmetic right and a count screen that feels good to use.',
       },
       stack: ['Expo', 'Expo Router', 'expo-sqlite', 'expo-print', 'expo-image-picker', 'expo-sharing'],
       database: {
-        he: ['closings – ספירה, תאריך, סוגר, סכום שנספר, סכום צפוי, כסף קטן, פער, הערה (מקומי)', 'closing_lines – כמות לכל ערך שטר או מטבע בכל ספירה', 'photos – נתיב לתמונת דוח ה-Z של כל ספירה', 'settings – ערכים פעילים, שמות סוגרים, כסף קטן ברירת מחדל'],
+        he: ['closings – ספירה, תאריך, סוגר, סכום שנספר, סכום צפוי, עודף לפתיחה, פער, הערה (מקומי)', 'closing_lines – כמות לכל ערך שטר או מטבע בכל ספירה', 'photos – נתיב לתמונת דוח ה-Z של כל ספירה', 'settings – ערכים פעילים, שמות סוגרים, עודף פתיחה ברירת מחדל'],
         en: ['closings – count, date, closer, counted total, expected total, float, variance, note (local)', 'closing_lines – quantity per note or coin denomination for each count', 'photos – path to the Z-report photo per count', 'settings – active denominations, closer names, default float'],
       },
       auth: {
@@ -584,19 +584,19 @@ export const ideas: Idea[] = [
         en: 'No account. An optional four-digit lock on launch, since till figures are business data. Manual backup to a file through the share sheet.',
       },
       monetization: {
-        he: ['רכישה חד-פעמית אחרי שבועיים של שימוש חופשי', 'גרסת "כמה קופות" לעסקים עם כמה עמדות, כרכישה נפרדת', 'בהמשך: סנכרון ענן בין בעל העסק למנהלי המשמרת כמנוי קטן'],
-        en: ['One-time purchase after two weeks of free use', 'A "multiple tills" edition for businesses with several stations, as a separate purchase', 'Later: cloud sync between the owner and shift managers as a small subscription'],
+        he: ['אפליקציה בתשלום חד-פעמי בחנויות האפליקציות – מחיר אחד, בלי מנוי ובלי שרת', 'גרסת "כמה קופות" לעסקים עם כמה עמדות, כרכישה נפרדת', 'בהמשך: סנכרון ענן בין בעל העסק למנהלי המשמרת כמנוי קטן'],
+        en: ['A paid app on the app stores – one upfront price, no subscription and no server', 'A "multiple tills" edition for businesses with several stations, as a separate purchase', 'Later: cloud sync between the owner and shift managers as a small subscription'],
       },
       mvpMilestones: {
-        he: ['מסך ספירה עם סכום חי לערכי השקל', 'סיכום עם סכום צפוי, כסף קטן ופער', 'היסטוריה מקומית', 'תמונה ושם סוגר', 'יצוא CSV ושיתוף', 'רכישה חד-פעמית'],
-        en: ['Count screen with a live total for shekel denominations', 'Summary with expected total, float and variance', 'Local history', 'Photo and closer name', 'CSV export and sharing', 'One-time purchase'],
+        he: ['מסך ספירה עם סכום חי לערכי השקל', 'סיכום עם סכום צפוי, עודף לפתיחה ופער', 'היסטוריה מקומית', 'תמונה ושם סוגר', 'יצוא CSV ושיתוף', 'פרסום כאפליקציה בתשלום בחנויות'],
+        en: ['Count screen with a live total for shekel denominations', 'Summary with expected total, float and variance', 'Local history', 'Photo and closer name', 'CSV export and sharing', 'Store listing as a paid app'],
       },
       risks: {
         he: ['טעות בעיגול או בחישוב הפער תשבור אמון מיד – לכתוב בדיקות לחישובים לפני כל דבר אחר', 'הנתונים במכשיר בלבד – אובדן טלפון הוא אובדן היסטוריה, לכן הגיבוי לקובץ חייב להיות בולט', 'שוק קטן ומחיר נמוך – זה פרויקט ללימוד ולהכנסה צנועה, לא לסטארטאפ'],
         en: ['Wrong rounding or variance arithmetic breaks trust immediately – write tests for the calculations before anything else', 'Data lives only on the device – a lost phone is lost history, so file backup must be prominent', 'A small market and a low price – this is a project for learning and modest income, not a startup'],
       },
       expansion: {
-        he: ['פתיחת קופה בבוקר עם ספירת הכסף הקטן ואישור', 'תמיכה במטבעות נוספים לעסקים באזורי תיירות', 'קריאת הסכום הצפוי מצילום דוח ה-Z'],
+        he: ['פתיחת קופה בבוקר עם ספירת העודף ואישור', 'תמיכה במטבעות נוספים לעסקים באזורי תיירות', 'קריאת הסכום הצפוי מצילום דוח ה-Z'],
         en: ['Morning opening with a float count and confirmation', 'Additional currencies for businesses in tourist areas', 'Reading the expected total from the Z-report photo'],
       },
     },

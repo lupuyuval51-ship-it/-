@@ -79,6 +79,7 @@
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
-    }
+    },
+    "resolver": "react-native-reanimated/jest/resolver"
   }
 }

@@ -11,12 +11,12 @@ export const ideas: Idea[] = [
     name: { he: 'Relay – מרוץ שליחים', en: 'Relay' },
     tagline: {
       he: 'מרוץ שליחים בין חברים: מי שמחזיק את המקל יוצא לאימון ומעביר אותו הלאה, והקבוצה מתקדמת יחד על מסלול אמיתי – בלי טבלת מובילים.',
-      en: 'An asynchronous relay race between friends: whoever holds the baton trains and passes it on, and the team advances together along a real route – no leaderboard.',
+      en: 'A relay race between friends: whoever holds the baton trains and passes it on, and the team advances together along a real route – no leaderboard.',
     },
     category: 'health',
     secondaryCategories: ['social', 'games'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 5, weeksMax: 8 },
+    effort: { weeksMin: 6, weeksMax: 8 },
     budget: 'low',
     businessModel: 'freemium',
     platforms: ['ios', 'android'],
@@ -26,12 +26,12 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'medium', experimental: true, trending: true, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'Relay הופכת אימון לעניין קבוצתי בלי להפוך אותו לתחרות. חברים מקימים קבוצה של שלושה עד שישה אנשים ובוחרים מסלול אמיתי על המפה – למשל מאילת למטולה. בכל רגע רק אדם אחד מחזיק את "המקל": הוא צריך לצאת לריצה, להליכה או לרכיבה תוך 36 שעות, והמרחק שעשה מזיז את כל הקבוצה קדימה על המסלול. כשהוא מסיים, המקל עובר לחבר הבא. אם המקל נופל, הקבוצה לא נענשת בנקודות אלא עוקפת דרך מעקף קצר – ההפסד משותף, כמו ההישג. אין טבלת מובילים: המספרים היחידים שמוצגים הם כמה מסירות הקבוצה השלימה ברצף ואיפה היא על המפה. האימונים נמשכים אוטומטית מ-Apple Health או מ-Health Connect, כך שכל אחד תורם בקצב שלו – הליכה של עשרים דקות נחשבת מסירה מוצלחת בדיוק כמו ריצה של עשרה קילומטרים.',
+        he: 'Relay הופכת אימון לעניין קבוצתי בלי להפוך אותו לתחרות. חברים מקימים קבוצה של שלושה עד שישה אנשים ובוחרים מסלול אמיתי על המפה – למשל מאילת למטולה. בכל רגע רק אדם אחד מחזיק את "המקל": הוא צריך לצאת לריצה, להליכה או לרכיבה תוך 36 שעות, והמרחק שעשה מזיז את כל הקבוצה קדימה על המסלול. כשהוא מסיים, המקל עובר לחבר הבא. אם המקל נופל, הקבוצה לא נענשת בנקודות אלא עושה מעקף קצר – ההפסד משותף, כמו ההישג. אין טבלת מובילים: המספרים היחידים שמוצגים הם כמה מסירות הקבוצה השלימה ברצף ואיפה היא על המפה. האימונים מסתנכרנים אוטומטית מ-Apple Health או מ-Health Connect, כך שכל אחד תורם בקצב שלו – הליכה של עשרים דקות נחשבת מסירה מוצלחת בדיוק כמו ריצה של עשרה קילומטרים.',
         en: 'Relay turns training into a group affair without turning it into a competition. Friends form a team of three to six and pick a real route on the map – say, Eilat to Metula. Only one person holds the "baton" at a time: they have 36 hours to run, walk or ride, and the distance they cover moves the whole team along the route. Then the baton passes to the next teammate. If it drops, nobody is docked points – the team takes a short detour, so the setback is shared just like the progress. There is no leaderboard: the only numbers shown are how many hand-offs the team has completed in a row and where it is on the map. Workouts sync from Apple Health or Health Connect, so everyone contributes at their own pace – a twenty-minute walk is a completed hand-off exactly like a ten-kilometre run.',
       },
       problem: {
-        he: 'אפליקציות כושר חברתיות בנויות על טבלאות מובילים, וטבלאות מובילים מדרבנות רק את מי שכבר בראש. מי שמתחיל, איטי או עסוק רואה את עצמו בתחתית ונוטש אחרי שבועיים. אתגרי צעדים במקומות עבודה מתים מאותה סיבה: אותם שלושה רצים מנצחים כל חודש.',
-        en: 'Social fitness apps are built on leaderboards, and leaderboards only motivate the people already at the top. Beginners, slow movers and busy people see themselves at the bottom and quit within two weeks. Workplace step challenges die for the same reason: the same three runners win every month.',
+        he: 'אפליקציות כושר חברתיות בנויות על טבלאות מובילים, וטבלאות מובילים מדרבנות רק את מי שכבר בראש. מי שמתחיל, איטי או עסוק רואה את עצמו בתחתית ומהר מאוד מוותר. אתגרי צעדים במקומות עבודה מתים מאותה סיבה: אותם שלושה רצים מנצחים כל חודש.',
+        en: 'Social fitness apps are built on leaderboards, and leaderboards only motivate the people already at the top. Beginners, slow movers and busy people see themselves at the bottom and soon give up. Workplace step challenges die for the same reason: the same three runners win every month.',
       },
       solution: {
         he: 'מכניקת מרוץ שליחים שבה האחריות עוברת מאדם לאדם: לא "מי עשה הכי הרבה" אלא "האם לא הפלת את המקל". כל אימון, בכל עוצמה, נחשב מסירה מוצלחת, וההתקדמות נמדדת רק ברמת הקבוצה – על מסלול אמיתי שכולם רואים על המפה.',
@@ -136,12 +136,12 @@ export const ideas: Idea[] = [
     category: 'health',
     secondaryCategories: ['lifestyle'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 4, weeksMax: 6 },
+    effort: { weeksMin: 5, weeksMax: 7 },
     budget: 'low',
     businessModel: 'one-time',
     platforms: ['ios', 'android'],
     audience: ['consumers', 'parents'],
-    tags: ['nutrition', 'plants', 'variety', 'food log', 'vegetables', 'seasonal', 'shopping list'],
+    tags: ['nutrition', 'plants', 'variety', 'food log', 'vegetables', 'seasonal', 'shopping list', 'family'],
     identity: { hue: 105, glyph: 'Mo', pattern: 'dots' },
     flags: { beginnerFriendly: false, profitPotential: 'medium', experimental: false, trending: true, featuredWeight: 4 },
     spec: {
@@ -150,8 +150,8 @@ export const ideas: Idea[] = [
         en: 'Mosaic offers one nutrition metric you can hit without weighing anything: the number of different plants – vegetables, fruit, legumes, whole grains, nuts, seeds, herbs and spices – you ate in the past week. Thirty is the common target, but everyone picks their own. The trick is in the logging: you record dishes, not ingredients. A local dish dictionary knows that a sabich contributes eggplant, tahini, parsley, tomato and cucumber, and that red and green lentils count once. Every new plant adds a tile to the weekly "mosaic" – a colourful board that fills up – and the app suggests what is cheap and in season at the market to fill the gaps. No good or bad, no limits, no scale: just another tile.',
       },
       problem: {
-        he: 'רוב אפליקציות התזונה מבקשות לשקול, לסרוק ברקודים ולספור קלוריות – עבודה שרוב האנשים נוטשים תוך שבוע, ושמייצרת יחס מתוח לאוכל. מי שרוצה פשוט "לאכול יותר מגוון" לא מקבל שום כלי שמודד את זה, ומנות ישראליות מעורבות כמו חמין או מג׳דרה לא קיימות במאגרים הבינלאומיים.',
-        en: 'Most nutrition apps ask you to weigh, scan barcodes and count calories – work most people abandon within a week, and which breeds an anxious relationship with food. Anyone who simply wants to "eat more variety" gets no tool that measures it, and mixed Israeli dishes like hamin or mujadara do not exist in international databases.',
+        he: 'רוב אפליקציות התזונה מבקשות לשקול, לסרוק ברקודים ולספור קלוריות – עבודה שרוב האנשים נוטשים מהר, ושמייצרת יחס מתוח לאוכל. מי שרוצה פשוט "לאכול יותר מגוון" לא מקבל שום כלי שמודד את זה, ומנות ישראליות מעורבות כמו חמין או מג׳דרה לא קיימות במאגרים הבינלאומיים.',
+        en: 'Most nutrition apps ask you to weigh, scan barcodes and count calories – work most people abandon quickly, and which breeds an anxious relationship with food. Anyone who simply wants to "eat more variety" gets no tool that measures it, and mixed Israeli dishes like hamin or mujadara do not exist in international databases.',
       },
       solution: {
         he: 'מדד אחד – כמה צמחים שונים השבוע – עם תיעוד ברמת המנה דרך מילון מנות מקומי שמתורגם אוטומטית לרשימת צמחים. לוח פסיפס שמתמלא, הצעות עונתיות למילוי פערים, ורשימת קניות שנבנית מהצמחים שעדיין חסרים.',
@@ -212,7 +212,7 @@ export const ideas: Idea[] = [
         ],
       },
       uxDirection: {
-        he: 'שמח וחומרי: הפסיפס הוא לוח אריחים בצבעי ירקות אמיתיים, כל צמח עם איור קטן, והאריחים "נוחתים" באנימציה כשמנה מתועדת. אין אדום, אין גרפים של משקל, והמילה "דיאטה" לא מופיעה בשום מקום. התיעוד חייב להיגמר בשתי נגיעות, כי אנשים מתעדים ליד הכיור.',
+        he: 'שמח ומוחשי: הפסיפס הוא לוח אריחים בצבעי ירקות אמיתיים, כל צמח עם איור קטן, והאריחים "נוחתים" באנימציה כשמנה מתועדת. אין אדום, אין גרפים של משקל, והמילה "דיאטה" לא מופיעה בשום מקום. התיעוד חייב להיגמר בשתי נגיעות, כי אנשים מתעדים ליד הכיור.',
         en: 'Cheerful and tactile: the mosaic is a tile board in real vegetable colours, every plant with a small illustration, and tiles "land" with an animation when a dish is logged. No red, no weight graphs, and the word "diet" appears nowhere. Logging must finish in two taps, because people log standing at the sink.',
       },
       architecture: {
@@ -256,7 +256,7 @@ export const ideas: Idea[] = [
     category: 'health',
     secondaryCategories: ['productivity', 'lifestyle'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 3, weeksMax: 5 },
+    effort: { weeksMin: 4, weeksMax: 7 },
     budget: 'free',
     businessModel: 'open-source',
     platforms: ['ios', 'android'],
@@ -266,8 +266,8 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'low', experimental: false, trending: false, featuredWeight: 3 },
     spec: {
       overview: {
-        he: 'Shelf בנויה סביב טכניקה אחת שאנשי מקצוע מלמדים כבר שנים: לא להילחם בדאגה ברגע שהיא מופיעה, אלא לדחות אותה לזמן קבוע. כשמשהו מתחיל להסתובב בראש, כותבים אותו במשפט אחד ושמים אותו על המדף. האפליקציה לא מציעה טיפים, לא מבקשת לדרג מצב רוח ולא פותחת צ׳אט – היא רק מאשרת: "נשמר, נחזור לזה מחר ב-18:00". בחלון הדאגות היומי, רבע שעה שהמשתמש קובע, המדף נפתח: כל דאגה מוצגת בנפרד עם שלוש אפשרויות – להפוך לפעולה אחת קטנה, להשאיר למחר, או לסמן "כבר לא רלוונטי". המספר שהאפליקציה מדגישה הוא כמה דאגות פגו בעצמן: אחרי כמה שבועות רואים בעיניים שרוב מה שהעסיק אתכם בלילה לא דרש שום דבר. הכול נשמר במכשיר בלבד.',
-        en: 'Shelf is built around one technique practitioners have taught for years: do not fight a worry the moment it shows up – postpone it to a fixed time. When something starts spinning in your head, you write it in one line and put it on the shelf. The app offers no tips, asks for no mood rating and opens no chat – it simply confirms: "saved, back to this tomorrow at 18:00". In the daily worry window, a quarter hour the user sets, the shelf opens: each worry appears alone with three options – turn it into one small action, keep it for tomorrow, or mark it "no longer relevant". The number the app highlights is how many worries expired on their own: after a few weeks you see that most of what kept you up at night needed nothing at all. Everything stays on the device.',
+        he: 'Shelf בנויה סביב טכניקה פשוטה אחת: לא להילחם בדאגה ברגע שהיא מופיעה, אלא לדחות אותה לזמן קבוע. כשמשהו מתחיל להסתובב בראש, כותבים אותו במשפט אחד ושמים אותו על המדף. האפליקציה לא מציעה טיפים, לא מבקשת לדרג מצב רוח ולא פותחת צ׳אט – היא רק מאשרת: "נשמר, נחזור לזה מחר ב-18:00". בחלון הדאגות היומי, רבע שעה שהמשתמש קובע, המדף נפתח: כל דאגה מוצגת בנפרד עם שלוש אפשרויות – להפוך לפעולה אחת קטנה, להשאיר למחר, או לסמן "כבר לא רלוונטי". המספר שהאפליקציה מדגישה הוא כמה דאגות פגו בעצמן: אחרי כמה שבועות רואים בעיניים כמה ממה שהעסיק אתכם בלילה באמת דרש משהו. הכול נשמר במכשיר בלבד.',
+        en: 'Shelf is built around one simple technique: do not fight a worry the moment it shows up – postpone it to a fixed time. When something starts spinning in your head, you write it in one line and put it on the shelf. The app offers no tips, asks for no mood rating and opens no chat – it simply confirms: "saved, back to this tomorrow at 18:00". In the daily worry window, a quarter hour the user sets, the shelf opens: each worry appears alone with three options – turn it into one small action, keep it for tomorrow, or mark it "no longer relevant". The number the app highlights is how many worries expired on their own: after a few weeks you see for yourself how much of what kept you up at night actually needed anything. Everything stays on the device.',
       },
       problem: {
         he: 'דאגות מגיעות בדיוק כשאי אפשר לעשות איתן כלום – במיטה, בפקק, באמצע פגישה – ומסתובבות בראש שעות. אפליקציות "רווחה נפשית" מציעות מדיטציות, דירוג מצב רוח וצ׳אט עם בוט, אבל לא עוזרות ברגע עצמו, ולרוב הופכות לעוד דבר להרגיש אשמים עליו.',
@@ -278,8 +278,8 @@ export const ideas: Idea[] = [
         en: 'One mechanism and nothing else: capture in one line, lock until the fixed worry window, and in the window a quick decision per worry. No content, no bot, no ratings. The only insight the app shows is how many worries expired without any action.',
       },
       usp: {
-        he: 'האפליקציה שלא רוצה עוד מהזמן שלכם: אין פיד, אין סטרייקים, אין "תוכן יומי". רק מדף, חלון, ומספר אחד שמלמד אתכם משהו על הדאגות שלכם – וכל זה בלי שאף מילה עוזבת את הטלפון.',
-        en: 'The app that does not want more of your time: no feed, no streaks, no "daily content". Just a shelf, a window, and one number that teaches you something about your own worries – and not a word of it ever leaves the phone.',
+        he: 'האפליקציה שלא רוצה עוד מהזמן שלכם: אין פיד, אין סטרייקים, אין "תוכן יומי". רק מדף שנשאר סגור עד החלון, רבע שעה של החלטות, ומספר אחד שמלמד אתכם משהו על הדאגות שלכם – וכל זה בלי שאף מילה עוזבת את הטלפון.',
+        en: 'The app that does not want more of your time: no feed, no streaks, no "daily content". Just a shelf that stays closed until the window, a quarter hour of decisions, and one number that teaches you something about your own worries – and not a word of it ever leaves the phone.',
       },
       targetUsers: {
         he: ['אנשים שנרדמים קשה כי הראש לא נרגע', 'סטודנטים ועובדים בתקופות לחוצות עם המון "מה אם"', 'מי שעובד עם מטפל ורוצה כלי קטן בין הפגישות, לא במקומן'],
@@ -315,7 +315,7 @@ export const ideas: Idea[] = [
       ],
       userJourney: {
         he: [
-          'ב-23:40 עומר נזכר במייל שלא ענה עליו ומתחיל להתגלגל',
+          'ב-23:40 עומר נזכר במייל שלא ענה עליו והראש מתחיל לטחון',
           'הוא פותח את Shelf מהמסך הנעול, כותב "המייל של רועי" ולוחץ "על המדף"',
           'האפליקציה מאשרת: נשמר, נחזור לזה מחר ב-18:00 – והוא נרדם',
           'למחרת ב-18:00 החלון נפתח עם ארבע דאגות מהיום',
@@ -357,8 +357,8 @@ export const ideas: Idea[] = [
         en: ['One-line capture with local storage', 'Scheduled worry window with the three decisions', '"Expired on their own" counter and patterns screen', 'Night mode and biometric lock', 'Widget and capture shortcut', 'PDF export for a therapist'],
       },
       risks: {
-        he: ['המוצר נוגע במצוקה אמיתית – חייב להציג בבירור שהוא כלי ולא טיפול, ולהפנות לקווי סיוע כשמופיעות מילים מסוימות', 'אפליקציה עם מסך אחד נראית "קטנה מדי" לחנויות ולמשתמשים – השיווק צריך להסביר למה הריקנות היא הפיצ׳ר', 'בלי שרת אין שחזור: אובדן טלפון בלי גיבוי מוחק הכול, ולכן הגיבוי המוצפן צריך להיכנס מוקדם'],
-        en: ['The product touches real distress – it must state clearly that it is a tool, not treatment, and point to helplines when certain words appear', 'A one-screen app looks "too small" to stores and users – marketing has to explain why the emptiness is the feature', 'No server means no recovery: losing a phone without a backup wipes everything, so encrypted backup must come early'],
+        he: ['המוצר נוגע במצוקה אמיתית – חייב להציג בבירור שהוא כלי ולא טיפול, ולהפנות לקווי סיוע כשמופיעות מילים מסוימות', 'אפליקציה עם מסך אחד נראית "קטנה מדי" לחנויות ולמשתמשים – השיווק צריך להסביר למה הריקנות היא הפיצ׳ר', 'בלי שרת אין שחזור: אובדן טלפון בלי גיבוי מוחק הכול, ולכן הגיבוי המוצפן הוא הדבר הראשון שבונים אחרי ה-MVP'],
+        en: ['The product touches real distress – it must state clearly that it is a tool, not treatment, and point to helplines when certain words appear', 'A one-screen app looks "too small" to stores and users – marketing has to explain why the emptiness is the feature', 'No server means no recovery: losing a phone without a backup wipes everything, so the encrypted backup is the first thing to build after the MVP'],
       },
       expansion: {
         he: ['חלון משותף לזוגות: דאגות על הבית שנפתחות יחד פעם ביום', 'אינטגרציה עם אפליקציות שינה: המדף ננעל אוטומטית בשעת השינה', 'גרסת שולחן עבודה לקליטה מהמחשב באמצע יום עבודה'],
@@ -376,7 +376,7 @@ export const ideas: Idea[] = [
     category: 'health',
     secondaryCategories: ['business', 'lifestyle'],
     difficulty: 'advanced',
-    effort: { weeksMin: 9, weeksMax: 14 },
+    effort: { weeksMin: 10, weeksMax: 16 },
     budget: 'medium',
     businessModel: 'b2b',
     platforms: ['ios', 'android', 'web'],
@@ -386,7 +386,7 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'high', experimental: false, trending: false, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'Handoff נולדה מקבוצת הוואטסאפ המשפחתית שמנהלת את הטיפול בהורה מבוגר: שלושה אחים, מטפלת זרה או ישראלית, רופאת משפחה ונכדה שקופצת בימי שישי – ואף אחד לא יודע בוודאות אם אבא אכל היום, מי ראה אותו אחרון, ומה הרופאה אמרה בביקור. האפליקציה מחליפה את הקבוצה בטקס אחד קבוע: בסוף כל ביקור מקליטים הודעה קולית של דקה, והיא מתומללת ומסודרת אוטומטית לכרטיס מסירה עם שדות קבועים – מצב רוח, אכילה ושתייה, שינה, ניידות, מה נעשה, מה מדאיג, ומה צריך לקרות לפני הביקור הבא. מי שמגיע אחר כך פותח את האפליקציה ורואה בשלושים שניות את התמונה המלאה. בנוסף: בנק שאלות משותף לביקור הרופא הבא, לוח ביקורים שמראה חורים בשבוע, ותפקיד "מטפל" עם תצוגה מצומצמת בשפה שלו. המוצר לא נותן ייעוץ רפואי – הוא מסדר את מה שהמשפחה כבר יודעת.',
+        he: 'Handoff נולדה מקבוצת הוואטסאפ המשפחתית שמנהלת את הטיפול בהורה מבוגר: שלושה אחים, מטפלת צמודה ונכדה שקופצת בימי שישי – ואף אחד לא יודע בוודאות אם אבא אכל היום, מי ראה אותו אחרון, ומה הרופאה אמרה בביקור. האפליקציה מחליפה את הקבוצה בטקס אחד קבוע: בסוף כל ביקור מקליטים הודעה קולית של דקה, והיא מתומללת ומסודרת אוטומטית לכרטיס מסירה עם שדות קבועים – מצב רוח, אכילה ושתייה, שינה, ניידות, מה נעשה, מה מדאיג, ומה צריך לקרות לפני הביקור הבא. מי שמגיע אחר כך פותח את האפליקציה ורואה בשלושים שניות את התמונה המלאה. בנוסף: בנק שאלות משותף לביקור הרופא הבא, לוח ביקורים שמראה חורים בשבוע, ותפקיד "מטפל" עם תצוגה מצומצמת בשפה שלו. המוצר לא נותן ייעוץ רפואי – הוא מסדר את מה שהמשפחה כבר יודעת.',
         en: 'Handoff was born out of the family WhatsApp group that runs the care of an ageing parent: three siblings, a live-in carer and a granddaughter who drops by on Fridays – and nobody knows for sure whether Dad ate today, who saw him last, or what the doctor said. The app replaces the group with one fixed ritual: at the end of every visit you record a one-minute voice note, which is transcribed and sorted into a handoff card with fixed fields – mood, eating and drinking, sleep, mobility, what was done, what is worrying, what must happen before the next visit. Whoever comes next sees the full picture in thirty seconds. Around that: a shared question bank for the next doctor’s appointment, a visit board that exposes gaps in the week, and a "carer" role with a reduced view in their own language. No medical advice – it organises what the family already knows.',
       },
       problem: {
@@ -480,8 +480,8 @@ export const ideas: Idea[] = [
         en: ['Care circle, roles and code invites', 'Voice handoff that becomes an editable structured card', 'Timeline and visit board', 'Doctor question bank and tasks', 'Carer view with translation', 'Agency web dashboard and billing'],
       },
       risks: {
-        he: ['המוצר קרוב מאוד למידע רפואי – חייב להישאר "יומן" ולא "המלצה", עם ניסוח זהיר ובלי פרשנות של המודל', 'תמלול של עברית מדוברת עם שמות תרופות ומבטאים שונים יטעה לפעמים – הכרטיס תמיד מאושר ידנית', 'מכירה לסוכנויות היא מחזור ארוך שדורש פיילוט – להתחיל ממשפחות ולהשתמש בהן כהוכחה', 'מטפלים עלולים לחוות את הכלי כפיקוח – התצוגה שלהם צריכה לתת להם ערך ולא רק לדרוש דיווח'],
-        en: ['The product sits very close to medical information – it must remain a "log", not a "recommendation", with careful copy and no interpretation by the model', 'Transcribing spoken Hebrew with medication names and varied accents will sometimes get it wrong – the card is always confirmed by hand', 'Selling to agencies is a long cycle that needs a pilot – start with families and use them as proof', 'Carers may experience the tool as surveillance – their view must give them value, not only demand reports'],
+        he: ['המוצר קרוב מאוד למידע רפואי – חייב להישאר "יומן" ולא "המלצה", עם ניסוח זהיר ובלי פרשנות של המודל', 'תמלול של עברית מדוברת עם שמות תרופות ומבטאים שונים יטעה לפעמים – הכרטיס תמיד מאושר ידנית', 'מכירה לסוכנויות היא מחזור ארוך שדורש פיילוט – להתחיל ממשפחות ולהשתמש בהן כהוכחה', 'מטפלים עלולים לחוות את הכלי כפיקוח – התצוגה שלהם צריכה לתת להם ערך ולא רק לדרוש דיווח', 'ההורה הוא נושא היומן אבל לרוב לא משתמש בו – צריך לבקש את הסכמתו ככל שאפשר ולשמור על ניסוח מכבד בכל כרטיס'],
+        en: ['The product sits very close to medical information – it must remain a "log", not a "recommendation", with careful copy and no interpretation by the model', 'Transcribing spoken Hebrew with medication names and varied accents will sometimes get it wrong – the card is always confirmed by hand', 'Selling to agencies is a long cycle that needs a pilot – start with families and use them as proof', 'Carers may experience the tool as surveillance – their view must give them value, not only demand reports', 'The parent is the subject of the log but usually not a user – ask for their consent wherever possible and keep every card respectful in tone'],
       },
       expansion: {
         he: ['ייצוא תקופתי מסודר לרופאת המשפחה לפני תור', 'חיישנים ביתיים פשוטים (דלת, קומקום) כאיתות שקט בין ביקורים', 'מצב "הורים לילד עם צרכים מיוחדים" – אותו מבנה מסירה בין הורים, סייעת ובית ספר'],
@@ -499,11 +499,11 @@ export const ideas: Idea[] = [
     category: 'health',
     secondaryCategories: ['lifestyle', 'productivity'],
     difficulty: 'beginner',
-    effort: { weeksMin: 1, weeksMax: 3 },
+    effort: { weeksMin: 2, weeksMax: 3 },
     budget: 'free',
     businessModel: 'free',
     platforms: ['cross-platform'],
-    audience: ['consumers', 'students', 'professionals'],
+    audience: ['consumers', 'students', 'parents'],
     tags: ['caffeine', 'sleep', 'coffee', 'tracker', 'bedtime', 'widget', 'habits'],
     identity: { hue: 340, glyph: 'Lc', pattern: 'ring' },
     flags: { beginnerFriendly: true, profitPotential: 'low', experimental: false, trending: false, featuredWeight: 2 },
@@ -521,7 +521,7 @@ export const ideas: Idea[] = [
         en: 'Track the decision, not the sleep: one-tap coffee logging, a countdown to last call, and a single morning question. After two weeks – a personal chart that shows whether there is a link for you, with no sensors and no promises.',
       },
       usp: {
-        he: 'טריק של מסגור: לא "כמה קפה שתית" אלא "מתי היה האחרון". ספירה לאחור אחת על מסך הבית ובווידג׳ט הופכת כלל מעורפל להחלטה קונקרטית בזמן אמת – וההשוואה לשאלת הבוקר נותנת תשובה אישית במקום כלל אצבע.',
+        he: 'כל הטריק הוא במסגור: לא "כמה קפה שתית" אלא "מתי היה האחרון". ספירה לאחור אחת על מסך הבית ובווידג׳ט הופכת כלל מעורפל להחלטה קונקרטית בזמן אמת – וההשוואה לשאלת הבוקר נותנת תשובה אישית במקום כלל אצבע.',
         en: 'A framing trick: not "how much coffee did you drink" but "when was the last one". A single countdown on the home screen and widget turns a vague rule into a concrete real-time decision – and the comparison with the morning question gives a personal answer instead of a rule of thumb.',
       },
       targetUsers: {
@@ -548,16 +548,16 @@ export const ideas: Idea[] = [
       },
       screens: [
         { name: { he: 'ספירה לאחור', en: 'Countdown' }, description: { he: 'מסך הבית: שעון גדול שסופר לאחור לשעת הקפה האחרון, הכוס האחרונה שתועדה, וארבעה כפתורי משקה בתחתית.', en: 'The home screen: a big clock counting down to last call, the last logged cup, and four drink buttons at the bottom.' } },
-        { name: { he: 'תיעוד', en: 'Log' }, description: { he: 'גיליון תחתון שנפתח אחרי נגיעה: אישור השעה (אפשר לתקן אחורה), עוצמה, וכפתור "זהו".', en: 'A bottom sheet after a tap: confirm the time (adjustable backwards), strength, and a "done" button.' } },
+        { name: { he: 'תיעוד', en: 'Log' }, description: { he: 'חלונית שעולה מלמטה אחרי נגיעה: אישור השעה (אפשר לתקן אחורה), עוצמה, וכפתור "זהו".', en: 'A bottom sheet after a tap: confirm the time (adjustable backwards), strength, and a "done" button.' } },
         { name: { he: 'בוקר טוב', en: 'Good morning' }, description: { he: 'התראת בוקר שפותחת מסך אחד עם חמישה כפתורים: איך ישנת? נסגר מיד אחרי הבחירה.', en: 'A morning notification opening one screen with five buttons: how did you sleep? It closes right after the pick.' } },
         { name: { he: 'הגרף שלך', en: 'Your chart' }, description: { he: 'פיזור נקודות של שעת הקפה האחרון מול דירוג השינה, נעול עד שיש 14 לילות, עם משפט אחד שמסכם את המגמה.', en: 'A scatter of last-coffee time against sleep rating, locked until there are 14 nights, with one sentence summarising the trend.' } },
-        { name: { he: 'הגדרות', en: 'Settings' }, description: { he: 'שעת שינה בימי חול ובסוף שבוע, גודל החלון, סוגי משקאות ושעת שאלת הבוקר.', en: 'Weekday and weekend bedtime, window size, drink types and the morning question time.' } },
+        { name: { he: 'הגדרות', en: 'Settings' }, description: { he: 'שעת שינה בימי חול ובסוף שבוע, גודל החלון, סוגי משקאות, שעת שאלת הבוקר וייצוא CSV.', en: 'Weekday and weekend bedtime, window size, drink types, the morning question time and CSV export.' } },
       ],
       userJourney: {
         he: [
           'יעל מגדירה שעת שינה 23:30 וחלון של 8 שעות; שעת הקפה האחרון נקבעת ל-15:30',
           'ב-10:00 היא מתעדת הפוך בנגיעה אחת; הווידג׳ט מראה "עוד 5 שעות וחצי לקפה האחרון"',
-          'ב-16:10 היא שוקלת עוד כוס, רואה שהספירה הסתיימה, ומסתפקת בתה',
+          'ב-16:10 היא שוקלת עוד כוס, רואה שהספירה הסתיימה, ומסתפקת בחליטה',
           'בבוקר היא עונה "4" לשאלה היחידה',
           'אחרי שבועיים הגרף נפתח: הלילות הגרועים מתרכזים בימים עם קפה אחרי 17:00',
           'היא מזיזה את החלון ל-7 שעות ובודקת שוב בעוד שבועיים',
@@ -565,7 +565,7 @@ export const ideas: Idea[] = [
         en: [
           'Yael sets bedtime to 23:30 and a window of 8 hours; last call lands at 15:30',
           'At 10:00 she logs a latte with one tap; the widget reads "5h 30m to last call"',
-          'At 16:10 she considers another cup, sees the countdown has ended, and settles for tea',
+          'At 16:10 she considers another cup, sees the countdown has ended, and settles for a herbal tea',
           'In the morning she answers "4" to the only question',
           'After two weeks the chart unlocks: the bad nights cluster on days with coffee after 17:00',
           'She moves the window to 7 hours and checks again in another two weeks',

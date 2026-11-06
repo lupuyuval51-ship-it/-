@@ -16,7 +16,7 @@ export const ideas: Idea[] = [
     category: 'entertainment',
     secondaryCategories: ['lifestyle', 'ai'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 6, weeksMax: 9 },
+    effort: { weeksMin: 6, weeksMax: 8 },
     budget: 'medium',
     businessModel: 'subscription',
     platforms: ['ios', 'android'],
@@ -26,20 +26,20 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'medium', experimental: false, trending: true, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'Stint היא נגן פודקאסטים שמתחיל מהשאלה "כמה זמן יש לך?" ולא מ"מה בא לך לשמוע?". רוב הפרקים נמשכים שעה-שעתיים, אבל הנסיעה לעבודה נמשכת 25 דקות, ולכן מאזינים נעצרים תמיד באמצע קטע ומתחילים פרק חדש לפני שסיימו את הקודם. המשתמש מגדיר חלון זמן, והאפליקציה מרכיבה סשן מקטעים שלמים מתוך המינויים שלו: פרקים שמגיעים עם סימוני פרקים מפורקים לפי הסימונים, ופרקים בלי סימונים – רוב הפודקאסטים בעברית – מפורקים לפי התמלול וזיהוי מעברי נושא. כל תוכנית נשמרת בדיוק בנקודה שבה עצרה, והסשן הבא ממשיך משם. כשהנסיעה נגמרת אין "איפה הייתי?" – רק הקטע הבא.',
-        en: 'Stint is a podcast player that starts from "how long do you have?" instead of "what do you want to hear?". Most episodes run one to two hours, but a commute takes 25 minutes, so listeners keep stopping mid-segment and starting a new episode before finishing the last. The user sets a time window and the app assembles a session from complete segments across their subscriptions: episodes with chapter markers are split along the markers, and episodes without them – most Hebrew shows – are split by transcript and topic-shift detection. Every show is saved exactly where it stopped, and the next session picks up there. When the drive ends there is no "where was I?" – only the next segment.',
+        he: 'Stint הוא נגן פודקאסטים שמתחיל מהשאלה "כמה זמן יש לך?" ולא מ"מה בא לך לשמוע?". פרקים רבים נמשכים שעה ויותר, אבל הנסיעה לעבודה נמשכת 25 דקות, ולכן מאזינים נעצרים תמיד באמצע קטע ומתחילים פרק חדש לפני שסיימו את הקודם. המשתמש מגדיר חלון זמן, והאפליקציה מרכיבה סשן מקטעים שלמים מתוך המינויים שלו: פרקים שמגיעים עם סימוני פרקי משנה מפורקים לפי הסימונים, ופרקים בלי סימונים – רבים מהפודקאסטים בעברית – מפורקים לפי התמלול וזיהוי מעברי נושא. כל תוכנית נשמרת בדיוק בנקודה שבה עצרה, והסשן הבא ממשיך משם. כשהנסיעה נגמרת אין "איפה הייתי?" – רק הקטע הבא.',
+        en: 'Stint is a podcast player that starts from "how long do you have?" instead of "what do you want to hear?". Many episodes run an hour or more, but a commute takes 25 minutes, so listeners keep stopping mid-segment and starting a new episode before finishing the last. The user sets a time window and the app assembles a session from complete segments across their subscriptions: episodes with chapter markers are split along the markers, and episodes without them – many Hebrew shows – are split by transcript and topic-shift detection. Every show is saved exactly where it stopped, and the next session picks up there. When the drive ends there is no "where was I?" – only the next segment.',
       },
       problem: {
         he: 'פרקי פודקאסט נבנים לאורך של שעה ויותר, אבל ההאזנה קורית בחלונות קצרים: נסיעה, הליכה עם הכלב, שטיפת כלים. התוצאה היא עשרות פרקים "באמצע", עצירות חדות בלב סיפור, ותחושה שאף פעם לא מסיימים כלום – ואז מפסיקים להאזין.',
         en: 'Podcast episodes are built to run an hour or more, but listening happens in short windows: a drive, walking the dog, the dishes. The result is dozens of half-finished episodes, hard stops in the middle of a story, and a feeling of never finishing anything – so people stop listening.',
       },
       solution: {
-        he: 'סשן האזנה שנבנה לאורך הזמן שיש, מקטעים שלמים בלבד, לפי סדר עדיפויות שהמשתמש קובע (קודם חדשות, אחר כך ראיונות ארוכים). פרקים בלי סימוני פרקים מפורקים אוטומטית לפי התמלול, והפירוק מחושב פעם אחת לכל פרק ומשרת את כל המאזינים.',
+        he: 'סשן האזנה שנבנה לאורך הזמן שיש, מקטעים שלמים בלבד, לפי סדר עדיפויות שהמשתמש קובע (קודם חדשות, אחר כך ראיונות ארוכים). פרקים בלי סימוני פרקי משנה מפורקים אוטומטית לפי התמלול, והפירוק מחושב פעם אחת לכל פרק ומשרת את כל המאזינים.',
         en: 'A listening session sized to the time available, built only from complete segments, in a priority order the user sets (news first, long interviews after). Episodes without chapter markers are split automatically from the transcript, and each split is computed once per episode and shared by every listener.',
       },
       usp: {
-        he: 'לא עוד נגן עם כפתור 1.5x: היחידה הבסיסית היא קטע ולא פרק, הסשן מותאם לאורך הנסיעה, ופודקאסטים בעברית – שכמעט אף פעם לא מגיעים עם סימוני פרקים – מקבלים חלוקה אמיתית לנושאים.',
-        en: 'Not another player with a 1.5x button: the basic unit is a segment rather than an episode, the session fits the length of the drive, and Hebrew podcasts – which almost never ship with chapter markers – get a real split by topic.',
+        he: 'לא עוד נגן עם כפתור 1.5x, ולא עוד "פרקים אוטומטיים" בתוך פרק שעדיין צריך לשמוע מההתחלה: היחידה הבסיסית היא קטע ולא פרק, אלגוריתם אריזה מתאים את הסשן לאורך הנסיעה בדיוק, ופודקאסטים בעברית – שרבים מהם מגיעים בלי סימוני פרקי משנה – מקבלים חלוקה אמיתית לנושאים.',
+        en: 'Not another player with a 1.5x button, and not auto-chapters inside an episode you still have to hear from the top: the basic unit is a segment rather than an episode, a packing algorithm fits the session to the exact length of the drive, and Hebrew podcasts – many of which ship without chapter markers – get a real split by topic.',
       },
       targetUsers: {
         he: ['נוסעים יומיומיים עם 20–40 דקות נסיעה לכל כיוון', 'מאזינים כבדים עם עשרות פרקים שהתחילו ולא סיימו', 'מאזינים לפודקאסטים בעברית שרוצים לקפוץ ישר לקטע שמעניין אותם'],
@@ -48,7 +48,7 @@ export const ideas: Idea[] = [
       coreFeatures: {
         he: [
           'הגדרת חלון זמן ("יש לי 25 דקות") ובניית סשן מקטעים שלמים',
-          'פירוק פרקים לפי סימוני פרקים קיימים (Podcasting 2.0 ו-ID3)',
+          'פירוק פרקים לפי סימוני פרקי משנה קיימים (Podcasting 2.0)',
           'פירוק אוטומטי לפי תמלול לפרקים בלי סימונים, כולל בעברית',
           'סדר עדיפויות בין תוכניות: מה נכנס תמיד ראשון ומה ממלא את הזמן שנשאר',
           'שמירת המקום המדויק של כל תוכנית והמשך משם בסשן הבא',
@@ -57,7 +57,7 @@ export const ideas: Idea[] = [
         ],
         en: [
           'Set a time window ("I have 25 minutes") and build a session from complete segments',
-          'Split episodes along existing chapter markers (Podcasting 2.0 and ID3)',
+          'Split episodes along existing chapter markers (Podcasting 2.0)',
           'Automatic transcript-based splitting for episodes without markers, Hebrew included',
           'Priority order between shows: what always goes first and what fills the remaining time',
           'Save the exact position of every show and resume from it in the next session',
@@ -71,11 +71,11 @@ export const ideas: Idea[] = [
         { name: { he: 'נגן', en: 'Player' }, description: { he: 'תמלול חי של הקטע הנוכחי, פס התקדמות של הקטע ולא של הפרק, וכפתור "דלג על הקטע" גדול לשימוש ברכב.', en: 'Live transcript of the current segment, a progress bar for the segment rather than the episode, and a big "skip segment" button for use in the car.' } },
         { name: { he: 'המינויים', en: 'Subscriptions' }, description: { he: 'התוכניות שלך לפי סדר עדיפויות (גרירה), מצב הפירוק של כל פרק ואילו פרקים נעצרו באמצע.', en: 'Your shows in priority order (drag), the split status of each episode and which episodes were stopped mid-way.' } },
         { name: { he: 'פרק', en: 'Episode' }, description: { he: 'ציר הקטעים של פרק בודד עם כותרות שנוצרו מהתמלול, קטעים שכבר נשמעו מעומעמים, ולחיצה להוספת קטע לסשן הבא.', en: 'The segment timeline of a single episode with titles generated from the transcript, heard segments dimmed, and tap to add a segment to the next session.' } },
-        { name: { he: 'חיפוש תוכניות', en: 'Find shows' }, description: { he: 'חיפוש בספריות הפודקאסטים הציבוריות והוספה לפי כתובת RSS, עם סימון לתוכניות שכבר מגיעות עם סימוני פרקים.', en: 'Search public podcast directories and add by RSS URL, with a badge on shows that already ship chapter markers.' } },
+        { name: { he: 'חיפוש תוכניות', en: 'Find shows' }, description: { he: 'חיפוש בספריות הפודקאסטים הציבוריות והוספה לפי כתובת RSS, עם סימון לתוכניות שכבר מגיעות עם סימוני פרקי משנה.', en: 'Search public podcast directories and add by RSS URL, with a badge on shows that already ship chapter markers.' } },
       ],
       userJourney: {
         he: [
-          'המשתמש מוסיף חמש תוכניות, שתיים מהן בעברית בלי סימוני פרקים',
+          'המשתמש מוסיף חמש תוכניות, שתיים מהן בעברית בלי סימוני פרקי משנה',
           'בבוקר הוא מגדיר "נסיעה – 25 דקות" ומקבל סשן של שלושה קטעים: חדשות, קטע ראיון ופינה קצרה',
           'הפרק הארוך בעברית פורק בלילה לפי התמלול, ולכן קטע הראיון מתחיל ונגמר בנקודות טבעיות',
           'באמצע הנסיעה הוא מדלג על קטע משעמם והאפליקציה מושכת קטע קצר במקומו',
@@ -96,12 +96,12 @@ export const ideas: Idea[] = [
         en: 'Built to be used without looking: one big dial on the home screen, oversized player buttons, and transcript in large type for a glance at a red light. The progress bar always represents a segment, not an episode, so the end feels near. Dark by default and quiet – no "new" badges and no anxious counters.',
       },
       architecture: {
-        he: 'Expo עם expo-audio להשמעה ברקע ו-expo-file-system להורדות. Supabase לאימות, למינויים ולמצב ההאזנה. Edge Function מושכת פידי RSS, קוראת סימוני פרקים קיימים, ולפרקים בלי סימונים מריצה תמלול (Whisper או ספק מנוהל שתומך בעברית) ואחריו מודל שפה שמזהה מעברי נושא ומחזיר קטעים עם כותרות. הפירוק נשמר בטבלה גלובלית לכל פרק, כך שכל מאזין נוסף לאותו פרק לא עולה כלום. בניית הסשן היא אלגוריתם דטרמיניסטי במכשיר: אריזת קטעים לחלון הזמן לפי עדיפויות.',
+        he: 'Expo עם expo-audio להשמעה ברקע ו-expo-file-system להורדות. Supabase לאימות, למינויים ולמצב ההאזנה. Edge Function מושכת פידי RSS, קוראת סימוני פרקי משנה קיימים, ולפרקים בלי סימונים מריצה תמלול (Whisper או ספק מנוהל שתומך בעברית) ואחריו מודל שפה שמזהה מעברי נושא ומחזיר קטעים עם כותרות. הפירוק נשמר בטבלה גלובלית לכל פרק, כך שכל מאזין נוסף לאותו פרק לא עולה כלום. בניית הסשן היא אלגוריתם דטרמיניסטי במכשיר: אריזת קטעים לחלון הזמן לפי עדיפויות.',
         en: 'Expo with expo-audio for background playback and expo-file-system for downloads. Supabase for auth, subscriptions and listening state. An Edge Function fetches RSS feeds, reads chapter markers, and for episodes without them runs transcription (Whisper or a managed provider with Hebrew support) followed by a language model that detects topic shifts and returns titled segments. Splits are stored in a global per-episode table, so each extra listener of the same episode costs nothing. Session building is a deterministic on-device algorithm: packing segments into the time window by priority.',
       },
       stack: ['Expo', 'expo-audio', 'expo-file-system', 'Supabase', 'Supabase Edge Functions', 'OpenAI Whisper API', 'Anthropic or OpenAI API'],
       database: {
-        he: ['profiles – משתמש, קיצורי זמן, העדפות מהירות', 'shows – תוכנית, כתובת RSS, האם מגיעה עם סימוני פרקים', 'episodes – פרק, קובץ שמע, משך, מצב פירוק (גלובלי)', 'segments – קטע, פרק, התחלה, סוף, כותרת, מקור (סימון / תמלול)', 'subscriptions – משתמש, תוכנית, עדיפות', 'positions – משתמש, פרק, הקטע והשנייה שבהם נעצר', 'sessions – סשן, אורך מבוקש, הקטעים שנבחרו ומה נשמע בפועל'],
+        he: ['profiles – משתמש, קיצורי זמן, העדפות מהירות', 'shows – תוכנית, כתובת RSS, האם מגיעה עם סימוני פרקי משנה', 'episodes – פרק, קובץ שמע, משך, מצב פירוק (גלובלי)', 'segments – קטע, פרק, התחלה, סוף, כותרת, מקור (סימון / תמלול)', 'subscriptions – משתמש, תוכנית, עדיפות', 'positions – משתמש, פרק, הקטע והשנייה שבהם נעצר', 'sessions – סשן, אורך מבוקש, הקטעים שנבחרו ומה נשמע בפועל'],
         en: ['profiles – user, time presets, speed preferences', 'shows – show, RSS URL, whether it ships chapter markers', 'episodes – episode, audio file, duration, split status (global)', 'segments – segment, episode, start, end, title, source (marker / transcript)', 'subscriptions – user, show, priority', 'positions – user, episode, the segment and second where it stopped', 'sessions – session, requested length, chosen segments and what was actually heard'],
       },
       auth: {
@@ -109,11 +109,11 @@ export const ideas: Idea[] = [
         en: 'Apple and Google sign-in, with a no-account start that keeps subscriptions on the device. An account is needed only for cross-device sync and the subscription. Listening state is protected with per-user RLS; the episode and segment tables are shared and readable by everyone.',
       },
       monetization: {
-        he: ['חינם: סשנים מתוכניות שכבר מגיעות עם סימוני פרקים', 'מנוי חודשי: פירוק אוטומטי לפי תמלול ללא הגבלה, הורדות וסנכרון', 'חבילה לרשתות פודקאסטים: פירוק וכותרות לקטעים לכל הקטלוג שלהן'],
+        he: ['חינם: סשנים מתוכניות שכבר מגיעות עם סימוני פרקי משנה', 'מנוי חודשי: פירוק אוטומטי לפי תמלול ללא הגבלה, הורדות וסנכרון', 'חבילה לרשתות פודקאסטים: פירוק וכותרות לקטעים לכל הקטלוג שלהן'],
         en: ['Free: sessions from shows that already ship chapter markers', 'Monthly subscription: unlimited transcript-based splitting, downloads and sync', 'A plan for podcast networks: splitting and segment titles across their whole catalogue'],
       },
       mvpMilestones: {
-        he: ['נגן בסיסי עם RSS, הורדה והשמעה ברקע', 'קריאת סימוני פרקים ובניית סשן לפי חלון זמן', 'שמירת מיקום לכל תוכנית והמשך בסשן הבא', 'צינור תמלול ופירוק לפרקים בלי סימונים, עם מטמון גלובלי', 'סדר עדיפויות ודילוג על קטעים', 'מסך תשלום ומנוי'],
+        he: ['נגן בסיסי עם RSS, הורדה והשמעה ברקע', 'קריאת סימוני פרקי משנה ובניית סשן לפי חלון זמן', 'שמירת מיקום לכל תוכנית והמשך בסשן הבא', 'צינור תמלול ופירוק לפרקים בלי סימונים, עם מטמון גלובלי', 'סדר עדיפויות ודילוג על קטעים', 'מסך תשלום ומנוי'],
         en: ['Basic player with RSS, download and background playback', 'Chapter-marker parsing and session building by time window', 'Per-show position saving and resume in the next session', 'Transcription and splitting pipeline for marker-less episodes, with a global cache', 'Priority order and segment skipping', 'Paywall and subscription'],
       },
       risks: {
@@ -121,8 +121,8 @@ export const ideas: Idea[] = [
         en: ['Transcribing two-hour episodes is expensive – split only episodes someone is actually subscribed to, and only once per episode', 'Topic-shift splitting can cut in the middle of a story – a minimum segment length rule and human review on a sample are needed', 'Exclusive shows on closed platforms are not available via RSS, and listeners may miss them', 'Background playback on iOS and Android needs a development build and careful audio-session handling'],
       },
       expansion: {
-        he: ['CarPlay ו-Android Auto עם מסך "בנה סשן" אחד', 'סיכום קולי של 30 שניות לקטע שדילגו עליו', 'ייבוא היסטוריה מנגנים אחרים כדי לא להתחיל מאפס', 'שיתוף קטע בודד עם חבר כקישור שמתחיל בשנייה הנכונה'],
-        en: ['CarPlay and Android Auto with a single "build session" screen', 'A 30-second spoken recap of a segment that was skipped', 'Import history from other players so nobody starts from zero', 'Share a single segment with a friend as a link that starts at the right second'],
+        he: ['CarPlay ו-Android Auto עם מסך "בנה סשן" אחד', 'סיכום קולי של 30 שניות לקטע שדילגו עליו', 'ייבוא היסטוריה מנגנים אחרים כדי לא להתחיל מאפס', 'שיתוף קטע בודד עם חבר כקישור שמתחיל בשנייה הנכונה', 'קריאת סימוני פרקי משנה המוטמעים בקובצי MP3 (ID3)'],
+        en: ['CarPlay and Android Auto with a single "build session" screen', 'A 30-second spoken recap of a segment that was skipped', 'Import history from other players so nobody starts from zero', 'Share a single segment with a friend as a link that starts at the right second', 'Read chapter markers embedded in MP3 files (ID3)'],
       },
     },
   },
@@ -136,7 +136,7 @@ export const ideas: Idea[] = [
     category: 'entertainment',
     secondaryCategories: ['business', 'lifestyle'],
     difficulty: 'advanced',
-    effort: { weeksMin: 9, weeksMax: 13 },
+    effort: { weeksMin: 12, weeksMax: 16 },
     budget: 'medium',
     businessModel: 'b2b',
     platforms: ['ios', 'android', 'web'],
@@ -146,23 +146,23 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'high', experimental: false, trending: false, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'Standby מחברת בין שני צדדים של אותו ערב: מקום קטן – מועדון מוזיקה, תיאטרון פרינג׳, מועדון סטנד-אפ – שיודע בשש בערב שיישארו לו עשרים כיסאות ריקים, ואנשים שנמצאים במרחק הליכה ומחפשים מה לעשות הערב. המקום מגדיר פעם אחת כלל שחרור: אם עד שעה מסוימת נמכרו פחות מאחוז מסוים מהמקומות, משחררים כמות מוגדרת במחיר מוזל לאנשים ברדיוס נתון שעוקבים אחרי הז׳אנר. האפליקציה שולחת התראה ממוקדת, מחזיקה את המקום כמה דקות, גובה תשלום ומנפיקה קוד כניסה. המקום רואה בזמן אמת כמה מושבים התמלאו, ומקבל אחרי כל ערב דוח קצר על מי הגיע ומתי. בלי מכירת כרטיסים רגילה ובלי להתחרות בחברות הכרטוס – רק המושבים שהיו נשארים ריקים.',
-        en: 'Standby connects both sides of one evening: a small venue – a music club, fringe theatre or comedy club – that knows by six that twenty seats will stay empty, and people within walking distance looking for plans tonight. The venue sets a release rule once: if less than a given share has sold by a given hour, release a set number at a reduced price to nearby people who follow the genre. The app sends a targeted alert, holds the seat briefly, takes payment and issues an entry code. The venue watches seats fill in real time and gets a short report after every show on who came and when. No regular ticketing and no competing with ticketing companies – only seats that would have stayed empty.',
+        he: 'Standby מחברת בין שני צדדים של אותו ערב: מקום קטן – מועדון מוזיקה, תיאטרון פרינג׳, מועדון סטנד-אפ – שיודע בשש בערב שיישארו לו עשרים כיסאות ריקים, ואנשים שנמצאים במרחק הליכה ומחפשים מה לעשות הערב. המקום מגדיר פעם אחת כלל שחרור: אם עד שעה מסוימת נמכרו פחות מאחוז מסוים מהמקומות, משחררים כמות מוגדרת במחיר מוזל לאנשים ברדיוס נתון שעוקבים אחרי הז׳אנר. האפליקציה שולחת התראה ממוקדת, מחזיקה את המקום כמה דקות, גובה תשלום ומנפיקה קוד כניסה. המקום רואה בזמן אמת כמה מושבים התמלאו, ומקבל אחרי כל ערב דוח קצר על כמה הגיעו ומתי. בלי מכירת כרטיסים רגילה ובלי להתחרות בחברות הכרטוס – רק המושבים שהיו נשארים ריקים.',
+        en: 'Standby connects both sides of one evening: a small venue – a music club, fringe theatre or comedy club – that knows by six that twenty seats will stay empty, and people within walking distance looking for plans tonight. The venue sets a release rule once: if less than a given share has sold by a given hour, release a set number at a reduced price to nearby people who follow the genre. The app sends a targeted alert, holds the seat briefly, takes payment and issues an entry code. The venue watches seats fill in real time and gets a short report after every show on how many came and when. No regular ticketing and no competing with ticketing companies – only seats that would have stayed empty.',
       },
       problem: {
-        he: 'מקומות קטנים חיים על ערבים מלאים, אבל ברוב הערבים נשארים כיסאות שלא נמכרו, ואין דרך טובה למכור אותם ברגע האחרון בלי לפגוע במי שקנה מראש במחיר מלא. מהצד השני, מי שרוצה לצאת "הערב" מגלגל בין אינסטגרם, קבוצות וואטסאפ ואתרי כרטיסים – ובסוף נשאר בבית.',
-        en: 'Small venues live on full rooms, yet most nights some seats stay unsold, and there is no good way to move them last-minute without undercutting people who bought in advance at full price. On the other side, anyone who wants to go out "tonight" bounces between Instagram, WhatsApp groups and ticket sites – and ends up staying home.',
+        he: 'מקומות קטנים חיים על ערבים מלאים, אבל בערבים רבים נשארים כיסאות שלא נמכרו, ואין דרך טובה למכור אותם ברגע האחרון בלי לפגוע במי שקנה מראש במחיר מלא. מהצד השני, מי שרוצה לצאת "הערב" מגלגל בין אינסטגרם, קבוצות וואטסאפ ואתרי כרטיסים – ובסוף נשאר בבית.',
+        en: 'Small venues live on full rooms, yet on many nights some seats stay unsold, and there is no good way to move them last-minute without undercutting people who bought in advance at full price. On the other side, anyone who wants to go out "tonight" bounces between Instagram, WhatsApp groups and ticket sites – and ends up staying home.',
       },
       solution: {
         he: 'כלל שחרור שהמקום מגדיר פעם אחת ורץ אוטומטית, התראות ממוקדות לפי מרחק וז׳אנר במקום פרסום לכולם, החזקת מקום לדקות ספורות ותשלום בלחיצה, וקוד כניסה שסורקים בדלת. המקום שולט במחיר, בכמות ובתזמון; המשתמש רואה רק הצעות שהוא באמת יכול להגיע אליהן.',
         en: 'A release rule the venue sets once and that runs automatically, targeted alerts by distance and genre instead of blasting everyone, a short seat hold with one-tap payment, and an entry code scanned at the door. The venue controls price, quantity and timing; the user only sees offers they can actually reach.',
       },
       usp: {
-        he: 'לא עוד לוח אירועים: Standby מוכרת רק את מה שאחרת היה נשאר ריק, לפי כללים שהמקום קובע מראש, ורק לאנשים שנמצאים קרוב מספיק כדי להגיע תוך שעה. למקום זו הכנסה שולית בלי מאמץ; למשתמש זה ערב ספונטני במחיר הוגן.',
-        en: 'Not another events board: Standby sells only what would otherwise stay empty, under rules the venue sets in advance, and only to people close enough to arrive within the hour. For the venue it is effortless marginal revenue; for the user it is a spontaneous night out at a fair price.',
+        he: 'לא עוד לוח אירועים ולא עוד רשימת "דילים לרגע האחרון" שמישהו במקום צריך לעדכן כל ערב: Standby מוכרת רק את מה שאחרת היה נשאר ריק, לפי כלל תפוסה שהמקום מגדיר פעם אחת ורץ לבד, ורק לאנשים שנמצאים קרוב מספיק כדי להגיע תוך שעה. למקום זו הכנסה שולית בלי עבודה ידנית; למשתמש זה ערב ספונטני במחיר הוגן.',
+        en: 'Not another events board, and not another "last-minute deals" list someone at the venue has to update every night: Standby sells only what would otherwise stay empty, under an occupancy rule the venue defines once and that runs on its own, and only to people close enough to arrive within the hour. For the venue it is marginal revenue without manual work; for the user it is a spontaneous night out at a fair price.',
       },
       targetUsers: {
-        he: ['מועדוני מוזיקה, תיאטראות פרינג׳ ומועדוני סטנד-אפ עם 50–400 מקומות', 'מפיקים עצמאיים של ערבי מוזיקה וקומדיה', 'תושבי המרכז שמחליטים ברגע האחרון לצאת', 'סטודנטים וצעירים שרגישים למחיר אבל אוהבים תרבות חיה'],
+        he: ['מועדוני מוזיקה, תיאטראות פרינג׳ ומועדוני סטנד-אפ עם 50–400 מקומות', 'מפיקים עצמאיים של ערבי מוזיקה וקומדיה', 'תושבי העיר שמחליטים ברגע האחרון לצאת', 'סטודנטים וצעירים שרגישים למחיר אבל אוהבים תרבות חיה'],
         en: ['Music clubs, fringe theatres and comedy clubs with 50–400 seats', 'Independent producers of music and comedy nights', 'City residents who decide to go out at the last minute', 'Students and young adults who are price-sensitive but love live culture'],
       },
       coreFeatures: {
@@ -188,7 +188,7 @@ export const ideas: Idea[] = [
       screens: [
         { name: { he: 'הערב', en: 'Tonight' }, description: { he: 'מסך הבית למשתמש: מפה וכרטיסים של מה שמשוחרר עכשיו, זמן הליכה, מחיר, וכמה מקומות נשארו.', en: 'The user home: a map and cards of what is released right now, walking time, price and how many seats remain.' } },
         { name: { he: 'הצעה', en: 'Offer' }, description: { he: 'פרטי האירוע, שעת התחלה, כמה מילים על המקום, טיימר ההחזקה וכפתור תשלום אחד.', en: 'Event details, start time, a few words on the venue, the hold timer and a single pay button.' } },
-        { name: { he: 'הכרטיס שלי', en: 'My ticket' }, description: { he: 'קוד QR גדול בניגודיות גבוהה, ניווט למקום, וכפתור "אני מאחר" שמעדכן את הדלת.', en: 'A large high-contrast QR code, directions to the venue, and an "I am running late" button that updates the door.' } },
+        { name: { he: 'הכרטיס שלי', en: 'My ticket' }, description: { he: 'קוד QR גדול בניגודיות גבוהה, ניווט למקום, וכפתור "אני מאחר/ת" שמעדכן את הדלת.', en: 'A large high-contrast QR code, directions to the venue, and an "I am running late" button that updates the door.' } },
         { name: { he: 'העדפות', en: 'Preferences' }, description: { he: 'ז׳אנרים שעוקבים אחריהם, רדיוס קבוע או לפי המיקום הנוכחי, והימים והשעות שבהם רוצים לקבל התראות.', en: 'Followed genres, a fixed radius or the current location, and the days and hours when alerts are welcome.' } },
         { name: { he: 'לוח המקום', en: 'Venue dashboard' }, description: { he: 'ממשק ווב למקום: האירועים הקרובים, תפוסה נוכחית, כללי השחרור הפעילים וההכנסה השולית מהחודש.', en: 'The venue web console: upcoming events, current occupancy, active release rules and marginal revenue this month.' } },
         { name: { he: 'כלל שחרור', en: 'Release rule' }, description: { he: 'טופס קצר: סף תפוסה, שעת בדיקה, כמות לשחרור, הנחה ורדיוס – עם תצוגה מקדימה של ההתראה שתישלח.', en: 'A short form: occupancy threshold, check time, quantity to release, discount and radius – with a preview of the alert that will go out.' } },
@@ -258,7 +258,7 @@ export const ideas: Idea[] = [
     category: 'entertainment',
     secondaryCategories: ['games', 'social'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 6, weeksMax: 9 },
+    effort: { weeksMin: 6, weeksMax: 8 },
     budget: 'low',
     businessModel: 'one-time',
     platforms: ['ios', 'android'],
@@ -269,7 +269,7 @@ export const ideas: Idea[] = [
     spec: {
       overview: {
         he: 'Alibi היא תעלומה אינטראקטיבית שמשחקים בקבוצה של שלושה עד שישה חברים לאורך שבוע, בלי להיפגש. כל "תיק" הוא סיפור כתוב מראש שמחולק לימים: בכל יום כולם מקבלים סצנה משותפת, ובנוסף כל שחקן מקבל ראיות פרטיות שרק הוא רואה – הודעה קולית, תמונה, עמוד מיומן. שחקן אחד, שנבחר בסתר, מקבל גם סוד ומטרה: להסיט את החקירה בלי להיתפס. הקבוצה מתווכחת איפה שהיא מתווכחת ממילא – בוואטסאפ – וחוזרת לאפליקציה כדי להצביע בנקודת ההסתעפות של אותו יום. ההצבעה קובעת איזו סצנה תיפתח מחר, ובסוף השבוע מגיעים הגילוי, הניקוד ומה כל אחד ידע ולא סיפר. אין צ׳אט בתוך האפליקציה, בכוונה: הסיפור נותן סיבה לדבר, והדיבור קורה בחוץ.',
-        en: 'Alibi is an interactive mystery for three to six friends, played over a week without meeting up. Each "case" is a pre-written story split into days: everyone gets a shared scene each day, plus private evidence only they can see – a voice note or a diary page. One player, picked in secret, gets a secret and an objective: steer the investigation without being caught. The group argues where it already argues – on WhatsApp – and returns to the app to vote at the day’s fork. The vote decides which scene unlocks tomorrow; the week ends with the reveal, the scores and who kept quiet about what. No in-app chat, deliberately: the story gives people a reason to talk, and the talking happens outside.',
+        en: 'Alibi is an interactive mystery for three to six friends, played over a week without meeting up. Each "case" is a pre-written story split into days: everyone gets a shared scene each day, plus private evidence only they can see – a voice note, a photo or a diary page. One player, picked in secret, gets a secret and an objective: steer the investigation without being caught. The group argues where it already argues – on WhatsApp – and returns to the app to vote at the day’s fork. The vote decides which scene unlocks tomorrow; the week ends with the reveal, the scores and who kept quiet about what. No in-app chat, deliberately: the story gives people a reason to talk, and the talking happens outside.',
       },
       problem: {
         he: 'חברים שגרים בערים שונות או עם לוחות זמנים הפוכים מתקשים למצוא משהו משותף לעשות שהוא לא "לשלוח ממים". משחקי חברה דורשים להיפגש, סיפורים אינטראקטיביים הם חוויה של אדם אחד, ומשחקי ניחוש בקבוצה נגמרים אחרי ערב אחד.',
@@ -311,7 +311,7 @@ export const ideas: Idea[] = [
         { name: { he: 'התיקים', en: 'Cases' }, description: { he: 'ספריית תיקים עם אורך, מספר שחקנים ומצב רוח (נואר, קומי, אימה קלה), וכפתור "פתח קבוצה חדשה".', en: 'A library of cases with length, player count and mood (noir, comic, light horror), and a "start a new group" button.' } },
         { name: { he: 'לובי', en: 'Lobby' }, description: { he: 'קישור הזמנה, רשימת המצטרפים, בחירת דמות לכל אחד, וספירה לאחור ליום הראשון.', en: 'An invite link, the list of who joined, a character choice for each, and a countdown to day one.' } },
         { name: { he: 'היום', en: 'Today' }, description: { he: 'הסצנה המשותפת של היום כטקסט מעוצב, ומתחתיה המעטפה הפרטית – ראיות שרק אתם רואים, עם סימון "לא לשתף" ליד הסוד.', en: 'Today’s shared scene as styled text, and beneath it the private envelope – evidence only you see, with a "do not share" mark next to the secret.' } },
-        { name: { he: 'לוח ראיות', en: 'Evidence board' }, description: { he: 'כל מה שקיבלתם עד עכשיו על לוח שחור עם מגנטים, חוטים שמחברים בין ראיות, וסימון של מה שכבר שיתפתם.', en: 'Everything you received so far on a blackboard with magnets, string connecting pieces of evidence, and marks for what you already shared.' } },
+        { name: { he: 'לוח ראיות', en: 'Evidence board' }, description: { he: 'כל מה שקיבלתם עד עכשיו על לוח שחור עם מגנטים, פתק קצר ליד כל ראיה, וסימון של מה שכבר שיתפתם.', en: 'Everything you received so far on a blackboard with magnets, a short note next to each piece of evidence, and marks for what you already shared.' } },
         { name: { he: 'הצבעה', en: 'Vote' }, description: { he: 'שתיים-שלוש אפשרויות להמשך, מי כבר הצביע (בלי לחשוף מה), ומועד סיום ברור.', en: 'Two or three options for what happens next, who has already voted (without revealing how), and a clear deadline.' } },
         { name: { he: 'גילוי', en: 'Reveal' }, description: { he: 'הפתרון כסצנה אחרונה, מפת ההסתעפויות שהקבוצה עברה, חשיפת המשקר וניקוד לכל אחד.', en: 'The solution as a final scene, the map of branches the group took, the liar unmasked and a score for everyone.' } },
       ],
@@ -343,8 +343,8 @@ export const ideas: Idea[] = [
       },
       stack: ['Expo', 'Expo Router', 'Reanimated', 'ink', 'inkjs', 'Supabase', 'Supabase Storage', 'Supabase Edge Functions', 'expo-notifications'],
       database: {
-        he: ['cases – תיק, כותרת, אורך בימים, טווח שחקנים, קובץ ink מהודר, מחיר', 'groups – קבוצה, תיק, יום נוכחי, מצב מנוע הסיפור', 'players – שחקן, קבוצה, דמות, האם הוא בעל התפקיד הסודי', 'deliveries – סצנה או ראיה שנמסרה לשחקן, יום, האם נצפתה', 'votes – הצבעה, קבוצה, יום, שחקן, בחירה', 'board_notes – חיבורים וסימונים על לוח הראיות של כל שחקן', 'purchases – רכישת תיק, מי שילם ולאיזו קבוצה'],
-        en: ['cases – case, title, length in days, player range, compiled ink file, price', 'groups – group, case, current day, story engine state', 'players – player, group, character, whether they hold the secret role', 'deliveries – a scene or piece of evidence delivered to a player, day, seen or not', 'votes – vote, group, day, player, choice', 'board_notes – connections and marks on each player’s evidence board', 'purchases – case purchase, who paid and for which group'],
+        he: ['cases – תיק, כותרת, אורך בימים, טווח שחקנים, קובץ ink מהודר, מחיר', 'groups – קבוצה, תיק, יום נוכחי, מצב מנוע הסיפור', 'players – שחקן, קבוצה, דמות, האם הוא בעל התפקיד הסודי', 'deliveries – סצנה או ראיה שנמסרה לשחקן, יום, האם נצפתה', 'votes – הצבעה, קבוצה, יום, שחקן, בחירה', 'board_notes – פתקים וסימונים על לוח הראיות של כל שחקן', 'purchases – רכישת תיק, מי שילם ולאיזו קבוצה'],
+        en: ['cases – case, title, length in days, player range, compiled ink file, price', 'groups – group, case, current day, story engine state', 'players – player, group, character, whether they hold the secret role', 'deliveries – a scene or piece of evidence delivered to a player, day, seen or not', 'votes – vote, group, day, player, choice', 'board_notes – notes and marks on each player’s evidence board', 'purchases – case purchase, who paid and for which group'],
       },
       auth: {
         he: 'כניסה עם Apple, Google או טלפון – שם תצוגה בלבד, בלי פרופיל ציבורי. מצטרפים לקבוצה רק דרך קישור הזמנה. ראיות פרטיות מוגשות מהשרת לפי שחקן ולעולם לא נשלחות ללקוח של שחקן אחר, גם לא בצורה מוצפנת.',
@@ -363,8 +363,8 @@ export const ideas: Idea[] = [
         en: ['Content is the product: every case needs a writer, editing and playtests with real groups, and that costs more than the code', 'Groups stall when someone goes quiet – the fixed vote deadline and the ability to proceed without everyone must ship in the MVP', 'Spoilers: a player who finished a case can ruin it for another group, so multiple branches and a variable ending are needed', 'A week-long asynchronous experience is hard to market – the demo must be a one-hour "quick play"'],
       },
       expansion: {
-        he: ['מצב "ערב אחד": תיק דחוס ל-90 דקות סביב שולחן', 'כלי כתיבה לכותבים עם תצוגה מקדימה של הראיות לפי דמות', 'תיקים ממותגים לסדרות ולספרים כקמפיין שיווקי', 'מצב משפחתי עם תעלומות לילדים ובלי תפקיד משקר'],
-        en: ['A "one evening" mode: a case compressed into 90 minutes around a table', 'An authoring tool for writers with a per-character evidence preview', 'Branded cases for TV series and books as marketing campaigns', 'A family mode with kid-friendly mysteries and no liar role'],
+        he: ['מצב "ערב אחד": תיק דחוס ל-90 דקות סביב שולחן', 'כלי כתיבה לכותבים עם תצוגה מקדימה של הראיות לפי דמות', 'תיקים ממותגים לסדרות ולספרים כקמפיין שיווקי', 'מצב משפחתי עם תעלומות לילדים ובלי תפקיד משקר', 'חוטים על לוח הראיות שמחברים ראיות לחשודים, כמו בסדרות בלשים'],
+        en: ['A "one evening" mode: a case compressed into 90 minutes around a table', 'An authoring tool for writers with a per-character evidence preview', 'Branded cases for TV series and books as marketing campaigns', 'A family mode with kid-friendly mysteries and no liar role', 'String on the evidence board linking evidence to suspects, detective-show style'],
       },
     },
   },
@@ -378,7 +378,7 @@ export const ideas: Idea[] = [
     category: 'entertainment',
     secondaryCategories: ['lifestyle', 'productivity'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 4, weeksMax: 6 },
+    effort: { weeksMin: 5, weeksMax: 7 },
     budget: 'low',
     businessModel: 'freemium',
     platforms: ['ios', 'android'],
@@ -400,8 +400,8 @@ export const ideas: Idea[] = [
         en: 'An expiry per item (manual, from the library, from book club or from the broadcast schedule), real pace measurement from two-second check-ins, and a "you will finish on" estimate for every item. The home screen orders the pile by what expires first and what can still be done in time, and proposes swaps when the maths does not work out.',
       },
       usp: {
-        he: 'הטוויסט הוא יחידת המידה: לא כוכבים ולא "נצפה", אלא זמן. Shelf Life יודעת שהספר הזה לא ייגמר לפני יום חמישי ואומרת את זה היום, לא ביום חמישי – ומתייחסת לפרק שעומד להישרף בקבוצת הוואטסאפ של העבודה בדיוק כמו למועד ההחזרה לספרייה.',
-        en: 'The twist is the unit of measure: not stars or "watched" but time. Shelf Life knows this book will not be finished before Thursday and says so today, not on Thursday – and treats the episode about to be spoiled in the office group chat exactly like a library due date.',
+        he: 'תחזית "תסיים ב-" לבדה כבר קיימת בטיימרים של קריאה; הטוויסט של Shelf Life הוא שהמועד מגיע מבחוץ – הספרייה, מועדון הקריאה, לוח השידורים – ומסך "הערב" מסדר את הערימה מחדש לפי מה שפג קודם. האפליקציה יודעת שהספר הזה לא ייגמר לפני יום חמישי ואומרת את זה היום, לא ביום חמישי – ומתייחסת לפרק שעומד להישרף בקבוצת הוואטסאפ של העבודה בדיוק כמו למועד ההחזרה לספרייה.',
+        en: 'A "you will finish on" forecast by itself already exists in reading timers; Shelf Life’s twist is that the deadline comes from outside – the library, the book club, the broadcast schedule – and the "tonight" screen re-orders the pile by what expires first. The app knows this book will not be finished before Thursday and says so today, not on Thursday – and treats the episode about to be spoiled in the work WhatsApp group exactly like a library due date.',
       },
       targetUsers: {
         he: ['קוראים שמשאילים ספרים מהספרייה הציבורית', 'חברי מועדוני קריאה עם מועד קבוע', 'צופי סדרות שרוצים להישאר לפני הספוילרים', 'סטודנטים עם רשימת קריאה ותאריכים'],
@@ -479,8 +479,8 @@ export const ideas: Idea[] = [
         en: ['Add books and series with real metadata', 'An expiry per item and a quick check-in', 'Pace computation and finish forecast with a warning', 'The "tonight" screen with picks and swaps', 'Reminders before an expiry', 'Archive and premium paywall'],
       },
       risks: {
-        he: ['תחזית על סמך שני צ׳ק-אינים תהיה שגויה – להציג טווח ולא תאריך אחד עד שיש מספיק נתונים', 'אפליקציה שאומרת "לא תספיק" עלולה להלחיץ – הטון והאפשרות להסיר תפוגה חייבים להיות עדינים', 'תאריכי שידור משתנים ושירותי סטרימינג משחררים עונות שלמות בבת אחת – התפוגה לסדרות צריכה להיות גמישה', 'לספריות ציבוריות בישראל אין API – מועד ההחזרה נשאר ידני בהתחלה'],
-        en: ['A forecast made from two check-ins will be wrong – show a range rather than a single date until there is enough data', 'An app that says "you will not make it" can feel stressful – the tone and the option to remove an expiry must be gentle', 'Air dates shift and streaming services drop whole seasons at once – series expiries need to be flexible', 'Israeli public libraries have no API – the return date stays manual at first'],
+        he: ['תחזית על סמך שני צ׳ק-אינים תהיה שגויה – להציג טווח ולא תאריך אחד עד שיש מספיק נתונים', 'אפליקציה שאומרת "לא תספיק" עלולה להלחיץ – הטון והאפשרות להסיר תפוגה חייבים להיות עדינים', 'תאריכי שידור משתנים ושירותי סטרימינג משחררים עונות שלמות בבת אחת – התפוגה לסדרות צריכה להיות גמישה', 'ספריות ציבוריות לרוב לא חושפות API – מועד ההחזרה נשאר ידני בהתחלה'],
+        en: ['A forecast made from two check-ins will be wrong – show a range rather than a single date until there is enough data', 'An app that says "you will not make it" can feel stressful – the tone and the option to remove an expiry must be gentle', 'Air dates shift and streaming services drop whole seasons at once – series expiries need to be flexible', 'Public libraries rarely expose an API – the return date stays manual at first'],
       },
       expansion: {
         he: ['תפוגה חברתית: חברים באפליקציה מסמנים איפה הם, והאפליקציה מחשבת מתי הקבוצה "תעקוף" אתכם', 'ייבוא מ-Goodreads, מ-Letterboxd ומאפליקציות מעקב סדרות', 'מצב מועדון קריאה: חברי המועדון רואים את ההתקדמות של כולם לפני הפגישה', 'פודקאסטים ומשחקים כפריטים עם אורך ידוע'],
@@ -498,7 +498,7 @@ export const ideas: Idea[] = [
     category: 'entertainment',
     secondaryCategories: ['games', 'social'],
     difficulty: 'beginner',
-    effort: { weeksMin: 1, weeksMax: 3 },
+    effort: { weeksMin: 2, weeksMax: 3 },
     budget: 'free',
     businessModel: 'free',
     platforms: ['cross-platform'],
@@ -508,8 +508,8 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: true, profitPotential: 'low', experimental: false, trending: false, featuredWeight: 2 },
     spec: {
       overview: {
-        he: 'Deep Cut הופכת את ההמתנה להופעה, ואת ההופעה עצמה, למשחק קטן בין חברים. בוחרים אמן, והאפליקציה מושכת את הקטלוג שלו ממאגר מוזיקה פתוח ובונה כרטיס בינגו של 25 שירים: כמה "להיטים בטוחים" שהמשתמש מסמן בעצמו, והשאר שירים פחות מוכרים (דיפ-קאטס) שההגרלה בוחרת. במהלך ההופעה מסמנים כל שיר שמנוגן, והכרטיס חוגג שורה, עמודה או אלכסון. הטריק שמאפשר לכל החבר׳ה לשחק בלי שרת: מי שיוצר את המשחק מקבל קוד של שש אותיות, וכל מי שמקליד אותו – בטלפון או בדפדפן – מקבל כרטיס משלו מאותו מאגר שירים, שנגזר מהקוד בצורה דטרמיניסטית. בסוף הערב משתפים תמונה של הכרטיס עם השירים שנוגנו, ומי שצעק "בינגו" ראשון זוכה בסיבוב הבא בבר.',
-        en: 'Deep Cut turns a concert – and the wait for it – into a small game among friends. Pick an artist and the app pulls their catalogue from an open music database and builds a 25-song bingo card: a few "sure-thing hits" you mark yourself, the rest random deep cuts. During the show you tick each song as it plays, and the card celebrates a row, column or diagonal. The trick that lets everyone play with no server: the game’s creator gets a six-letter code, and anyone who types it in – phone or browser – gets their own card from the same pool, derived from the code alone. Afterwards you share the card with the played songs marked, and whoever shouted "bingo" first wins the next round at the bar.',
+        he: 'Deep Cut הופכת את ההמתנה להופעה, ואת ההופעה עצמה, למשחק קטן בין חברים. בוחרים אמן, והאפליקציה מושכת את הקטלוג שלו ממאגר מוזיקה פתוח ובונה כרטיס בינגו של 25 שירים: כמה "להיטים בטוחים" שהמשתמש מסמן בעצמו, והשאר שירים פחות מוכרים (דיפ-קאטס) שההגרלה בוחרת. במהלך ההופעה מסמנים כל שיר שמנוגן, והכרטיס חוגג שורה, עמודה או אלכסון. הטריק שמאפשר לכל החבר׳ה לשחק בלי שרת: מי שיוצר את המשחק מקבל קישור עם קוד של שש אותיות, וכל מי שפותח אותו – בטלפון או בדפדפן – מסמן "בטוחים" משלו ומקבל כרטיס משלו מאותו מאגר שירים, שנגזר מהקוד ומהשם שלו בצורה דטרמיניסטית. בסוף הערב משתפים תמונה של הכרטיס עם השירים שנוגנו, ומי שצעק "בינגו" ראשון זוכה בסיבוב הבא בבר.',
+        en: 'Deep Cut turns a concert – and the wait for it – into a small game among friends. Pick an artist and the app pulls their catalogue from an open music database and builds a 25-song bingo card: a few "sure-thing hits" you mark yourself, the rest random deep cuts. During the show you tick each song as it plays, and the card celebrates a row, column or diagonal. The trick that lets everyone play with no server: the game’s creator gets a share link with a six-letter code, and anyone who opens it – phone or browser – marks their own "sure" songs and gets their own card from the same pool, derived deterministically from the code and their name. Afterwards you share the card with the played songs marked, and whoever shouted "bingo" first wins the next round at the bar.',
       },
       problem: {
         he: 'ההמתנה להופעה ארוכה, החוויה באולם היא של כל אחד לעצמו, והוויכוח "הם ינגנו את השיר הישן?" נגמר תמיד בלי מנצח ברור. משחקים לנייד לא יודעים כלום על ההופעה שאתם עומדים בה.',
@@ -520,8 +520,8 @@ export const ideas: Idea[] = [
         en: 'A bingo card built from the artist’s real catalogue, with the user deciding what counts as "sure", a shared code that deals different cards from the same pool without a server, and one-tap ticking that works even with no reception in the venue.',
       },
       usp: {
-        he: 'פרויקט של 1–3 שבועות עם רגע חברתי אמיתי: הכרטיסים נגזרים מקוד ולא משרת, ולכן הכול עובד אופליין, בלי הרשמה ובלי עלויות שוטפות – ועדיין כל החבר׳ה משחקים על אותו מאגר שירים.',
-        en: 'A one-to-three-week build with a genuine social moment: cards are derived from a code rather than a server, so everything works offline, with no sign-up and no running costs – and the whole crew still plays off the same song pool.',
+        he: 'לא עוד מחולל כרטיסי בינגו גנרי לאינטרנט: הכרטיסים נבנים מהקטלוג האמיתי של האמן ונגזרים מקוד משותף ולא משרת, ולכן הכול עובד אופליין בתוך האולם, בלי הרשמה ובלי עלויות שוטפות – ועדיין כל החבר׳ה משחקים על אותו מאגר שירים עם כרטיסים שונים.',
+        en: 'Not another generic web bingo-card generator: cards are built from the artist’s real catalogue and derived from a shared code rather than a server, so everything works offline inside the venue, with no sign-up and no running costs – and the whole crew still plays off the same song pool with different cards.',
       },
       targetUsers: {
         he: ['חבורות שהולכות להופעות ביחד', 'מעריצים שמכירים את הקטלוג לעומק ורוצים לבדוק את הניחושים שלהם', 'מפתחים מתחילים שמחפשים פרויקט ראשון קטן ומשעשע'],
@@ -551,45 +551,45 @@ export const ideas: Idea[] = [
         { name: { he: 'בחירת אמן', en: 'Pick an artist' }, description: { he: 'שדה חיפוש גדול, תוצאות עם תמונה ושנות פעילות, וההופעות האחרונות שלכם למטה.', en: 'A big search field, results with a picture and active years, and your recent shows at the bottom.' } },
         { name: { he: 'בטוחים', en: 'Sure things' }, description: { he: 'הקטלוג כרשימה עם צ׳יפים לסימון עד חמישה שירים "בטוחים", וכפתור "צור משחק".', en: 'The catalogue as a list with chips to mark up to five "sure" songs, and a "create game" button.' } },
         { name: { he: 'הכרטיס', en: 'The card' }, description: { he: 'רשת 5×5 במסך מלא, הקשה לסימון עם רטט, קוד המשחק בכותרת ואנימציית בינגו.', en: 'A full-screen 5×5 grid, tap to tick with haptics, the game code in the header and a bingo animation.' } },
-        { name: { he: 'הצטרפות', en: 'Join' }, description: { he: 'שישה תאים להקלדת הקוד, שם שחקן, והכרטיס נוצר מיד.', en: 'Six boxes for the code, a player name, and the card appears instantly.' } },
+        { name: { he: 'הצטרפות', en: 'Join' }, description: { he: 'פתיחת הקישור, או חיפוש האמן והקלדת הקוד בשישה תאים; שם שחקן, סימון ה"בטוחים" שלכם – והכרטיס נוצר מיד.', en: 'Open the link, or search the artist and type the code into six boxes; a player name, your own "sure" picks – and the card appears instantly.' } },
         { name: { he: 'סיכום', en: 'Recap' }, description: { he: 'הכרטיס הסופי כתמונה לשיתוף, כמה שירים ניחשתם, ומי בחבורה סגר בינגו ראשון לפי מה שדיווחו.', en: 'The final card as a shareable image, how many songs you guessed, and who in the crew got bingo first as reported.' } },
       ],
       userJourney: {
         he: [
           'שעה לפני ההופעה משתמש מחפש את האמן ומסמן ארבעה שירים בטוחים',
-          'הוא מקבל כרטיס וקוד, ושולח את הקוד לקבוצת הוואטסאפ',
-          'שלושה חברים מקלידים את הקוד ומקבלים כרטיסים שונים מאותו מאגר',
+          'הוא מקבל כרטיס וקישור עם הקוד, ושולח אותו לקבוצת הוואטסאפ',
+          'שלושה חברים פותחים את הקישור, מסמנים "בטוחים" משלהם ומקבלים כרטיסים שונים מאותו מאגר',
           'במהלך ההופעה כל אחד מסמן תוך כדי; בשיר התשיעי מישהי סוגרת אלכסון',
           'בסוף הערב כולם משתפים את תמונת הכרטיס, ומי שניחש הכי הרבה דיפ-קאטס זוכה בכבוד',
         ],
         en: [
           'An hour before the show a user searches for the artist and marks four sure songs',
-          'He gets a card and a code, and drops the code in the WhatsApp group',
-          'Three friends type the code and get different cards from the same pool',
+          'He gets a card and a link with the code, and drops it in the WhatsApp group',
+          'Three friends open the link, mark their own sure songs and get different cards from the same pool',
           'During the show everyone ticks along; on song nine someone closes a diagonal',
           'At the end of the night everyone shares their card image, and whoever guessed the most deep cuts takes the glory',
         ],
       },
       uxDirection: {
-        he: 'בולט וחשוך כמו אולם הופעות: רקע שחור, תאים גדולים עם טקסט לבן, וצבע ניאון אחד לסימון שמגיע עם רטט. הכול חייב לעבוד ביד אחת, בחושך ובצפיפות – בלי תפריטים עמוקים. הקוד מוצג באותיות ענק כדי שאפשר להראות אותו לחבר במקום לצעוק.',
+        he: 'רועש וחשוך כמו אולם הופעות: רקע שחור, תאים גדולים עם טקסט לבן, וצבע ניאון אחד לסימון שמגיע עם רטט. הכול חייב לעבוד ביד אחת, בחושך ובצפיפות – בלי תפריטים עמוקים. הקוד מוצג באותיות ענק כדי שאפשר להראות אותו לחבר במקום לצעוק.',
         en: 'Loud and dark like a concert hall: black background, large cells with white text, and one neon colour for ticks that lands with haptics. Everything must work one-handed, in the dark and in a crowd – no deep menus. The code is shown in giant letters so it can be flashed at a friend instead of shouted.',
       },
       architecture: {
-        he: 'אפליקציית Expo אחת לנייד ולווב, בלי שרת. הקטלוג נמשך מ-MusicBrainz (API ציבורי וחינמי) ונשמר במכשיר. קוד המשחק מקודד את מזהה האמן ואת רשימת ה"בטוחים" ומשמש זרע למחולל מספרים דטרמיניסטי, כך שכל שחקן מקבל כרטיס שונה (לפי השם שלו) מאותו מאגר, בלי שום תקשורת. סימונים והיסטוריה ב-AsyncStorage; שיתוף תמונה עם react-native-view-shot ו-expo-sharing.',
-        en: 'One Expo app for mobile and web, with no server. The catalogue is fetched from MusicBrainz (a free public API) and cached on the device. The game code encodes the artist id and the list of "sure" songs and seeds a deterministic random generator, so each player gets a different card (keyed by their name) from the same pool with no communication at all. Ticks and history live in AsyncStorage; image sharing uses react-native-view-shot with expo-sharing.',
+        he: 'אפליקציית Expo אחת לנייד ולווב, בלי שרת. הקטלוג נמשך מ-MusicBrainz (API ציבורי וחינמי) ונשמר במכשיר. קוד המשחק הוא זרע אקראי של שש אותיות ותו לא – קצר מכדי להכיל מזהה אמן – ולכן קישור השיתוף נושא את מזהה האמן ב-MusicBrainz יחד עם הקוד, ומי שמקליד את הקוד ידנית מחפש קודם את האמן. מזהה האמן והקוד מזינים מחולל מספרים דטרמיניסטי שקובע את מאגר השירים המשותף, ושם השחקן מזין את ההגרלה של הכרטיס שלו מתוך המאגר – כך כל שחקן מקבל כרטיס שונה בלי שום תקשורת, וה"בטוחים" שסימן נכנסים לכרטיס שלו בלבד. סימונים והיסטוריה ב-AsyncStorage; שיתוף תמונה עם react-native-view-shot ו-expo-sharing.',
+        en: 'One Expo app for mobile and web, with no server. The catalogue is fetched from MusicBrainz (a free public API) and cached on the device. The game code is a six-letter random seed and nothing more – too short to carry an artist id – so the share link carries the MusicBrainz artist id together with the code, and anyone typing the code by hand searches the artist first. Artist id plus code seed a deterministic random generator that fixes the shared song pool, and the player’s name seeds the draw of their own card from that pool – so every player gets a different card with no communication at all, and the "sure" songs they marked land on their card only. Ticks and history live in AsyncStorage; image sharing uses react-native-view-shot with expo-sharing.',
       },
       stack: ['Expo', 'Expo Router', 'MusicBrainz API', 'AsyncStorage', 'react-native-view-shot', 'expo-sharing', 'expo-haptics'],
       database: {
-        he: ['artists – אמן שנשמר, מזהה MusicBrainz, הקטלוג שנמשך (מקומי)', 'games – משחק, אמן, קוד, שירים בטוחים, תאריך (מקומי)', 'cards – כרטיס, משחק, שם שחקן, 25 השירים והסימונים (מקומי)'],
-        en: ['artists – saved artist, MusicBrainz id, fetched catalogue (local)', 'games – game, artist, code, sure songs, date (local)', 'cards – card, game, player name, the 25 songs and their ticks (local)'],
+        he: ['artists – אמן שנשמר, מזהה MusicBrainz, הקטלוג שנמשך (מקומי)', 'games – משחק, אמן, קוד, תאריך (מקומי)', 'cards – כרטיס, משחק, שם שחקן, השירים ה"בטוחים" שסומנו, 25 השירים והסימונים (מקומי)'],
+        en: ['artists – saved artist, MusicBrainz id, fetched catalogue (local)', 'games – game, artist, code, date (local)', 'cards – card, game, player name, the marked "sure" songs, the 25 songs and their ticks (local)'],
       },
       auth: {
         he: 'ללא חשבון, ללא שרת וללא איסוף נתונים. הקוד המשותף הוא כל מה שצריך כדי לשחק ביחד.',
         en: 'No account, no server and no data collection. The shared code is all it takes to play together.',
       },
       monetization: {
-        he: ['חינם לגמרי – פרויקט פורטפוליו שמביא משתמשים ומשוב', 'בהמשך: רכישה חד-פעמית של ערכות נושא וכרטיסים מעוצבים לשיתוף', 'שיתוף פעולה עם אולמות או אמנים לכרטיסים ממותגים לסיבוב הופעות'],
-        en: ['Completely free – a portfolio project that brings users and feedback', 'Later: a one-time purchase of themes and designed cards for sharing', 'Partnerships with venues or artists for branded tour cards'],
+        he: ['חינם לגמרי – פרויקט פורטפוליו שנועד לאסוף משוב', 'בהמשך: רכישה חד-פעמית של ערכות נושא וכרטיסים מעוצבים לשיתוף', 'שיתוף פעולה עם אולמות או אמנים לכרטיסים ממותגים לסיבוב הופעות'],
+        en: ['Completely free – a portfolio project built to gather feedback', 'Later: a one-time purchase of themes and designed cards for sharing', 'Partnerships with venues or artists for branded tour cards'],
       },
       mvpMilestones: {
         he: ['חיפוש אמן ומשיכת קטלוג מ-MusicBrainz', 'כרטיס 5×5 עם סימון וזיהוי בינגו', 'קוד משחק דטרמיניסטי והצטרפות', 'שיתוף תמונה של הכרטיס', 'היסטוריית הופעות'],

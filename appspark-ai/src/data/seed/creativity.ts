@@ -9,13 +9,13 @@ export const ideas: Idea[] = [
     id: 'payoff',
     name: { he: 'Payoff – הבטחות לקורא', en: 'Payoff' },
     tagline: {
-      he: 'כל רמז, חפץ או שאלה שנטעתם בכתב היד הוא הבטחה לקורא. Payoff עוקב אחרי כל הבטחה, ומראה איזו מהן עדיין פתוחה בפרק 30.',
+      he: 'כל רמז, חפץ או שאלה שנטעתם בכתב היד הוא הבטחה לקורא. Payoff עוקב אחרי כל הבטחה, ומראה אילו מהן עדיין פתוחות בפרק 30.',
       en: 'Every clue, object or question you plant in a manuscript is a promise to the reader. Payoff tracks each one and shows which are still open by chapter 30.',
     },
     category: 'creativity',
     secondaryCategories: ['productivity', 'education'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 5, weeksMax: 8 },
+    effort: { weeksMin: 6, weeksMax: 8 },
     budget: 'low',
     businessModel: 'subscription',
     platforms: ['web'],
@@ -107,7 +107,7 @@ export const ideas: Idea[] = [
         en: ['profiles – user, plan, editor preferences', 'manuscripts – manuscript, title, version, status', 'chapters – chapter, order, word count', 'scenes – scene, chapter, wants / obstacle / change, storyline', 'promises – setup, payoff, chapters waited, status', 'characters – character, appearances, knowledge per scene', 'storylines – storylines and colour'],
       },
       auth: {
-        he: 'אימייל עם קישור קסם וכניסה עם Google. כתב יד שלא פורסם הוא החומר הרגיש ביותר של כותב – RLS לפי משתמש, הצפנה במנוחה, ובלי אימון מודלים על הטקסט. שיתוף לעורך בקישור לקריאה בלבד עם תפוגה.',
+        he: 'אימייל עם קישור קסם וכניסה עם Google. כתב יד שלא פורסם הוא החומר הרגיש ביותר של כותב – RLS לפי משתמש, הצפנה באחסון, ובלי אימון מודלים על הטקסט. שיתוף לעורך בקישור לקריאה בלבד עם תפוגה.',
         en: 'Email magic link and Google sign-in. An unpublished manuscript is a writer’s most sensitive material – per-user RLS, encryption at rest, and no model training on the text. Sharing with an editor is a read-only link with an expiry.',
       },
       monetization: {
@@ -115,8 +115,8 @@ export const ideas: Idea[] = [
         en: ['Free for one manuscript up to 30,000 words', 'Monthly writer subscription: unlimited manuscripts, Scrivener import and Word export', 'A plan for editors and writing workshops with multiple manuscripts and shared notes'],
       },
       mvpMilestones: {
-        he: ['עורך עם ייבוא Markdown ו-Word וחלוקה לפרקים', 'סימון הבטחות ופירעונות ופנקס הבטחות', 'כרטיסי סצנה עם שלוש השאלות', 'מפת מתח ודוח עריכה', 'שיתוף לקריאה בלבד ויצוא הערות ל-Word', 'מנוי ותשלום'],
-        en: ['Editor with Markdown and Word import and chapter splitting', 'Setup and payoff marking plus the promise ledger', 'Scene cards with the three questions', 'Tension map and structural report', 'Read-only sharing and Word export of notes', 'Subscription and billing'],
+        he: ['עורך עם ייבוא Markdown ו-Word, חלוקה לפרקים ומסך לתיקון החלוקה', 'סימון הבטחות ופירעונות ופנקס הבטחות', 'כרטיסי סצנה עם שלוש השאלות', 'מפת מתח ודוח עריכה', 'שיתוף לקריאה בלבד ויצוא הערות ל-Word', 'מנוי ותשלום'],
+        en: ['Editor with Markdown and Word import, chapter splitting and a split-correction screen', 'Setup and payoff marking plus the promise ledger', 'Scene cards with the three questions', 'Tension map and structural report', 'Read-only sharing and Word export of notes', 'Subscription and billing'],
       },
       risks: {
         he: ['הסימון הידני דורש משמעת – אם הכותב לא מסמן, הפנקס נשאר ריק; ההצעות האוטומטיות חייבות להיות טובות מספיק כדי להצדיק את עצמן כבר בפרק הראשון', 'ייבוא מ-Word ומ-Scrivener שובר מבנה בקלות (כותרות פרקים לא עקביות), ולכן נדרש מסך לתיקון החלוקה', 'כותבים נאמנים לכלי הכתיבה שלהם – Payoff חייב לעבוד לצד Scrivener ו-Word ולא במקומם'],
@@ -138,7 +138,7 @@ export const ideas: Idea[] = [
     category: 'creativity',
     secondaryCategories: ['entertainment', 'education'],
     difficulty: 'advanced',
-    effort: { weeksMin: 9, weeksMax: 14 },
+    effort: { weeksMin: 10, weeksMax: 14 },
     budget: 'low',
     businessModel: 'freemium',
     platforms: ['ios', 'android'],
@@ -152,8 +152,8 @@ export const ideas: Idea[] = [
         en: 'Underneath is for people who have a melody in their head and no idea what to do with it: a wedding toast, a birthday song for a child, a tune for a video. The user hums or sings a few seconds into the phone, and the app detects the key, the tempo and the notes of the melody, then proposes two or three simple chord progressions that sit underneath that melody – not a new song a model made up, but accompaniment for what the user already sang. One tap plays the melody back with a backing in a chosen style (folk, pop, bossa nova), and every chord comes with a guitar or ukulele fingering diagram. The result is a "song sheet" you can send to a friend who plays, or learn yourself – three chords is something anyone can manage.',
       },
       problem: {
-        he: 'רוב האנשים מסוגלים לזמזם מנגינה אבל לא יודעים באיזה סולם היא, אילו אקורדים מתאימים לה או איך להסביר אותה למישהו שמנגן. אפליקציות "צור שיר ב-AI" מחזירות משהו אחר לגמרי ממה שהיה בראש, ואפליקציות ללימוד נגינה מתחילות מתיאוריה ולא מהמנגינה של המשתמש.',
-        en: 'Most people can hum a melody but have no idea what key it is in, which chords fit it or how to explain it to someone who plays. "Make a song with AI" apps return something entirely different from what was in their head, and instrument-learning apps start from theory rather than from the user’s own tune.',
+        he: 'הרבה אנשים מסוגלים לזמזם מנגינה אבל לא יודעים באיזה סולם היא, אילו אקורדים מתאימים לה או איך להסביר אותה למישהו שמנגן. אפליקציות "צור שיר ב-AI" מחזירות משהו אחר לגמרי ממה שהיה בראש, ואפליקציות ללימוד נגינה מתחילות מתיאוריה ולא מהמנגינה של המשתמש.',
+        en: 'Plenty of people can hum a melody but have no idea what key it is in, which chords fit it or how to explain it to someone who plays. "Make a song with AI" apps return something entirely different from what was in their head, and instrument-learning apps start from theory rather than from the user’s own tune.',
       },
       solution: {
         he: 'זיהוי גובה צליל וטמפו במכשיר, הסקת הסולם מהתווים, והרמוניזציה דטרמיניסטית לפי כללים (אקורדים דיאטוניים, דומיננטה לפני החזרה לטוניקה) שמייצרת כמה ליוויים פשוטים. השמעה חוזרת עם ליווי בסגנון, תרשימי אצבעות, ודף שיר לשיתוף.',
@@ -169,7 +169,7 @@ export const ideas: Idea[] = [
       },
       coreFeatures: {
         he: [
-          'הקלטת זמזום של 5–20 שניות עם מד רעש רקע',
+          'הקלטת זמזום של 5–20 שניות עם מד רעש רקע וקליק מטרונום אופציונלי לזמזם לפיו',
           'זיהוי סולם, טמפו ותווי המנגינה במכשיר, עם תיקון תו בגרירה',
           'שתיים-שלוש התקדמויות אקורדים מוצעות, כל אחת ניתנת להשמעה',
           'ליווי בסגנונות: פולק, פופ, בוסה נובה, בלדה',
@@ -178,7 +178,7 @@ export const ideas: Idea[] = [
           'מצב "זמזום בלולאה" לפיתוח המנגינה לבית ולפזמון',
         ],
         en: [
-          'Record a 5–20 second hum with a background-noise meter',
+          'Record a 5–20 second hum with a background-noise meter and an optional metronome click to hum along to',
           'On-device key, tempo and melody-note detection, with drag-to-fix for a wrong note',
           'Two or three suggested chord progressions, each playable',
           'Backing styles: folk, pop, bossa nova, ballad',
@@ -188,8 +188,8 @@ export const ideas: Idea[] = [
         ],
       },
       screens: [
-        { name: { he: 'הקלטה', en: 'Record' }, description: { he: 'כפתור הקלטה גדול, מד רעש רקע, וטיפ קצר: "זמזמו לה-לה-לה בקצב קבוע".', en: 'A big record button, a background-noise meter and a short tip: "hum la-la-la at a steady pace".' } },
-        { name: { he: 'מה שמענו', en: 'What we heard' }, description: { he: 'המנגינה כנקודות על גלילת פסנתר פשוטה, הסולם והטמפו שזוהו, וגרירה לתיקון תו.', en: 'The melody as dots on a simple piano roll, the detected key and tempo, and drag-to-fix for a note.' } },
+        { name: { he: 'הקלטה', en: 'Record' }, description: { he: 'כפתור הקלטה גדול, מד רעש רקע, קליק מטרונום אופציונלי, וטיפ קצר: "זמזמו לה-לה-לה בקצב קבוע".', en: 'A big record button, a background-noise meter, an optional metronome click and a short tip: "hum la-la-la at a steady pace".' } },
+        { name: { he: 'מה שמענו', en: 'What we heard' }, description: { he: 'המנגינה כנקודות על פיאנו רול פשוט, הסולם והטמפו שזוהו, וגרירה לתיקון תו.', en: 'The melody as dots on a simple piano roll, the detected key and tempo, and drag-to-fix for a note.' } },
         { name: { he: 'מתחת למנגינה', en: 'Underneath' }, description: { he: 'כרטיסי התקדמות אקורדים – כל אחד עם נגן קטן – ובחירת סגנון ליווי.', en: 'Chord progression cards – each with a mini player – and a backing-style picker.' } },
         { name: { he: 'דף שיר', en: 'Song sheet' }, description: { he: 'המנגינה עם האקורדים מעליה, תרשימי אצבעות בשורה למטה, וכפתורי השמעה ושיתוף.', en: 'The melody with chords above it, fingering diagrams in a row at the bottom, and play and share buttons.' } },
         { name: { he: 'השירים שלי', en: 'My songs' }, description: { he: 'ספריית ההקלטות עם כותרת, סולם, תאריך, והאם כבר יש להן ליווי.', en: 'The recordings library with title, key, date and whether a backing exists yet.' } },
@@ -200,7 +200,7 @@ export const ideas: Idea[] = [
           'אבא מזמזם שיר ערש שהמציא לבת שלו, 12 שניות',
           'האפליקציה מזהה סול מז׳ור ב-72 פעימות לדקה ומציגה את התווים',
           'הוא גורר למקום תו אחד שזוהה גבוה מדי',
-          'מקבל שלוש הצעות ליווי ובוחר את הפולקית',
+          'מקבל שלוש הצעות ליווי ובוחר את זו בסגנון פולק',
           'שומע את שיר הערש שלו עם גיטרה מתחתיו ומתרגש',
           'משתף דף שיר עם אחיו שמנגן, ושומר את ההקלטה בספרייה',
         ],
@@ -214,14 +214,14 @@ export const ideas: Idea[] = [
         ],
       },
       uxDirection: {
-        he: 'חם וסלחני – רוב המשתמשים מתביישים לשיר לטלפון. מסך ההקלטה כמעט ריק, עם גל צליל עדין וטיפ אחד. התווים מוצגים כנקודות צבעוניות ולא כתווים קלאסיים, והאקורדים כשמות גדולים (G, D, Em) עם תרשים אצבעות מתחת. כל שגיאת זיהוי ניתנת לתיקון בגרירה, ואין טרמינולוגיה מוזיקלית במסכים הראשונים.',
-        en: 'Warm and forgiving – most users are embarrassed to sing at their phone. The record screen is nearly empty, with a gentle waveform and one tip. Notes are shown as coloured dots rather than classical notation, and chords as big names (G, D, Em) with a fingering diagram beneath. Every detection error can be fixed by dragging, and there is no music terminology on the first screens.',
+        he: 'חם וסלחני – הרבה משתמשים מתביישים לשיר לטלפון. מסך ההקלטה כמעט ריק, עם גל צליל עדין וטיפ אחד. התווים מוצגים כנקודות צבעוניות ולא כתווים קלאסיים, והאקורדים כשמות גדולים (G, D, Em) עם תרשים אצבעות מתחת. כל שגיאת זיהוי ניתנת לתיקון בגרירה, ואין טרמינולוגיה מוזיקלית במסכים הראשונים.',
+        en: 'Warm and forgiving – many users are embarrassed to sing at their phone. The record screen is nearly empty, with a gentle waveform and one tip. Notes are shown as coloured dots rather than classical notation, and chords as big names (G, D, Em) with a fingering diagram beneath. Every detection error can be fixed by dragging, and there is no music terminology on the first screens.',
       },
       architecture: {
-        he: 'Expo עם expo-audio להקלטה ולהשמעה ו-Reanimated למסך התווים. זיהוי גובה צליל (אלגוריתם YIN או pYIN) וזיהוי טמפו רצים במכשיר כמודול נייטיב או ב-WebAssembly, ומפיקים רצף תווים מקוונטז. הסקת הסולם וההרמוניזציה הן קוד דטרמיניסטי: ניקוד של כל אקורד דיאטוני מול תווי המנגינה בכל פעימה. הליווי מופק מקובצי SoundFont קטנים ומתבניות קצב לכל סגנון, ומעורבב למיקס במכשיר. Supabase לאימות, לספריית השירים ולאחסון קובצי השמע; אין צורך במודל שפה בכלל.',
-        en: 'Expo with expo-audio for recording and playback and Reanimated for the notes screen. Pitch detection (YIN or pYIN) and tempo estimation run on device as a native module or in WebAssembly and produce a quantised note sequence. Key inference and harmonisation are deterministic code: scoring every diatonic chord against the melody notes on each beat. The backing is rendered from small SoundFont files and per-style rhythm patterns and mixed on device. Supabase for auth, the song library and audio storage; no language model is needed at all.',
+        he: 'Expo עם expo-audio להקלטה ולהשמעה ו-Reanimated למסך התווים. זיהוי גובה צליל (אלגוריתם YIN או pYIN) רץ על ההקלטה אחרי שהיא מסתיימת ולא בזמן אמת, ולכן מספיק מימוש ב-JavaScript או ב-WebAssembly בלי מודול נייטיב; הטמפו נלקח מקליק המטרונום אם זמזמו לפיו, ואחרת מוערך מההקלטה. התוצאה היא רצף תווים מקוונטז. הסקת הסולם וההרמוניזציה הן קוד דטרמיניסטי: ניקוד של כל אקורד דיאטוני מול תווי המנגינה בכל פעימה. הליווי מופק מקובצי SoundFont קטנים ומתבניות קצב לכל סגנון, ומעורבב למיקס במכשיר – זה החלק הנייטיבי היחיד. Supabase לאימות, לספריית השירים ולאחסון קובצי השמע; אין צורך במודל שפה בכלל.',
+        en: 'Expo with expo-audio for recording and playback and Reanimated for the notes screen. Pitch detection (YIN or pYIN) runs on the finished recording rather than in real time, so a JavaScript or WebAssembly implementation is enough and no native module is needed for it; tempo comes from the metronome click when the user hummed to one, and is estimated from the recording otherwise. The result is a quantised note sequence. Key inference and harmonisation are deterministic code: scoring every diatonic chord against the melody notes on each beat. The backing is rendered from small SoundFont files and per-style rhythm patterns and mixed on device – the only native piece. Supabase for auth, the song library and audio storage; no language model is needed at all.',
       },
-      stack: ['Expo', 'expo-audio', 'Reanimated', 'WebAssembly pitch detection module', 'SoundFont samples', 'Supabase', 'Supabase Storage'],
+      stack: ['Expo', 'expo-audio', 'Reanimated', 'YIN pitch detection (JavaScript or WebAssembly)', 'SoundFont samples', 'Supabase', 'Supabase Storage'],
       database: {
         he: ['profiles – משתמש, כלי מועדף (גיטרה / יוקללה), מכסת חינם', 'recordings – הקלטה, קובץ שמע, משך, רמת רעש', 'melodies – רצף תווים מקוונטז, סולם, טמפו, תיקונים ידניים', 'arrangements – התקדמות אקורדים, סגנון ליווי, קובץ מיקס', 'song_sheets – דף שיר משותף, קישור ציבורי, תפוגה'],
         en: ['profiles – user, preferred instrument (guitar / ukulele), free quota', 'recordings – recording, audio file, duration, noise level', 'melodies – quantised note sequence, key, tempo, manual fixes', 'arrangements – chord progression, backing style, mix file', 'song_sheets – shared sheet, public link, expiry'],
@@ -239,8 +239,8 @@ export const ideas: Idea[] = [
         en: ['On-device recording and note detection with a correction screen', 'Key and tempo inference', 'Deterministic harmonisation with three suggestions', 'Backing playback in one style', 'Fingering diagrams and a shareable song sheet', 'Library, account and paywall'],
       },
       risks: {
-        he: ['זיהוי גובה צליל מזמזום אינו מדויק (ויברטו, רעש רקע, שירה מחוץ לסולם) – מסך התיקון הוא חלק מהמוצר ולא תוספת', 'הרמוניזציה לפי כללים נשמעת גנרית במנגינות לא דיאטוניות – להגביל את ההבטחה לשירים פשוטים', 'עיבוד שמע נייטיב ב-Expo דורש development build ומודול מותאם, מה שמאריך את הפיתוח'],
-        en: ['Pitch detection from humming is imprecise (vibrato, background noise, singing out of tune) – the correction screen is part of the product, not an add-on', 'Rule-based harmonisation sounds generic on non-diatonic melodies – limit the promise to simple songs', 'Native audio processing in Expo requires a development build and a custom module, which stretches the timeline'],
+        he: ['זיהוי גובה צליל וטמפו מזמזום אינו מדויק (ויברטו, רעש רקע, שירה מחוץ לסולם) – מסך התיקון וקליק המטרונום הם חלק מהמוצר ולא תוספת', 'הרמוניזציה לפי כללים נשמעת גנרית במנגינות לא דיאטוניות – להגביל את ההבטחה לשירים פשוטים', 'הפקת הליווי במכשיר (SoundFont ומיקס) דורשת מודול נייטיב ו-development build – זה החלק שמאריך את הפיתוח, ולכן מתחילים מסגנון ליווי אחד'],
+        en: ['Pitch and tempo detection from humming is imprecise (vibrato, background noise, singing out of tune) – the correction screen and the metronome click are part of the product, not add-ons', 'Rule-based harmonisation sounds generic on non-diatonic melodies – limit the promise to simple songs', 'Rendering the backing on device (SoundFont and mixing) needs a native module and a development build – it is the part that stretches the timeline, so start with a single backing style'],
       },
       expansion: {
         he: ['יצוא MIDI ו-MusicXML לאפליקציות תווים ול-DAW', 'מצב דואט: שני אנשים מזמזמים בית ופזמון והאפליקציה מחברת ביניהם', 'שיעורי מעבר בין אקורדים שנבנים מהשיר של המשתמש עצמו'],
@@ -258,8 +258,8 @@ export const ideas: Idea[] = [
     category: 'creativity',
     secondaryCategories: ['ecommerce', 'business'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 5, weeksMax: 7 },
-    budget: 'low',
+    effort: { weeksMin: 6, weeksMax: 8 },
+    budget: 'medium',
     businessModel: 'b2b',
     platforms: ['ios', 'android', 'web'],
     audience: ['businesses', 'creators'],
@@ -268,12 +268,12 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'high', experimental: false, trending: false, featuredWeight: 4 },
     spec: {
       overview: {
-        he: 'Sameframe פותרת את הבעיה הוויזואלית הנפוצה ביותר של חנויות אונליין קטנות: עמוד קטלוג שבו כל מוצר צולם ביום אחר, מזווית אחרת, בגובה אחר ובאור אחר. במקום לשכור צלם לכל 40 פריטים חדשים, בעל החנות מצלם פריט אחד כמו שצריך ושומר אותו כ"מתכון צילום": זווית המצלמה מהג׳ירוסקופ, מרחק משוער, מסגור, יחס תמונה ורקע. מאותו רגע המצלמה מציגה שכבת רפאים של תמונת הייחוס, פלס חי ומסגרת חיתוך, ומסמנת בירוק כשהטלפון נמצא בזווית ובמרחק הנכונים. אחרי הצילום הסדרה כולה עוברת חיתוך אחיד, יישור רקע והסרת רקע אופציונלית, ומיוצאת בשמות קבצים לפי מק״ט ישירות לחנות. מתכון צילום אפשר לשתף עם עובד או עם ספק, כך שגם מי שמצלם בפעם הראשונה מקבל את אותו פריים.',
-        en: 'Sameframe fixes the most common visual problem of small online shops: a catalogue page where every product was shot on a different day, from a different angle, at a different height and in different light. Instead of hiring a photographer for every 40 new items, the shop owner shoots one item properly and saves it as a "shot recipe": camera angle from the gyroscope, approximate distance, framing, aspect ratio and background. From then on the camera shows a ghost overlay of the reference photo, a live level and a crop frame, and turns green when the phone is at the right angle and distance. After the shoot the whole series gets a uniform crop, background levelling and optional background removal, and exports with SKU-based file names straight to the store. A shot recipe can be shared with an employee or a supplier, so even a first-time shooter gets the same frame.',
+        he: 'Sameframe פותרת בעיה ויזואלית שמוכרת לכל חנות אונליין קטנה: עמוד קטלוג שבו כל מוצר צולם ביום אחר, מזווית אחרת, בגובה אחר ובאור אחר. במקום לשכור צלם לכל 40 פריטים חדשים, בעל החנות מצלם פריט אחד כמו שצריך ושומר אותו כ"מתכון צילום": זווית המצלמה מהג׳ירוסקופ, מרחק משוער, מסגור, יחס תמונה ורקע. מאותו רגע המצלמה מציגה שכבת רפאים של תמונת הייחוס, פלס חי ומסגרת חיתוך, ומסמנת בירוק כשהטלפון נמצא בזווית ובמרחק הנכונים. אחרי הצילום הסדרה כולה עוברת חיתוך אחיד, האחדת גוון הרקע והסרת רקע אופציונלית, ומיוצאת בשמות קבצים לפי מק״ט ישירות לחנות. מתכון צילום אפשר לשתף עם עובד או עם ספק, כך שגם מי שמצלם בפעם הראשונה מקבל את אותו פריים.',
+        en: 'Sameframe fixes a visual problem every small online shop knows: a catalogue page where every product was shot on a different day, from a different angle, at a different height and in different light. Instead of hiring a photographer for every 40 new items, the shop owner shoots one item properly and saves it as a "shot recipe": camera angle from the gyroscope, approximate distance, framing, aspect ratio and background. From then on the camera shows a ghost overlay of the reference photo, a live level and a crop frame, and turns green when the phone is at the right angle and distance. After the shoot the whole series gets a uniform crop, background tone matching and optional background removal, and exports with SKU-based file names straight to the store. A shot recipe can be shared with an employee or a supplier, so even a first-time shooter gets the same frame.',
       },
       problem: {
-        he: 'חנויות קטנות מצלמות מוצרים בעצמן, ובלי צלם קבוע התוצאה היא קטלוג לא אחיד: תיקים מזווית מלמעלה ליד תיקים מהצד, רקע לבן ליד רקע קרם, ומוצרים זהים שנראים בגדלים שונים. זה פוגע באמון ובהמרות, ותיקון בדיעבד בעריכה לוקח שעות ואף פעם לא באמת מיישר זוויות.',
-        en: 'Small shops photograph products themselves, and without a regular photographer the result is an inconsistent catalogue: bags shot from above next to bags shot from the side, white backgrounds next to cream ones, and identical products that look different sizes. It hurts trust and conversion, and fixing it afterwards in editing takes hours and never truly aligns angles.',
+        he: 'חנויות קטנות מצלמות מוצרים בעצמן, ובלי צלם קבוע התוצאה היא קטלוג לא אחיד: תיקים מזווית מלמעלה ליד תיקים מהצד, רקע לבן ליד רקע קרם, ומוצרים זהים שנראים בגדלים שונים. זה נראה לא מקצועי ופוגע באמון, ותיקון בדיעבד בעריכה לוקח שעות ואף פעם לא באמת מיישר זוויות.',
+        en: 'Small shops photograph products themselves, and without a regular photographer the result is an inconsistent catalogue: bags shot from above next to bags shot from the side, white backgrounds next to cream ones, and identical products that look different sizes. It looks unprofessional and erodes trust, and fixing it afterwards in editing takes hours and never truly aligns angles.',
       },
       solution: {
         he: 'מתכון צילום שנשמר מתמונת ייחוס אחת ומנחה את המצלמה בזמן אמת – שכבת רפאים, פלס מהג׳ירוסקופ, סימון ירוק כשמתיישרים – ואחריו עיבוד סדרתי שמחיל את אותו חיתוך ורקע על כל הסדרה ומייצא לפי מק״ט. המתכון משותף עם כל מי שמצלם עבור החנות.',
@@ -292,7 +292,7 @@ export const ideas: Idea[] = [
           'שמירת מתכון צילום מתמונת ייחוס: זווית, מרחק, מסגור, יחס תמונה, רקע',
           'מצלמה מונחית: שכבת רפאים, פלס חי וסימון ירוק כשמתיישרים',
           'צילום סדרתי עם מעבר מהיר בין פריטים וסריקת ברקוד למק״ט',
-          'עיבוד סדרתי: חיתוך אחיד, יישור רקע, הסרת רקע אופציונלית',
+          'עיבוד סדרתי: חיתוך אחיד, האחדת גוון הרקע, הסרת רקע אופציונלית',
           'יצוא בשמות קבצים לפי מק״ט ובגדלים המתאימים לחנות ולמרקטפלייסים',
           'שיתוף מתכונים עם עובדים וספקים בקישור',
           'לוח קטלוג באינטרנט שמראה אילו מק״טים עדיין בלי תמונה אחידה',
@@ -301,7 +301,7 @@ export const ideas: Idea[] = [
           'Save a shot recipe from a reference photo: angle, distance, framing, aspect ratio, background',
           'Guided camera: ghost overlay, live level and a green signal when aligned',
           'Batch shooting with quick item switching and barcode scanning for SKUs',
-          'Batch processing: uniform crop, background levelling, optional background removal',
+          'Batch processing: uniform crop, background tone matching, optional background removal',
           'Export with SKU-based file names and sizes for the store and marketplaces',
           'Share recipes with employees and suppliers via a link',
           'A web catalogue board showing which SKUs still lack a consistent photo',
@@ -321,7 +321,7 @@ export const ideas: Idea[] = [
           'בעלת חנות תכשיטים מצלמת עגיל אחד על רקע לבן ושומרת מתכון "תכשיטים – מלמעלה"',
           'מגיע משלוח של 35 דגמים חדשים והיא פותחת צילום סדרה',
           'לכל דגם היא סורקת את המק״ט, מיישרת לפי שכבת הרפאים ומצלמת כשהמסגרת ירוקה',
-          'העיבוד הסדרתי חותך ומיישר את כל 35 התמונות באותו אופן',
+          'העיבוד הסדרתי חותך את כל 35 התמונות באותו אופן ומאחיד את גוון הרקע',
           'היא מייצאת לחנות בשמות קבצים לפי מק״ט והתמונות עולות לעמודי המוצר',
           'שולחת את המתכון לעובדת החדשה, שמצלמת את המשלוח הבא בדיוק באותו פריים',
         ],
@@ -329,7 +329,7 @@ export const ideas: Idea[] = [
           'A jewellery shop owner shoots one earring on a white background and saves a "jewellery – top-down" recipe',
           'A delivery of 35 new designs arrives and she opens a series shoot',
           'For each design she scans the SKU, aligns to the ghost overlay and shoots when the frame turns green',
-          'Batch processing crops and levels all 35 photos the same way',
+          'Batch processing crops all 35 photos the same way and matches their background tone',
           'She exports to the store with SKU-based file names and the photos land on the product pages',
           'She sends the recipe to the new employee, who shoots the next delivery in exactly the same frame',
         ],
@@ -339,10 +339,10 @@ export const ideas: Idea[] = [
         en: 'A work tool, not a creative camera app: the live view fills the screen, buttons are large for one-handed use, and feedback is a single colour – red, amber, green – visible from the corner of the eye. The ghost overlay is translucent enough not to get in the way, and text is reduced to numbers: distance, angle, SKU. The web screen keeps the same visual language in a dense grid.',
       },
       architecture: {
-        he: 'Expo עם expo-camera לתצוגה החיה, expo-sensors לזווית מהג׳ירוסקופ, ו-Skia לציור שכבת הרפאים והמסגרת. המרחק מוערך לפי גודל המוצר במסגרת ביחס לתמונת הייחוס (ו-LiDAR במכשירים שתומכים בו). עיבוד התמונות – חיתוך, יישור רקע – רץ במכשיר; הסרת רקע נעשית דרך ספק API מנוהל כאופציה בתשלום. Supabase לאימות, לחנויות, למתכונים ולמטא-דאטה של הסדרות, ו-Supabase Storage לתמונות. לוח הקטלוג הוא אפליקציית Next.js קטנה על אותו מסד נתונים, והיצוא לחנות עובר דרך ה-API של Shopify.',
-        en: 'Expo with expo-camera for the live view, expo-sensors for the gyroscope angle, and Skia to draw the ghost overlay and frame. Distance is estimated from the product’s size in frame relative to the reference (and LiDAR on supported devices). Image processing – crop, background levelling – runs on device; background removal goes through a managed API as a paid option. Supabase for auth, shops, recipes and series metadata, with Supabase Storage for photos. The catalogue board is a small Next.js app on the same database, and store export goes through the Shopify API.',
+        he: 'Expo עם expo-camera לתצוגה החיה, expo-sensors לזווית מהג׳ירוסקופ, ו-Skia לציור שכבת הרפאים והמסגרת. המרחק מוערך לפי גודל המוצר במסגרת ביחס לתמונת הייחוס (ו-LiDAR במכשירים שתומכים בו). עיבוד התמונות – חיתוך, האחדת גוון הרקע – רץ במכשיר; הסרת רקע נעשית דרך ספק API מנוהל כאופציה בתשלום. Supabase לאימות, לחנויות, למתכונים ולמטא-דאטה של הסדרות, ו-Supabase Storage לתמונות. לוח הקטלוג הוא אותה אפליקציית Expo Router שרצה גם בדפדפן, בלי קוד נפרד; יצוא ישיר ל-Shopify דרך ה-API שלה מגיע אחרי ה-MVP.',
+        en: 'Expo with expo-camera for the live view, expo-sensors for the gyroscope angle, and Skia to draw the ghost overlay and frame. Distance is estimated from the product’s size in frame relative to the reference (and LiDAR on supported devices). Image processing – crop, background tone matching – runs on device; background removal goes through a managed API as a paid option. Supabase for auth, shops, recipes and series metadata, with Supabase Storage for photos. The catalogue board is the same Expo Router app running in the browser, with no separate codebase; direct Shopify export through its API comes after the MVP.',
       },
-      stack: ['Expo', 'expo-camera', 'expo-sensors', 'React Native Skia', 'Supabase', 'Supabase Storage', 'Next.js', 'Shopify API'],
+      stack: ['Expo', 'expo-camera', 'expo-sensors', 'React Native Skia', 'Supabase', 'Supabase Storage', 'Expo Router', 'Shopify API'],
       database: {
         he: ['shops – חנות, חברים, תפקידים, תוכנית', 'recipes – מתכון, תמונת ייחוס, זווית, מרחק, מסגור, רקע', 'series – סדרת צילום, מתכון, מי צילם, תאריך', 'shots – צילום, מק״ט, סטייה מהמתכון, קובץ מקור', 'processed_images – תמונה מעובדת, גודל, יעד יצוא, סטטוס', 'exports – יצוא, יעד, רשימת קבצים, שגיאות'],
         en: ['shops – shop, members, roles, plan', 'recipes – recipe, reference photo, angle, distance, framing, background', 'series – shoot series, recipe, shooter, date', 'shots – shot, SKU, deviation from recipe, source file', 'processed_images – processed image, size, export target, status', 'exports – export, destination, file list, errors'],
@@ -356,16 +356,16 @@ export const ideas: Idea[] = [
         en: ['Monthly subscription per shop by number of processed SKUs', 'Paid add-on for background removal and direct Shopify export', 'An agency plan with multiple shops and shared recipes'],
       },
       mvpMilestones: {
-        he: ['יצירת מתכון מתמונת ייחוס עם זווית מהחיישנים', 'מצלמה מונחית עם שכבת רפאים ומשוב ירוק', 'צילום סדרה עם הזנת מק״ט ידנית', 'עיבוד סדרתי: חיתוך אחיד ויצוא ZIP', 'שיתוף מתכונים והזמנת צלמים', 'הסרת רקע ויצוא ל-Shopify'],
-        en: ['Recipe creation from a reference photo with sensor-based angle', 'Guided camera with ghost overlay and green feedback', 'Series shooting with manual SKU entry', 'Batch processing: uniform crop and ZIP export', 'Recipe sharing and shooter invitations', 'Background removal and Shopify export'],
+        he: ['יצירת מתכון מתמונת ייחוס עם זווית מהחיישנים', 'מצלמה מונחית עם שכבת רפאים ומשוב ירוק', 'צילום סדרה עם הזנת מק״ט ידנית', 'עיבוד סדרתי: חיתוך אחיד ויצוא ZIP', 'שיתוף מתכונים והזמנת צלמים', 'הסרת רקע דרך API מנוהל ולוח קטלוג בדפדפן'],
+        en: ['Recipe creation from a reference photo with sensor-based angle', 'Guided camera with ghost overlay and green feedback', 'Series shooting with manual SKU entry', 'Batch processing: uniform crop and ZIP export', 'Recipe sharing and shooter invitations', 'Background removal through a managed API and the catalogue board in the browser'],
       },
       risks: {
-        he: ['הערכת מרחק ללא LiDAR היא מקורבת – להציג טווח ולא מספר מדויק, ולהישען על גודל המוצר במסגרת', 'תאורה שמשתנה בין ימים שוברת אחידות גם כשהזווית מושלמת – צריך מדידת תאורה והמלצה פשוטה לפני הצילום', 'מצלמה, חיישנים ו-Skia דורשים development build ובדיקות על מגוון מכשירי אנדרואיד'],
-        en: ['Distance estimation without LiDAR is approximate – show a range rather than an exact number and lean on product size in frame', 'Light that changes between days breaks consistency even with a perfect angle – a light reading and a simple recommendation before shooting are needed', 'Camera, sensors and Skia require a development build and testing across a range of Android devices'],
+        he: ['הערכת מרחק ללא LiDAR היא מקורבת – להציג טווח ולא מספר מדויק, ולהישען על גודל המוצר במסגרת', 'תאורה שמשתנה בין ימים שוברת אחידות גם כשהזווית מושלמת – צריך מדידת תאורה והמלצה פשוטה לפני הצילום', 'מצלמה וחיישנים מתנהגים אחרת בין יצרני אנדרואיד (כיול ג׳ירוסקופ, יחסי תמונה) – נדרשות בדיקות על מגוון מכשירים, ו-LiDAR דורש מודול נייטיב ו-development build'],
+        en: ['Distance estimation without LiDAR is approximate – show a range rather than an exact number and lean on product size in frame', 'Light that changes between days breaks consistency even with a perfect angle – a light reading and a simple recommendation before shooting are needed', 'Camera and sensors behave differently across Android manufacturers (gyroscope calibration, aspect ratios) – testing on a range of devices is needed, and LiDAR requires a native module and a development build'],
       },
       expansion: {
-        he: ['מתכוני וידאו קצרים: אותו סיבוב של 360 מעלות לכל מוצר', 'בדיקת איכות אוטומטית מול דרישות המרקטפלייס (רקע, שוליים, רזולוציה)', 'ספריית מתכונים מוכנים לפי סוג מוצר: בגדים, תכשיטים, אוכל, רהיטים'],
-        en: ['Short video recipes: the same 360-degree turn for every product', 'Automatic quality checks against marketplace requirements (background, margins, resolution)', 'A library of ready recipes by product type: clothing, jewellery, food, furniture'],
+        he: ['יצוא ישיר ל-Shopify ולמרקטפלייסים דרך ה-API שלהם במקום קובץ ZIP', 'מתכוני וידאו קצרים: אותו סיבוב של 360 מעלות לכל מוצר', 'בדיקת איכות אוטומטית מול דרישות המרקטפלייס (רקע, שוליים, רזולוציה)', 'ספריית מתכונים מוכנים לפי סוג מוצר: בגדים, תכשיטים, אוכל, רהיטים'],
+        en: ['Direct export to Shopify and marketplaces through their APIs instead of a ZIP file', 'Short video recipes: the same 360-degree turn for every product', 'Automatic quality checks against marketplace requirements (background, margins, resolution)', 'A library of ready recipes by product type: clothing, jewellery, food, furniture'],
       },
     },
   },
@@ -379,7 +379,7 @@ export const ideas: Idea[] = [
     category: 'creativity',
     secondaryCategories: ['lifestyle', 'ecommerce'],
     difficulty: 'intermediate',
-    effort: { weeksMin: 6, weeksMax: 9 },
+    effort: { weeksMin: 6, weeksMax: 8 },
     budget: 'medium',
     businessModel: 'marketplace',
     platforms: ['cross-platform'],
@@ -389,12 +389,12 @@ export const ideas: Idea[] = [
     flags: { beginnerFriendly: false, profitPotential: 'medium', experimental: false, trending: true, featuredWeight: 3 },
     spec: {
       overview: {
-        he: 'Dovetail מיועדת לאנשים שבונים דברים בידיים – נגרות, סריגה, קרמיקה, תפירה, עור – ואף פעם לא מספיקים לתעד כמו שצריך. ההנחה שבבסיס המוצר: יוצרים ממילא מצלמים תוך כדי עבודה, רק לא עושים עם זה כלום. באפליקציה כל פרויקט הוא יומן בנייה: מצלמים שלב, והאפליקציה שואלת שאלה אחת קצרה ("מה עשית כאן?", "איזה חומר?", "כמה זמן לקח?") שעונים עליה בקול או בכמה מילים. בסוף הפרויקט לוחצים "הפוך למדריך" ומקבלים מדריך מאויר שלב אחר שלב, רשימת חומרים וכלים שנאספה מהתשובות, וסיכום של שעות העבודה ועלות החומרים – המספר שרוב היוצרים לא יודעים כשהם מתמחרים. את המדריך אפשר לשמור, לשתף, או להעמיד למכירה בחנות המדריכים של Dovetail, שבה קונים משלמים על תהליך אמיתי ולא על הוראות גנריות.',
-        en: 'Dovetail is for people who make things with their hands – woodworking, knitting, ceramics, sewing, leather – and never get around to documenting properly. The product rests on one assumption: makers already take photos while they work, they just never do anything with them. In the app every project is a build log: you photograph a step and the app asks one short question ("what did you do here?", "which material?", "how long did it take?") that you answer by voice or in a few words. At the end you tap "turn into a guide" and get an illustrated step-by-step guide, a materials and tools list collected from your answers, and a summary of hours worked and material cost – the number most makers do not know when they set a price. The guide can be kept, shared, or listed in Dovetail’s guide shop, where buyers pay for a real process rather than generic instructions.',
+        he: 'Dovetail מיועדת לאנשים שבונים דברים בידיים – נגרות, סריגה, קרמיקה, תפירה, עור – ואף פעם לא מספיקים לתעד כמו שצריך. ההנחה שבבסיס המוצר: יוצרים ממילא מצלמים תוך כדי עבודה, רק לא עושים עם זה כלום. באפליקציה כל פרויקט הוא יומן בנייה: מצלמים שלב, והאפליקציה שואלת שאלה אחת קצרה ("מה עשית כאן?", "איזה חומר?", "כמה זמן לקח?") שעונים עליה בקול או בכמה מילים. בסוף הפרויקט לוחצים "הפוך למדריך" ומקבלים מדריך מאויר שלב אחר שלב, רשימת חומרים וכלים שנאספה מהתשובות, וסיכום של שעות העבודה ועלות החומרים – המספר שהרבה יוצרים לא יודעים כשהם מתמחרים. את המדריך אפשר לשמור, לשתף, או להעמיד למכירה בחנות המדריכים של Dovetail, שבה קונים משלמים על תהליך אמיתי ולא על הוראות גנריות.',
+        en: 'Dovetail is for people who make things with their hands – woodworking, knitting, ceramics, sewing, leather – and never get around to documenting properly. The product rests on one assumption: makers already take photos while they work, they just never do anything with them. In the app every project is a build log: you photograph a step and the app asks one short question ("what did you do here?", "which material?", "how long did it take?") that you answer by voice or in a few words. At the end you tap "turn into a guide" and get an illustrated step-by-step guide, a materials and tools list collected from your answers, and a summary of hours worked and material cost – the number many makers do not know when they set a price. The guide can be kept, shared, or listed in Dovetail’s guide shop, where buyers pay for a real process rather than generic instructions.',
       },
       problem: {
-        he: 'יוצרים מסיימים פרויקט עם 60 תמונות בגלריה ובלי מדריך, בלי רשימת חומרים ובלי מושג כמה שעות הושקעו. לכתוב מדריך בדיעבד לוקח ערב שלם, ולכן זה לא קורה; ותמחור היצירה נעשה לפי תחושה, בדרך כלל נמוך מדי. המדריכים שנמכרים ברשת נכתבים לרוב על ידי המעטים שיש להם זמן לכתוב, לא על ידי מי שבונה הכי טוב.',
-        en: 'Makers finish a project with 60 photos in the camera roll and no guide, no materials list and no idea how many hours went in. Writing a guide afterwards takes a whole evening, so it never happens; and pricing the piece is done by gut feeling, usually too low. The guides sold online are mostly written by the few who have time to write, not by the people who build best.',
+        he: 'יוצרים מסיימים פרויקט עם 60 תמונות בגלריה ובלי מדריך, בלי רשימת חומרים ובלי מושג כמה שעות הושקעו. לכתוב מדריך בדיעבד לוקח ערב שלם, ולכן זה לא קורה; ותמחור היצירה נעשה לפי תחושה, ולא פעם נמוך מדי. הרבה מהמדריכים שנמכרים ברשת נכתבים על ידי מי שיש לו זמן לכתוב, לא בהכרח על ידי מי שבונה הכי טוב.',
+        en: 'Makers finish a project with 60 photos in the camera roll and no guide, no materials list and no idea how many hours went in. Writing a guide afterwards takes a whole evening, so it never happens; and pricing the piece is done by gut feeling, often too low. Many of the guides sold online are written by whoever has time to write, not necessarily by the people who build best.',
       },
       solution: {
         he: 'תיעוד כתוצר לוואי של הבנייה: תמונה, שאלה אחת, תשובה קצרה. מהחומר הזה נבנים אוטומטית מדריך מאויר, רשימת חומרים וכלים, וחישוב עלות אמיתית לפי שעות וחומרים. ומעל זה – חנות מדריכים שבה התהליך המתועד הוא המוצר.',
@@ -405,13 +405,13 @@ export const ideas: Idea[] = [
         en: 'Zero write-up at the end: the guide, the materials list and the cost of the piece come out of the photos the maker takes anyway plus a one-sentence answer per step – and then the process itself can be sold.',
       },
       targetUsers: {
-        he: ['נגרים חובבים ויוצרי רהיטים קטנים', 'סורגות ותופרות שמוכרות גם דוגמאות', 'קדרים ואמני קרמיקה שמנהלים סטודיו קטן', 'מורים לסדנאות יצירה שצריכים חומר מודפס לתלמידים'],
+        he: ['נגרים חובבים ויוצרי רהיטים קטנים', 'סורגות ותופרות שמוכרות גם הוראות סריגה וגזרות', 'קדרים ואמני קרמיקה שמנהלים סטודיו קטן', 'מורים לסדנאות יצירה שצריכים חומר מודפס לתלמידים'],
         en: ['Hobbyist woodworkers and small furniture makers', 'Knitters and sewists who also sell patterns', 'Potters and ceramic artists running a small studio', 'Craft workshop teachers who need printed material for students'],
       },
       coreFeatures: {
         he: [
           'יומן בנייה: תמונה לכל שלב עם שאלה אחת שעונים עליה בקול או בטקסט',
-          'טיימר עבודה שרץ ברקע ומשייך זמן לכל שלב',
+          'טיימר עבודה שממשיך לספור גם כשהאפליקציה סגורה ומשייך זמן לכל שלב',
           'איסוף חומרים וכלים מהתשובות לרשימה אחת עם כמויות ומחירים',
           '"הפוך למדריך": מדריך מאויר שלב אחר שלב עם טקסט שנערך מהתשובות',
           'חישוב עלות אמיתית: שעות × תעריף + חומרים, והצעת מחיר לפי מרווח',
@@ -421,7 +421,7 @@ export const ideas: Idea[] = [
         ],
         en: [
           'Build log: a photo per step with one question answered by voice or text',
-          'A work timer that runs in the background and attributes time to each step',
+          'A work timer that keeps counting even when the app is closed and attributes time to each step',
           'Materials and tools gathered from the answers into one list with quantities and prices',
           '"Turn into a guide": an illustrated step-by-step guide with text edited from the answers',
           'True-cost calculation: hours × rate + materials, and a suggested price by margin',
@@ -462,16 +462,16 @@ export const ideas: Idea[] = [
         en: 'Built for dirty hands: huge buttons, voice recording by default, and a new-step screen that finishes in two taps. A palette of wood, clay and cloth – brown, terracotta and warm grey – with large, frameless photos. The finished guide looks like a printed booklet, with clear step numbering and print-friendly typography.',
       },
       architecture: {
-        he: 'Expo עם expo-camera, expo-image-picker ו-expo-audio להקלטת התשובות, ו-expo-background-task לטיימר שממשיך לרוץ. התשובות הקוליות מתומללות ב-Edge Function, ומודל שפה מחלץ מהן חומרים, כמויות ומשכים לסכמה קבועה ומנסח את טקסט המדריך – וכל הפלט נערך על ידי היוצר. Supabase לאימות, לפרויקטים ולשלבים, ו-Supabase Storage לתמונות. חישוב העלות הוא קוד פשוט בצד הלקוח. החנות משתמשת ב-Stripe Connect לתשלומים ליוצרים, וקובצי ה-PDF נוצרים בצד השרת.',
-        en: 'Expo with expo-camera, expo-image-picker and expo-audio for recording answers, and expo-background-task for the running timer. Voice answers are transcribed in an Edge Function, and a language model extracts materials, quantities and durations into a fixed schema and drafts the guide text – all of it edited by the maker. Supabase for auth, projects and steps, with Supabase Storage for photos. Cost calculation is simple client-side code. The shop uses Stripe Connect for maker payouts, and PDFs are generated server-side.',
+        he: 'Expo עם expo-camera, expo-image-picker ו-expo-audio להקלטת התשובות; טיימר העבודה שומר חותמת זמן של ההתחלה ומחשב את המשך גם אחרי שהאפליקציה נסגרה, בלי משימת רקע. התשובות הקוליות מתומללות ב-Edge Function, ומודל שפה מחלץ מהן חומרים, כמויות ומשכים לסכמה קבועה ומנסח את טקסט המדריך – וכל הפלט נערך על ידי היוצר. Supabase לאימות, לפרויקטים ולשלבים, ו-Supabase Storage לתמונות. חישוב העלות הוא קוד פשוט בצד הלקוח. החנות משתמשת ב-Stripe Connect לתשלומים ליוצרים, וקובצי ה-PDF נוצרים בצד השרת.',
+        en: 'Expo with expo-camera, expo-image-picker and expo-audio for recording answers; the work timer stores a start timestamp and computes the elapsed time even after the app is closed, with no background task. Voice answers are transcribed in an Edge Function, and a language model extracts materials, quantities and durations into a fixed schema and drafts the guide text – all of it edited by the maker. Supabase for auth, projects and steps, with Supabase Storage for photos. Cost calculation is simple client-side code. The shop uses Stripe Connect for maker payouts, and PDFs are generated server-side.',
       },
-      stack: ['Expo', 'expo-camera', 'expo-audio', 'expo-background-task', 'Supabase', 'Supabase Storage', 'Supabase Edge Functions', 'Anthropic or OpenAI API', 'Stripe Connect'],
+      stack: ['Expo', 'expo-camera', 'expo-audio', 'expo-image-picker', 'Supabase', 'Supabase Storage', 'Supabase Edge Functions', 'Anthropic or OpenAI API', 'Stripe Connect'],
       database: {
         he: ['profiles – יוצר, תחומים, תעריף שעתי, חשבון תשלומים', 'projects – פרויקט, תחום, סטטוס, סך שעות', 'steps – שלב, תמונה, תשובה, תמלול, משך, סדר', 'materials – חומר או כלי, כמות, מחיר, ספק, פרויקט', 'guides – מדריך, טקסט ערוך, שער, נראות, מחיר', 'purchases – רכישה, מדריך, קונה, תשלום', 'material_library – חומרים אישיים עם מחיר אחרון וספק'],
         en: ['profiles – maker, crafts, hourly rate, payout account', 'projects – project, craft, status, total hours', 'steps – step, photo, answer, transcript, duration, order', 'materials – material or tool, quantity, price, supplier, project', 'guides – guide, edited text, cover, visibility, price', 'purchases – purchase, guide, buyer, payment', 'material_library – personal materials with last price and supplier'],
       },
       auth: {
-        he: 'כניסה עם Apple, Google או אימייל. יומני בנייה פרטיים כברירת מחדל ומוגנים ב-RLS לפי יוצר; מדריכים שפורסמו נגישים לציבור לפי הנראות שנבחרה. מוכרים עוברים אימות זהות דרך Stripe Connect לפני התשלום הראשון.',
+        he: 'כניסה עם Apple, Google או אימייל. יומני בנייה פרטיים כברירת מחדל ומוגנים ב-RLS לפי יוצר; מדריכים שפורסמו נגישים לציבור לפי הנראות שנבחרה. מוכרים עוברים אימות זהות דרך Stripe Connect לפני קבלת התשלום הראשון.',
         en: 'Apple, Google or email sign-in. Build logs are private by default and protected by per-maker RLS; published guides are public according to the chosen visibility. Sellers complete identity verification through Stripe Connect before a first payout.',
       },
       monetization: {
@@ -479,16 +479,16 @@ export const ideas: Idea[] = [
         en: ['A commission on every guide sold in the shop', 'A maker subscription: unlimited projects, watermark-free PDFs and the materials library', 'A plan for workshops and studios with shared guides for students'],
       },
       mvpMilestones: {
-        he: ['יומן בנייה עם תמונה, שאלה ותשובה בטקסט', 'הקלטה קולית ותמלול עם חילוץ חומרים ומשכים', 'טיימר ומסך עלות אמיתית', '"הפוך למדריך" עם עריכה ויצוא PDF', 'שיתוף בקישור', 'חנות מדריכים עם Stripe Connect'],
-        en: ['Build log with photo, question and text answer', 'Voice recording and transcription with material and duration extraction', 'Timer and true-cost screen', '"Turn into a guide" with editing and PDF export', 'Link sharing', 'Guide shop with Stripe Connect'],
+        he: ['יומן בנייה עם תמונה, שאלה ותשובה בטקסט', 'הקלטה קולית ותמלול עם חילוץ חומרים ומשכים', 'טיימר ומסך עלות אמיתית', '"הפוך למדריך" עם עריכה ויצוא PDF', 'שיתוף בקישור ומנוי ליוצרים'],
+        en: ['Build log with photo, question and text answer', 'Voice recording and transcription with material and duration extraction', 'Timer and true-cost screen', '"Turn into a guide" with editing and PDF export', 'Link sharing and the maker subscription'],
       },
       risks: {
         he: ['חנות בלי מוכרים ובלי קונים היא בעיית ביצה ותרנגולת – להשיק קודם ככלי תיעוד ותמחור, ולפתוח את החנות רק כשיש מדריכים טובים', 'חילוץ חומרים ומשכים מתשובות קוליות בעברית יטעה – כל שדה חייב להיות ניתן לעריכה ומאושר על ידי היוצר', 'מדריכים הם קניין רוחני – נדרשים תנאי שימוש ברורים, סימן מים בתצוגה המקדימה ומדיניות החזרים'],
         en: ['A shop with no sellers and no buyers is a chicken-and-egg problem – launch first as a documentation and pricing tool, and open the shop only once good guides exist', 'Extracting materials and durations from Hebrew voice answers will make mistakes – every field must be editable and confirmed by the maker', 'Guides are intellectual property – clear terms, preview watermarks and a refund policy are required'],
       },
       expansion: {
-        he: ['מצב "בונים יחד" לקונים: שלב אחר שלב עם סימון התקדמות ושאלות ליוצר', 'ייבוא יומן מהגלריה: בחירת תמונות קיימות ומענה על השאלות בדיעבד', 'חיבור לספקי חומרים כדי להזמין את רשימת החומרים של מדריך בלחיצה'],
-        en: ['A "build along" mode for buyers: step by step with progress ticks and questions to the maker', 'Import a log from the camera roll: pick existing photos and answer the questions after the fact', 'Links to material suppliers to order a guide’s materials list in one tap'],
+        he: ['חנות המדריכים עם Stripe Connect – נפתחת רק אחרי שיש מספיק מדריכים טובים', 'מצב "בונים יחד" לקונים: שלב אחר שלב עם סימון התקדמות ושאלות ליוצר', 'ייבוא יומן מהגלריה: בחירת תמונות קיימות ומענה על השאלות בדיעבד', 'חיבור לספקי חומרים כדי להזמין את רשימת החומרים של מדריך בלחיצה'],
+        en: ['The guide shop with Stripe Connect – opened only once enough good guides exist', 'A "build along" mode for buyers: step by step with progress ticks and questions to the maker', 'Import a log from the camera roll: pick existing photos and answer the questions after the fact', 'Links to material suppliers to order a guide’s materials list in one tap'],
       },
     },
   },
@@ -497,7 +497,7 @@ export const ideas: Idea[] = [
     name: { he: 'Foldover – ציור מקופל', en: 'Foldover' },
     tagline: {
       he: 'משחק הציור המקופל, בטלפון: כל שחקן מצייר חלק מהיצור – ראש, גוף, רגליים – כשהוא רואה רק את קווי החיבור של הקודם. ואז פותחים.',
-      en: 'The fold-over drawing game, on a phone: everyone draws one part of a creature – head, body, legs – seeing only the joining lines of the previous part.',
+      en: 'The fold-over drawing game on a phone: each player draws one part of the creature – head, body, legs – seeing only the last part’s joining lines. Then unfold.',
     },
     category: 'creativity',
     secondaryCategories: ['games', 'social'],
@@ -508,20 +508,20 @@ export const ideas: Idea[] = [
     platforms: ['ios', 'android'],
     audience: ['kids', 'parents', 'consumers'],
     tags: ['drawing', 'party game', 'kids', 'exquisite corpse', 'canvas', 'family', 'offline', 'doodle'],
-    identity: { hue: 52, glyph: 'Fo', pattern: 'ring' },
+    identity: { hue: 110, glyph: 'Fo', pattern: 'ring' },
     flags: { beginnerFriendly: true, profitPotential: 'low', experimental: false, trending: false, featuredWeight: 2 },
     spec: {
       overview: {
-        he: 'Foldover מעבירה לטלפון משחק סלון ישן שעובד בכל גיל: מקפלים דף, כל אחד מצייר חלק של דמות בלי לראות מה ציירו לפניו, ובסוף פותחים וצוחקים. בגרסת האפליקציה הקנבס מחולק לשלושה או ארבעה אזורים – ראש, גוף, רגליים, ואולי כובע – ובכל תור השחקן רואה רק את הקווים שחוצים את קו הקיפול מהחלק הקודם, כדי שצוואר יתחבר לצוואר ומותניים למותניים. מעבירים את הטלפון מיד ליד, ובסוף אנימציית "פתיחה" חושפת את היצור המלא, שאפשר לשמור, לשתף כמדבקה או להדפיס. בלי חשבון, בלי אינטרנט ובלי רשת חברתית – רק דף, עיפרון ואנשים באותו חדר.',
-        en: 'Foldover brings an old parlour game that works at any age to the phone: fold a sheet, everyone draws part of a figure without seeing what came before, then unfold and laugh. In the app version the canvas is split into three or four zones – head, body, legs, maybe a hat – and on each turn the player sees only the lines that cross the fold from the previous part, so a neck meets a neck and a waist meets a waist. The phone is passed from hand to hand, and at the end an "unfold" animation reveals the full creature, ready to save, share as a sticker or print. No account, no internet and no social network – just paper, a pencil and people in the same room.',
+        he: 'Foldover מעבירה לטלפון משחק סלון ישן שעובד בכל גיל: מקפלים דף, כל אחד מצייר חלק של דמות בלי לראות מה ציירו לפניו, ובסוף פותחים וצוחקים. בגרסת האפליקציה הקנבס מחולק לשלושה או ארבעה אזורים – ראש, גוף, רגליים, ואולי כובע – ובכל תור השחקן רואה רק את הקווים שחוצים את קו הקיפול מהחלק הקודם, כדי שצוואר יתחבר לצוואר ומותניים למותניים. מעבירים את הטלפון מיד ליד, ובסוף אנימציית "פתיחה" חושפת את היצור המלא, שאפשר לשמור ולשתף. בלי חשבון, בלי אינטרנט ובלי רשת חברתית – רק דף, עיפרון ואנשים באותו חדר.',
+        en: 'Foldover brings an old parlour game that works at any age to the phone: fold a sheet, everyone draws part of a figure without seeing what came before, then unfold and laugh. In the app version the canvas is split into three or four zones – head, body, legs, maybe a hat – and on each turn the player sees only the lines that cross the fold from the previous part, so a neck meets a neck and a waist meets a waist. The phone is passed from hand to hand, and at the end an "unfold" animation reveals the full creature, ready to save and share. No account, no internet and no social network – just paper, a pencil and people in the same room.',
       },
       problem: {
-        he: 'משחקי ציור בטלפון הם כמעט תמיד תחרותיים, מקוונים ומלאים בפרסומות, ולא מתאימים לשולחן אחד עם סבתא וילד בן שש. המשחק המקופל האמיתי דורש נייר, עטים ומישהו שמסביר את הכללים – ואת היצירה אי אפשר לשמור או לשלוח.',
-        en: 'Phone drawing games are almost always competitive, online and full of ads, and do not suit one table with a grandmother and a six-year-old. The real fold-over game needs paper, pens and someone to explain the rules – and the result cannot be saved or sent.',
+        he: 'משחקי ציור בטלפון הם לרוב תחרותיים, מקוונים ומלאים בפרסומות, ולא מתאימים לשולחן אחד עם סבתא וילד בן שש. המשחק המקופל האמיתי דורש נייר, עטים ומישהו שמסביר את הכללים – ואת היצירה אי אפשר לשמור או לשלוח.',
+        en: 'Phone drawing games tend to be competitive, online and full of ads, and do not suit one table with a grandmother and a six-year-old. The real fold-over game needs paper, pens and someone to explain the rules – and the result cannot be saved or sent.',
       },
       solution: {
-        he: 'קנבס מחולק לאזורים עם מכניקת "רק קווי החיבור גלויים", העברת הטלפון מיד ליד, ואנימציית פתיחה שהיא הרגע שבשבילו משחקים. הכול מקומי, בלי חשבון, עם שמירה ויצוא כמדבקה.',
-        en: 'A zoned canvas with an "only the joining lines are visible" mechanic, pass-the-phone turns, and an unfold animation that is the moment everyone plays for. Everything local, no account, with saving and sticker export.',
+        he: 'קנבס מחולק לאזורים עם מכניקת "רק קווי החיבור גלויים", העברת הטלפון מיד ליד, ואנימציית פתיחה שהיא הרגע שבשבילו משחקים. הכול מקומי, בלי חשבון, עם שמירה ושיתוף כתמונה.',
+        en: 'A zoned canvas with an "only the joining lines are visible" mechanic, pass-the-phone turns, and an unfold animation that is the moment everyone plays for. Everything local, no account, with saving and sharing as an image.',
       },
       usp: {
         he: 'המכניקה המקורית של הנייר – רואים רק את קצות הקווים של החלק הקודם – נשמרת במדויק, וזה מה שמייצר את ההפתעה; לא "אפליקציית ציור" אלא משחק של שלוש דקות לשולחן אחד.',
@@ -537,7 +537,7 @@ export const ideas: Idea[] = [
           'העברת טלפון: מסך "תעבירו ל..." בין תורות שמסתיר את הציור הקודם',
           'כלי ציור פשוטים: עיפרון, טוש, מחק, ארבעה צבעים',
           'אנימציית פתיחה שחושפת את היצור חלק אחר חלק',
-          'שמירה לגלריה, יצוא כמדבקה לוואטסאפ ושיתוף כתמונה',
+          'שמירה לגלריה ושיתוף כתמונה או כ-PNG שקוף בגודל מדבקה דרך גיליון השיתוף',
           'נושאים: יצור, רובוט, מפלצת, דמות מהחג – כל נושא משנה את מספר האזורים',
           'מצב סולו: חלקים אקראיים מציורים קודמים שלכם',
         ],
@@ -546,7 +546,7 @@ export const ideas: Idea[] = [
           'Pass-the-phone: a "hand it to..." screen between turns that hides the previous drawing',
           'Simple drawing tools: pencil, marker, eraser, four colours',
           'An unfold animation that reveals the creature part by part',
-          'Save to the gallery, export as a WhatsApp sticker and share as an image',
+          'Save to the gallery and share as an image or a sticker-sized transparent PNG through the system share sheet',
           'Themes: creature, robot, monster, holiday character – each theme changes the zone count',
           'Solo mode: random parts from your own previous drawings',
         ],
@@ -555,7 +555,7 @@ export const ideas: Idea[] = [
         { name: { he: 'התחלה', en: 'Start' }, description: { he: 'בחירת נושא ומספר שחקנים (2–4), הזנת שמות אופציונלית, וכפתור "מתחילים" גדול.', en: 'Pick a theme and player count (2–4), optional names, and a big "start" button.' } },
         { name: { he: 'תור ציור', en: 'Drawing turn' }, description: { he: 'הקנבס של האזור הנוכחי, קווי החיבור מהחלק הקודם מבצבצים מלמעלה, כלי הציור בשורה למטה וכפתור "סיימתי".', en: 'The current zone’s canvas, the previous part’s joining lines peeking in from the top, tools in a row below and a "done" button.' } },
         { name: { he: 'העברה', en: 'Hand over' }, description: { he: 'מסך כיסוי עם "תעבירו את הטלפון ל-X" שמסתיר את הציור עד שהשחקן הבא נוגע במסך.', en: 'A cover screen reading "pass the phone to X" that hides the drawing until the next player taps.' } },
-        { name: { he: 'פתיחה', en: 'Unfold' }, description: { he: 'אנימציה שפורשת את הדף חלק אחר חלק, ואז היצור המלא עם כפתורי שמירה, מדבקה ושיתוף.', en: 'An animation that unfolds the sheet part by part, then the full creature with save, sticker and share buttons.' } },
+        { name: { he: 'פתיחה', en: 'Unfold' }, description: { he: 'אנימציה שפורשת את הדף חלק אחר חלק, ואז היצור המלא עם כפתורי שמירה ושיתוף.', en: 'An animation that unfolds the sheet part by part, then the full creature with save and share buttons.' } },
         { name: { he: 'גלריה', en: 'Gallery' }, description: { he: 'רשת של כל היצורים שנוצרו, עם שמות המציירים ותאריך, ומחיקה בלחיצה ארוכה.', en: 'A grid of every creature made, with the drawers’ names and date, and long-press to delete.' } },
       ],
       userJourney: {
@@ -564,14 +564,14 @@ export const ideas: Idea[] = [
           'אבא מצייר ראש, ולפני שמסיים מוודא שהקווים שלו חוצים את קו הקיפול',
           'מסך ההעברה מסתיר את הציור, והבת בת השבע מציירת גוף שמתחבר לשני הקווים',
           'אמא מציירת רגליים, לוחצת "סיימתי" ואנימציית הפתיחה מתחילה',
-          'כולם צוחקים, המפלצת נשמרת בגלריה ונשלחת כמדבקה לקבוצה המשפחתית',
+          'כולם צוחקים, המפלצת נשמרת בגלריה ונשלחת לקבוצה המשפחתית',
         ],
         en: [
           'A family waiting at a restaurant opens the app and picks "monster" for three players',
           'Dad draws a head and, before finishing, makes sure his lines cross the fold line',
           'The hand-over screen hides the drawing, and the seven-year-old draws a body that connects to the two lines',
           'Mum draws legs, taps "done" and the unfold animation begins',
-          'Everyone laughs, the monster is saved to the gallery and sent as a sticker to the family group',
+          'Everyone laughs, the monster is saved to the gallery and sent to the family group',
         ],
       },
       uxDirection: {
@@ -579,13 +579,13 @@ export const ideas: Idea[] = [
         en: 'Paper and pencils: a paper-toned background with light texture, the fold line drawn as a real fold with a shadow, and tools that look like tools. Few, large buttons, because a four-year-old must succeed without explanation. The unfold is the climax – slow enough that people shout "wait!" before the reveal.',
       },
       architecture: {
-        he: 'Expo עם React Native Skia לקנבס ולמשיכות הציור, ו-Reanimated לאנימציית הפתיחה. כל ציור נשמר כרשימת משיכות (נקודות, עובי, צבע) ב-SQLite, וקווי החיבור מחושבים מהמשיכות שחוצות את קו הקיפול בחלק הקודם. יצוא לתמונה ולמדבקה דרך expo-sharing ו-expo-file-system. אין שרת בכלל – כל מה שצריך נמצא במכשיר.',
-        en: 'Expo with React Native Skia for the canvas and strokes, and Reanimated for the unfold animation. Every drawing is stored as a list of strokes (points, width, colour) in SQLite, and the joining lines are computed from the strokes that cross the fold line in the previous part. Image and sticker export via expo-sharing and expo-file-system. No server at all – everything needed lives on the device.',
+        he: 'Expo עם React Native Skia לקנבס ולמשיכות הציור, ו-Reanimated לאנימציית הפתיחה. כל ציור נשמר כרשימת משיכות (נקודות, עובי, צבע) ב-SQLite, וקווי החיבור מחושבים מהמשיכות שחוצות את קו הקיפול בחלק הקודם. יצוא לתמונה דרך expo-sharing ו-expo-file-system. כל הספריות כלולות ב-Expo Go, כך שמפתחים בלי development build. אין שרת בכלל – כל מה שצריך נמצא במכשיר.',
+        en: 'Expo with React Native Skia for the canvas and strokes, and Reanimated for the unfold animation. Every drawing is stored as a list of strokes (points, width, colour) in SQLite, and the joining lines are computed from the strokes that cross the fold line in the previous part. Image export via expo-sharing and expo-file-system. Every library used is bundled in Expo Go, so no development build is needed. No server at all – everything needed lives on the device.',
       },
       stack: ['Expo', 'React Native Skia', 'Reanimated', 'expo-sqlite', 'expo-sharing', 'expo-file-system'],
       database: {
-        he: ['games – משחק, נושא, מספר אזורים, שמות שחקנים, תאריך', 'parts – חלק, משחק, אזור, מי צייר', 'strokes – משיכה, חלק, נקודות, עובי, צבע', 'exports – תמונה או מדבקה שנוצרו ונתיב הקובץ'],
-        en: ['games – game, theme, zone count, player names, date', 'parts – part, game, zone, drawn by', 'strokes – stroke, part, points, width, colour', 'exports – generated image or sticker and file path'],
+        he: ['games – משחק, נושא, מספר אזורים, שמות שחקנים, תאריך', 'parts – חלק, משחק, אזור, מי צייר', 'strokes – משיכה, חלק, נקודות, עובי, צבע', 'exports – תמונה שנוצרה ונתיב הקובץ'],
+        en: ['games – game, theme, zone count, player names, date', 'parts – part, game, zone, drawn by', 'strokes – stroke, part, points, width, colour', 'exports – generated image and file path'],
       },
       auth: {
         he: 'ללא חשבון וללא הרשמה. אין שרת ואין איסוף נתונים – מתאים לילדים ולהורים שלא רוצים עוד אפליקציה שמבקשת פרטים.',
@@ -596,16 +596,16 @@ export const ideas: Idea[] = [
         en: ['The basic game is completely free, with no ads', 'A one-time purchase of theme packs (holidays, animals, space) and extra drawing tools', 'Later: print a booklet of creatures through a printing service'],
       },
       mvpMilestones: {
-        he: ['קנבס Skia עם עיפרון ומחק ושמירת משיכות', 'חלוקה לאזורים וחישוב קווי החיבור', 'זרימת תורות עם מסך העברה', 'אנימציית פתיחה ושמירה לגלריה', 'יצוא כמדבקה וכתמונה'],
-        en: ['Skia canvas with pencil and eraser and stroke saving', 'Zone split and joining-line computation', 'Turn flow with a hand-over screen', 'Unfold animation and gallery saving', 'Sticker and image export'],
+        he: ['קנבס Skia עם עיפרון ומחק ושמירת משיכות', 'חלוקה לאזורים וחישוב קווי החיבור', 'זרימת תורות עם מסך העברה', 'אנימציית פתיחה ושמירה לגלריה', 'שיתוף כתמונה וכ-PNG בגודל מדבקה'],
+        en: ['Skia canvas with pencil and eraser and stroke saving', 'Zone split and joining-line computation', 'Turn flow with a hand-over screen', 'Unfold animation and gallery saving', 'Image and sticker-sized PNG sharing'],
       },
       risks: {
-        he: ['אם שחקן לא מצייר קווים שחוצים את קו הקיפול, החלק הבא "צף" באוויר – צריך הנחיה עדינה לפני "סיימתי"', 'React Native Skia דורש development build ולא עובד ב-Expo Go', 'ערך חוזר נמוך בלי נושאים חדשים – לתכנן חבילות נושאים עונתיות'],
-        en: ['If a player draws no lines across the fold, the next part "floats" in mid-air – a gentle nudge before "done" is needed', 'React Native Skia requires a development build and does not work in Expo Go', 'Low replay value without new themes – plan seasonal theme packs'],
+        he: ['אם שחקן לא מצייר קווים שחוצים את קו הקיפול, החלק הבא "צף" באוויר – צריך הנחיה עדינה לפני "סיימתי"', 'ציור מחדש של כל המשיכות בכל פריים יאט מכשירי אנדרואיד ישנים – לרנדר את המשיכות הקודמות לתמונה אחת ולצייר רק את המשיכה הנוכחית', 'ערך חוזר נמוך בלי נושאים חדשים – לתכנן חבילות נושאים עונתיות'],
+        en: ['If a player draws no lines across the fold, the next part "floats" in mid-air – a gentle nudge before "done" is needed', 'Redrawing every stroke on every frame will slow older Android phones – rasterise previous strokes into one image and draw only the current stroke', 'Low replay value without new themes – plan seasonal theme packs'],
       },
       expansion: {
-        he: ['מצב מרחוק: אותו משחק בין שני טלפונים דרך קישור, בלי חשבון', 'כתיבה מקופלת: אותה מכניקה עם משפטים במקום ציור', 'ספרון מודפס של היצורים המשפחתיים לסוף השנה'],
-        en: ['Remote mode: the same game between two phones via a link, no account', 'Fold-over writing: the same mechanic with sentences instead of drawings', 'A printed booklet of the family’s creatures at the end of the year'],
+        he: ['מצב מרחוק: אותו משחק בין שני טלפונים דרך קישור, בלי חשבון', 'כתיבה מקופלת: אותה מכניקה עם משפטים במקום ציור', 'ספרון מודפס של היצורים המשפחתיים לסוף השנה', 'חבילת מדבקות לוואטסאפ מהיצורים – דורשת קוד נייטיב, ולכן לא ב-MVP'],
+        en: ['Remote mode: the same game between two phones via a link, no account', 'Fold-over writing: the same mechanic with sentences instead of drawings', 'A printed booklet of the family’s creatures at the end of the year', 'A WhatsApp sticker pack of the creatures – needs native code, so not in the MVP'],
       },
     },
   },
