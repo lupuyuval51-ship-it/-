@@ -1,0 +1,13 @@
+Target: local stack (127.0.0.1:54322)
+/home/user/-/business-ai/supabase/tests/01_schema_privileges.test.sql ........ ok
+/home/user/-/business-ai/supabase/tests/02_rls_isolation.test.sql ............ ok
+/home/user/-/business-ai/supabase/tests/03_entitlements_limits.test.sql ...... ok
+/home/user/-/business-ai/supabase/tests/04_plans.test.sql .................... ok
+/home/user/-/business-ai/supabase/tests/05_roadmap.test.sql .................. ok
+/home/user/-/business-ai/supabase/tests/06_ai.test.sql ....................... ok
+/home/user/-/business-ai/supabase/tests/07_workspace_finance.test.sql ........ ok
+/home/user/-/business-ai/supabase/tests/08_atomic_writes.test.sql ............ ok
+/home/user/-/business-ai/supabase/tests/09_accept_finance_proposal.test.sql .. ok
+All tests successful.
+Files=9, Tests=426,  1 wallclock secs ( 0.08 usr  0.00 sys +  0.09 cusr  0.06 csys =  0.23 CPU)
+Result: PASS

@@ -1,0 +1,8 @@
+[0m[32mCheck[0m tests/errors_test.ts
+[0m[32mCheck[0m tests/integration_test.ts
+[0m[32mCheck[0m tests/outputs_test.ts
+[0m[32mCheck[0m tests/pricing_test.ts
+[0m[32mCheck[0m tests/prompts_test.ts
+[0m[32mCheck[0m tests/roadmap_payload_test.ts
+[0m[32mCheck[0m tests/schema_test.ts
+[0m[32mCheck[0m tests/sse_test.ts
