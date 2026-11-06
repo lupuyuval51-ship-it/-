@@ -1,0 +1,9 @@
+# Minimal Supabase CLI configuration for AppSpark AI.
+# Run `supabase init` in a fresh checkout if you need the full generated file;
+# the settings below are the ones this project relies on.
+project_id = "appspark-ai"
+
+[functions.ai-generate]
+# The function is called only by signed-in users through supabase.functions.invoke,
+# so the platform verifies the user JWT before our code runs.
+verify_jwt = true

@@ -1,233 +1,193 @@
-# LEVELUP AI
+> **Repository contents**
+>
+> - `appspark-ai/` — **AppSpark AI**, an Expo (React Native + TypeScript) app for discovering app ideas and generating AI-ready build prompts. See [`appspark-ai/README.md`](appspark-ai/README.md).
+> - Everything else in this folder is the LEVELUP AI demo described below.
 
-LEVELUP AI is a runnable first-version SaaS Demo for personalized, game-based learning. The default interface is Hebrew/RTL and includes English/LTR support, adaptive learning paths, tasks, XP, achievements, a Demo AI coach, a lazy-loaded WebGL Daily 3D Quest, Marketplace discovery, plan feature gates, manual bit payments, and an Admin review flow.
+# AppSpark AI
 
-> **Demo boundary:** this repository is intentionally runnable with **zero third-party runtime dependencies**. External production services (PostgreSQL/Supabase, transactional email, a real AI provider, official payment provider, and real parental-verification service) are adapters/migration targets, not faked integrations.
+**Discover what to build next.** AppSpark AI is a Hebrew-first (RTL), English-ready mobile app that helps developers and founders browse curated app ideas, generate new concepts, explore full product specifications, and turn any idea into a complete, AI-ready development brief they can paste into Claude, Codex, Gemini / Antigravity or any coding assistant.
 
-## What works end-to-end
+The core journey is deliberately simple: **Discover → Explore → Generate Prompt → Copy → Build.**
 
-- Registration, login, logout, Demo email-verification behavior, forgot/reset password APIs.
-- Birth-year collection and private-by-default profiles.
-- Parent-consent gate for young accounts. Demo approval is explicit and clearly marked.
-- Onboarding for skill, level, daily time, goal, target date, and learning styles.
-- Eight distinct starter learning paths, each with 3 chapters and 6 concrete tasks.
-- Task completion, evidence text/link, difficulty feedback, idempotent XP/coin rewards, progress, streaks, and achievements.
-- Central AI service adapter: a safe Demo coach with per-plan message limits and hint-first behavior, upgraded to a real Claude coach and schema-validated personalized path generation when `AI_API_KEY` is set.
-- Central plan feature matrix for Free / Basic / Plus / Pro.
-- Daily game seed based on date/path/level, five game-mode templates, five world themes, WebGL scene, keyboard/touch input, pause-on-hidden-tab, low-performance mode, and 2D fallback when WebGL is unavailable.
-- Server-created attempts, hidden answer keys, server-side score/reward calculation, sequence validation, duplicate-finish prevention, first/best attempt persistence.
-- Free preview and hard server-side block on full 3D play; Basic+ full-game permission.
-- Marketplace search/filter/favorites/reporting with data clearly marked Demo.
-- Manual bit order flow, exact captured price, centralized phone number, proof upload validation, private proof storage, manual Admin approve/reject, audit history, no automatic activation, and permission refresh without re-login.
-- Settings for display name, language, coach style, privacy and theme; data export and soft account deletion.
-- PWA manifest and service worker.
-- Responsive layout for phone/tablet/desktop, visible focus, semantic labels, reduced-motion support, and dark/light palettes.
+> Built with Expo SDK 58, Expo Router, TypeScript (strict), TanStack Query, Zustand, Reanimated 4 and Supabase. Dark-first design with a single accent colour, editorial typography (Heebo + Frank Ruhl Libre) and full right-to-left support.
 
-## Requirements
+---
 
-- Node.js 20 or newer. Verified with Node.js 22.
-- Chromium/Chrome is optional for visual QA.
-- No `npm install` is needed for the verified Demo runtime.
+## Contents
 
-## Local installation
+1. [What is implemented](#what-is-implemented)
+2. [Project structure](#project-structure)
+3. [Getting started](#getting-started)
+4. [Environment variables](#environment-variables)
+5. [Connecting Supabase (accounts + cloud sync)](#connecting-supabase)
+6. [Connecting an AI provider (server-side)](#connecting-an-ai-provider)
+7. [Scripts and quality gates](#scripts-and-quality-gates)
+8. [Architecture notes](#architecture-notes)
+9. [Known limitations / not yet implemented](#known-limitations)
 
-```bash
-cp .env.example .env
-npm run dev
+---
+
+## What is implemented
+
+| Area | Status | Notes |
+| --- | --- | --- |
+| App shell, floating tab bar, Expo Router navigation | ✅ | Discover · Generate · Saved · Profile tabs, stack screens for ideas, Prompt Studio, projects, search, onboarding, auth |
+| Discover feed | ✅ | Greeting, search entry, idea of the day (stable per date), category chips, personalised picks, trending, beginner-friendly, revenue-potential and experimental sections |
+| Search & filters | ✅ | Bilingual full-text scoring across name/tagline/tags/category/overview, multi-select filters (category, difficulty, budget, business model, platform, traits), sorting |
+| Idea details | ✅ | Every spec section (overview, problem, solution, differentiator, users, features, screens, journey, UX, architecture, stack, database, auth, monetization, milestones, risks, expansion) + similar ideas + share + save + add to project + "צור פרומפט לבניית האפליקציה" |
+| Prompt Studio | ✅ | Deterministic template engine producing sections A–H in Hebrew or English; options for target AI, platform, framework, design direction, complexity, MVP/complete, language, backend; editable text; copy, save, regenerate, export Markdown, MVP/advanced variants; saved prompts per idea; optional "Enhance with AI" when a provider is configured |
+| AI idea generator | ✅ | Full form (category, audience, complexity, platform, monetization, budget, interests, originality, free-text brief). **Live mode** calls a Supabase Edge Function that proxies Anthropic / OpenAI / Gemini. **Demo mode** (clearly labelled, never presented as AI) remixes the curated catalogue locally when no provider is configured |
+| Saved ideas, projects, prompts | ✅ | Statuses Saved · Exploring · Ready to build · In development · Launched; editable name, description, notes; persistence in local storage (guest) or Supabase (signed in) with optional one-time upload of local data |
+| Onboarding | ✅ | Interests, experience, platform, preferred AI assistant; skippable; drives personalised feed and Prompt Studio defaults |
+| Auth | ✅ | Email + password, magic link, guest mode; local-mode explanation when Supabase is not configured |
+| Localization | ✅ | Hebrew (default, RTL) and English (LTR); typed dictionaries; runtime switch (native requires a restart to re-layout, the app explains this) |
+| Theming | ✅ | Dark (default), light and system |
+| Loading / empty / error states | ✅ | Skeletons, empty states with next actions, inline errors, toasts |
+| Seed catalogue | ✅ | 60+ bilingual ideas across 13 categories with realistic single-developer estimates (`src/data/seed`) |
+| Database schema + RLS | ✅ | `supabase/migrations/20261106000000_init.sql` |
+| Tests | ✅ | Jest unit tests for the prompt engine, search/filters/sections, i18n parity, local repositories, demo generator, seed catalogue |
+
+See [Known limitations](#known-limitations) for what is intentionally not finished.
+
+## Project structure
+
+```
+appspark-ai/
+├─ src/
+│  ├─ app/                 # Expo Router routes
+│  │  ├─ _layout.tsx       # providers, fonts, splash, direction sync, root stack
+│  │  ├─ (tabs)/           # index (Discover), generate, saved, profile + custom tab bar
+│  │  ├─ idea/[id].tsx     # idea specification
+│  │  ├─ prompt/[ideaId].tsx  # Prompt Studio
+│  │  ├─ project/[id].tsx  # project editor
+│  │  ├─ search.tsx, onboarding.tsx, auth.tsx, +not-found.tsx
+│  ├─ components/          # ui primitives (AppText, Button, Chip, Sheet, …), idea cards, layout
+│  ├─ data/                # domain types, categories, seed catalogue (he + en)
+│  ├─ features/            # discover (search/sections), prompt (engine), generator (demo + AI client), library (query hooks)
+│  ├─ i18n/                # he.ts (source of truth), en.ts, provider + helpers
+│  ├─ repositories/        # local (AsyncStorage) and Supabase implementations behind one interface
+│  ├─ store/               # zustand: preferences, session, toast
+│  ├─ lib/                 # env, supabase client, clipboard, haptics, share, export, direction
+│  └─ theme/               # tokens, fonts, ThemeProvider
+├─ supabase/
+│  ├─ migrations/          # schema + row-level security
+│  ├─ functions/ai-generate/  # Edge Function: AI gateway (Anthropic / OpenAI / Gemini)
+│  └─ seed.sql             # generated from the TypeScript catalogue (npm run seed:sql)
+├─ scripts/                # validate-seed, build-seed-index, generate-seed-sql
+├─ __tests__/              # Jest
+└─ app.json, package.json, tsconfig.json, eslint.config.js
 ```
 
-Open `http://localhost:3000`.
+## Getting started
 
-If your shell does not load `.env` automatically, export the values or run with environment variables directly. Every variable also has a safe Demo default.
-
-## Demo accounts
-
-| Role | Email | Password | Plan |
-|---|---|---|---|
-| Free user | `demo@levelup.local` | `Demo1234` | Free |
-| Basic user | `basic@levelup.local` | `Basic1234` | Basic |
-| Admin | `admin@levelup.local` | `Admin1234` | Pro / Admin |
-
-These are Demo-only credentials. Never deploy them unchanged.
-
-## Commands
+Requirements: Node.js 22.13 or newer, npm, and either Expo Go / a development build on a phone, an iOS simulator, an Android emulator, or a browser.
 
 ```bash
-npm run dev        # start server on PORT (default 3000)
-npm run typecheck  # syntax/type-contract gate for all JS modules
-npm run lint       # security/release scan
-npm test           # integration tests
-npm run build      # create dependency-free dist/
-npm run test:dist  # boot dist/ and check health
-node scripts/reset-demo.mjs
+cd appspark-ai
+npm install
+cp .env.example .env        # optional – the app runs fully in local mode without it
+npx expo start
 ```
+
+Then press `i` (iOS simulator), `a` (Android emulator) or `w` (web), or scan the QR code with Expo Go.
+
+Development builds (recommended for the final product, required for `expo-updates` driven restarts):
+
+```bash
+npx expo run:ios
+npx expo run:android
+```
+
+Web production build:
+
+```bash
+npm run export:web          # outputs a single-page app to dist/
+npx serve dist              # or any static host
+```
+
+The first launch shows the onboarding flow (skippable). Everything works offline: the catalogue ships with the app and saved ideas / projects / prompts are stored on the device until you sign in.
 
 ## Environment variables
 
-```env
-BIT_PAYMENT_PHONE=0526262828
-BIT_PAYMENT_URL=
-BASIC_MONTHLY_PRICE_NIS=9
-PLUS_MONTHLY_PRICE_NIS=19
-PRO_MONTHLY_PRICE_NIS=39
-DEMO_MODE=true
-DATABASE_URL=
-AI_API_KEY=
-AI_PROVIDER=anthropic
-AI_MODEL=claude-opus-5
-APP_URL=http://localhost:3000
-SESSION_SECRET=change-me-in-production
-PORT=3000
-```
+Only `EXPO_PUBLIC_*` variables are read by the client, and they are inlined at build time. See `.env.example`.
 
-`BIT_PAYMENT_URL` must be a real verified HTTPS payment URL. If it is empty, the product **does not invent a bit deep link** and instead displays manual instructions.
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `EXPO_PUBLIC_SUPABASE_URL` | no | Supabase project URL. Enables accounts and cloud sync. |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | no | Supabase publishable key (`sb_publishable_…`; the legacy `EXPO_PUBLIC_SUPABASE_ANON_KEY` is also accepted). Safe to ship. |
+| `EXPO_PUBLIC_AI_FUNCTION_NAME` | no | Edge Function name (default `ai-generate`). |
+| `EXPO_PUBLIC_AI_ENABLED` | no | `1` to show "connected to AI" optimistically before the first health check. |
 
-## Manual bit payment process
+Server-side secrets (never in the app bundle) are set on the Edge Function: `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`, `AI_DAILY_LIMIT`.
 
-1. User chooses Basic, Plus or Pro.
-2. Server creates a unique order and captures the plan price at that moment.
-3. UI displays the exact amount, centralized `BIT_PAYMENT_PHONE`, and order number.
-4. User transfers manually in bit and includes the order number in the note.
-5. User uploads PNG/JPG/WEBP/PDF proof, max 5MB.
-6. Order becomes `under_review`.
-7. Access remains unchanged.
-8. Admin views the private proof and approves or rejects.
-9. Approval creates an active 30-day subscription, updates the profile plan, records the approver/time and audit action, and adds a user notification.
-10. The next `/api/auth/me`/dashboard refresh returns the new feature permissions without a new login.
+**No secret is ever exposed in client code.** The Supabase service-role key and the AI API key live only in Edge Function secrets.
 
-The payment service is isolated in `src/payment.js` so an official provider can replace the manual adapter later.
+## Connecting Supabase
 
-## Database
+1. Create a project at <https://supabase.com> (or reuse one).
+2. Apply the schema:
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <your-project-ref>
+   npx supabase db push          # applies supabase/migrations/20261106000000_init.sql
+   ```
+   Or paste the migration into the SQL editor. It creates `profiles`, `categories`, `ideas`, `saved_ideas`, `projects`, `generated_prompts`, `generated_ideas`, `user_preferences` and `ai_usage`, all with row-level security so users only ever read and write their own rows. Catalogue tables are public-read.
+3. (Optional) Mirror the curated catalogue into Postgres:
+   ```bash
+   npm run seed:sql              # writes supabase/seed.sql
+   npx supabase db query < supabase/seed.sql
+   ```
+4. Enable Email auth in **Authentication → Providers** (password and magic link). For magic links on native, add `appspark://` to the allowed redirect URLs.
+5. Put the project URL and publishable key in `.env` and restart `expo start --clear`.
 
-The verified Demo uses `data/db.json` with atomic temp-file writes. This makes the project runnable offline and with no database service.
+When signed in, the app switches from the local repositories to the Supabase ones automatically and offers a one-time upload of the data that was stored on the device.
 
-For production, use PostgreSQL/Supabase. `docs/schema.sql` contains the requested table family, indexes and starter RLS policies, including users/profiles, parental consents, plans/features/subscriptions, learning content and enrollments, task submissions, coach messages, skills, XP/achievements/streaks, friends/challenges, Marketplace, Daily Games/events/leaderboards, inventory, orders/proofs, notifications/reports and admin actions.
+## Connecting an AI provider
 
-### Production migration
-
-1. Provision PostgreSQL/Supabase.
-2. Run `docs/schema.sql` in a migration pipeline.
-3. Expand and review RLS for every user-owned table.
-4. Replace `src/store.js` with a repository adapter; keep API/business rules unchanged.
-5. Store proof/task files in a private bucket and issue short-lived signed URLs only after authorization.
-
-## AI setup
-
-`src/ai.js` is the central service adapter. It includes a real Anthropic (Claude) provider used in two places: the **coach** and **learning-path generation**.
-
-1. Set `AI_API_KEY` in `.env` (an Anthropic API key; `ANTHROPIC_API_KEY` also works). `AI_PROVIDER` defaults to `anthropic` and `AI_MODEL` defaults to `claude-opus-5`.
-2. **Coach** — when the key is present, `/api/coach` calls the Claude Messages API server-side (hint-first system prompt, per-plan daily limits enforced before the call, last 10 messages as context, server-side refusal fallbacks enabled). Responses are marked `demo:false`.
-3. **Path generation** — `/api/onboarding` asks Claude for a personalized path (3 chapters × 2 tasks) constrained by a JSON schema via `output_config.format`. The result is normalized server-side and stored in `generated_paths`.
-4. Without a key, or on any provider error/refusal/invalid payload, both features fall back: the coach to the deterministic Demo reply (`demo:true`), onboarding to the built-in `pathTemplates`.
-
-### Trust boundary for generated paths
-
-The model never sets anything that affects economy or access. The request schema has no reward fields, and the server assigns:
-
-- **XP and coins** by chapter position (90/110/140 XP; coins = XP/6), so a path cannot inflate its own rewards.
-- **Task and chapter ids** (`ai-<chapter>-<n>`), so ids stay stable and collision-free.
-- **Slug, difficulty, duration and daily minutes** from the user's onboarding input, not from model output.
-
-Every model-produced string is passed through `safeText` (strips `<>` and control characters, clamps length), quiz `answerIndex` is range-checked against the options actually present, and a path that fails normalization is discarded in favour of a template. Generated paths are private: `/api/path/:slug` returns 404 unless the caller is enrolled (or an admin).
-
-Daily 3D Quest questions are **not** model-generated — they stay in the server-owned catalog so scoring remains server-authoritative.
-
-5. Never execute model-generated code outside a sandbox.
-
-## Daily 3D Quest
-
-The browser imports `public/game.js` only after entering the game page and starting a permitted attempt. Dashboard pages do not load the WebGL engine.
-
-The engine provides five template modes:
-
-- Answer Gates
-- Knowledge Escape Room
-- Collect and Sort
-- Build the Path
-- Boss Quiz
-
-The verified first version shares one modular WebGL foundation with mode-specific geometry, interactions and progression for all five templates. Five visual world themes are selected deterministically from the daily seed. The renderer uses lightweight primitives rather than unlicensed 3D assets.
-
-### Add a world
-
-Add a world entry in `src/catalog.js`, then extend the visual palette/objects in `public/game.js`. Keep the same server game definition and validation contract.
-
-### Add a game mode
-
-Add a mode in `src/catalog.js`, add a mode-specific interaction state in `public/game.js`, and keep question/event validation in `src/game.js` so clients cannot award their own score.
-
-## Safety for minors
-
-- Birth year is collected during registration.
-- Young accounts create a parental-consent requirement.
-- Profiles are private by default.
-- No exact location or personal phone is exposed.
-- No open chat between adults and minors exists.
-- Marketplace has reporting.
-- Uploads and payment proofs are not public static files.
-- Leaderboards use display names only.
-- The product does not buy correct answers or score advantages.
-
-**Production note:** Demo parent approval is not sufficient for a real service. Connect a compliant parental-verification/legal flow appropriate to the launch jurisdictions.
-
-## Security controls included
-
-- Server-side authorization and feature gates.
-- Scrypt password hashing.
-- Signed HttpOnly/SameSite session cookie.
-- Per-session CSRF token on mutations.
-- CSP, frame protection, content-type protection and Permissions Policy.
-- Basic IP rate limiting on sensitive auth routes.
-- User-row isolation in all Demo API lookups.
-- Input sanitation/length limits.
-- Private upload directory and admin-only proof retrieval.
-- File type/size validation.
-- Server-validated game attempts and idempotent rewards.
-- Admin role checks, duplicate approval prevention and audit actions.
-- Soft account deletion and data export.
-
-Before a public launch, add a production WAF/rate limiter, secure secret manager, database RLS review, malware scanning for uploads, email deliverability, observability, backup/restore and an independent security review.
-
-## PWA
-
-`public/manifest.webmanifest` and `public/sw.js` cache the core shell. API mutations remain online/server-authoritative. The app shows an Offline banner when connectivity is lost.
-
-## Typography
-
-The product CSS uses the approved `Heebo` font family name first, then Arial/sans-serif fallbacks. No font binary is bundled in this deliverable. For production, self-host a properly licensed Heebo webfont or use an approved font CDN and update CSP; this avoids silently redistributing font files.
-
-## Deployment
-
-The Demo can run on any Node host with persistent disk:
+The client never calls an AI provider directly. Deploy the gateway function and give it a key:
 
 ```bash
-npm run build
-cd dist
-SESSION_SECRET='a-long-random-production-secret' DEMO_MODE=true node server.js
+npx supabase functions deploy ai-generate
+npx supabase secrets set AI_PROVIDER=anthropic AI_API_KEY=sk-ant-... AI_MODEL=claude-sonnet-5-5 AI_DAILY_LIMIT=40
 ```
 
-For a real public deployment, use PostgreSQL/private object storage rather than the JSON file and set `DEMO_MODE=false` only after real email, parent-verification and AI integrations are configured.
+Supported providers: `anthropic`, `openai`, `gemini` (`AI_MODEL` defaults to a sensible model per provider). The function:
 
-## Known first-version limits
+- requires a signed-in user (JWT verified by the platform and by `@supabase/server`),
+- enforces a per-user daily quota through the `increment_ai_usage` database function,
+- asks the model for 3–5 bilingual concepts in the app's exact `Idea` shape and validates/sanitises the JSON before returning it,
+- powers "Enhance with AI" in the Prompt Studio.
 
-- Demo persistence is a local JSON file, not multi-instance safe.
-- Email verification/reset tokens are surfaced only in Demo; no email provider is wired.
-- Google OAuth is architecture-ready but not active because no provider credentials/service were supplied.
-- AI is a clearly labeled deterministic Demo adapter until `AI_API_KEY` is configured; with a key, the coach and path generation call Claude, and every other flow stays server-owned.
-- bit is intentionally manual. No automatic bit settlement/API is claimed.
-- Paid Marketplace purchases use the same manual bit review flow and approved purchases unlock an enrollment; automatic creator payouts are not included.
-- Creator Studio, friend challenges and advanced league/season administration are data-model foundations rather than a full production social network.
-- The five game modes share the same verified low-weight WebGL foundation in v1; additional mode-specific art/physics can be added through the template contract.
-- The main runtime is dependency-free rather than Next.js/React because this environment could not install external packages. The architecture separates server, UI, game, AI and payment concerns so migration to Next.js/Supabase can be done without changing business rules.
+Until a provider is configured, the Generate tab runs in **demo mode** and says so in the UI: concepts are remixed from the curated catalogue by a deterministic local generator and are labelled "Demo sample (not AI)".
 
-## Production checklist
+## Scripts and quality gates
 
-- Replace Demo credentials and `SESSION_SECRET`.
-- Connect PostgreSQL/Supabase and private storage.
-- Review RLS and legal requirements for minors.
-- Connect transactional email and optional Google OAuth.
-- Connect approved AI provider and schema validation.
-- Provide only a verified `BIT_PAYMENT_URL`, or keep manual instructions.
-- Add malware scanning and signed file delivery.
-- Run accessibility audit with assistive technology.
-- Run independent security/privacy review and jurisdiction-specific legal review.
+```bash
+npm run typecheck      # tsc --noEmit
+npm run lint           # expo lint (ESLint, React Compiler rules)
+npm test               # Jest (jest-expo preset)
+npm run validate:seed  # schema + content checks for the catalogue (60+ ideas, both languages, realistic estimates)
+npm run check          # all of the above
+npm run export:web     # static web bundle
+npm run doctor         # expo-doctor
+```
+
+## Architecture notes
+
+- **Repositories, not direct storage calls.** Screens use TanStack Query hooks (`src/features/library/hooks.ts`) over a `Repositories` interface. `local/` persists JSON collections in AsyncStorage; `supabase/` maps the same operations to tables. Query keys include the repository scope so switching between guest and account refetches cleanly.
+- **The catalogue is code.** Ideas live in typed TypeScript files (one per category) validated by `scripts/validate-seed.mts`, so the app is useful offline and the content is reviewable in pull requests. `supabase/seed.sql` is generated from the same source.
+- **Prompt engine is deterministic.** `src/features/prompt/engine.ts` composes the brief from the idea spec and the studio options. Same input → same output, fully offline, unit tested. AI enhancement is an optional layer on top.
+- **RTL by construction.** All layouts use logical properties (`start`/`end`, `flexDirection: 'row'` which React Native flips) and the `AppText` primitive aligns to "start". On web the `dir` attribute drives react-native-web; on native `I18nManager` is synced from the chosen locale (a restart is needed after switching language, and the Profile screen offers one).
+- **One accent colour.** `src/theme/tokens.ts` holds the entire palette (dark + light), spacing, radii and type scale; components never hard-code colours.
+
+## Known limitations
+
+Honest list of what is not finished or needs a human decision:
+
+- **Real AI output quality depends on the provider you connect.** Without a provider the generator is a labelled demo, by design.
+- **Language switch on native needs an app restart** to re-layout RTL/LTR. The restart button uses `expo-updates`, which works in development and production builds; in Expo Go you may need to close and reopen the app.
+- **No store builds or EAS configuration are included.** `app.json` has bundle identifiers and the project is development-build ready, but signing, EAS profiles and store assets are not set up.
+- **Web is a secondary target.** It works (the QA pass was done on the exported web build with Playwright), but keyboard-only navigation and SEO were not tuned.
+- **Cloud sync is one-directional at sign-in.** Local data can be uploaded to the account once; there is no continuous two-way merge.
+- **`user_preferences` table exists but preferences are only stored on the device** in this version.
+- **No analytics, crash reporting or push notifications.**
