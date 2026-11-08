@@ -2,11 +2,13 @@ import type { Adventure } from '../../../shared/types.ts';
 
 /**
  * A gentle listening case that works on a sofa, a balcony or a park bench.
- * Branch A chases the loudest sound (outward, active: break its alibi);
- * branch B stakes out the quietest (inward, slow: take its statement).
+ * Branch A chases the loudest sound (outward, active: test its alibi, then
+ * catch what plays in the gap); branch B stakes out the quietest (inward,
+ * still: hold it, touch its source, take its statement).
  * Running bit: Inspector Hush's whispered case-talk, alibis, "witnesses are shy".
- * Both twists unmask the constant sound as the witness, from different angles:
- * the loudmouth was a decoy (A), and the second witness was you, breathing (B).
+ * Department policy keeps it respectful: people are never suspects, only things.
+ * Twists reframe the detective: the steady sound was listening to you all
+ * along (A); the shyest witness on the case was you, breathing (B).
  */
 const soundDetective: Adventure = {
   id: 'sound-detective',
@@ -36,7 +38,7 @@ const soundDetective: Adventure = {
       stage: 1,
       title: 'The Line-Up',
       narrative:
-        "Every place is a crime scene: things happen, nobody notices. Somewhere near you is a sound that has been here the whole time, and you've never once heard it. Witnesses are shy, so we start with the suspects.",
+        'Every place is a crime scene: things happen and nobody notices. Witnesses are shy, so we start with the suspects. Department policy: people are never suspects. Only things.',
       action:
         'Sit or stand somewhere safe and still, close your eyes, and count every separate sound you hear for two full minutes, folding down a finger for each. Then open them and note the oddest suspect.',
       alternative:
@@ -47,7 +49,7 @@ const soundDetective: Adventure = {
         label: 'The oddest suspect in your line-up',
         placeholder: 'a spoon tapping somewhere upstairs',
       },
-      amplify: 'Present each suspect under your breath, line-up style: “Number four. The pigeon. Step forward.” Nod gravely every time.',
+      amplify: 'Present each suspect under your breath, line-up style: “Number four. The squeaky gate. Step forward. Turn to the left.”',
       crewTip: 'Count in silence, then compare lists. Any sound only one of you heard goes in the file marked “disputed.”',
       choice: {
         prompt: 'Your line-up is full (yes, even {{oddest|the odd one}}). Who do you question first?',
@@ -55,14 +57,14 @@ const soundDetective: Adventure = {
           {
             id: 'loudest',
             label: 'Chase the loudest',
-            description: 'Follow the noise to its source and break its alibi.',
+            description: 'Follow the noise to its source and test its alibi.',
             next: 'loudmouth',
             traits: { boldness: 1 },
           },
           {
             id: 'quietest',
-            label: 'Trace the quietest',
-            description: 'Lean in, go slow, and hear what hides underneath.',
+            label: 'Stake out the quietest',
+            description: 'Sit tight, lean in, and take its statement.',
             next: 'stakeout',
             traits: { curiosity: 1 },
           },
@@ -74,12 +76,12 @@ const soundDetective: Adventure = {
       stage: 2,
       title: 'The Loudmouth',
       narrative:
-        "The loudest suspect always talks first. It's confident, it's everywhere, and it has a perfect alibi: it wasn't here a minute ago, and it won't be here in five.",
+        "The loudest suspect always talks first. It's confident, it's everywhere, and it swears it was only passing through. Let's check its story.",
       action:
-        'Track the loudest sound toward its source, no further than your window, your door or the end of the block, and name it. Then time it for two minutes: does it stop, loop or fade?',
+        'Track the loudest thing you can hear toward its source, no further than your window, your door or the end of the block, and name it. Then time it for two minutes: does it stop, loop or fade?',
       alternative:
         'Track it without moving: cup your hands behind your ears, turn your head slowly until the sound peaks, and point. Then time it for two minutes from right where you are.',
-      minutes: 4,
+      minutes: 5,
       capture: {
         key: 'suspect',
         label: 'Your prime suspect',
@@ -98,14 +100,14 @@ const soundDetective: Adventure = {
       action:
         "Wait for your prime suspect to pause or leave. The instant it does, close your eyes and catch the sound underneath: the one that didn't just start, because it never stopped.",
       alternative:
-        'If the loud sound never lets up, make your own gap: cup your palms over your ears for ten seconds, then lift them. Do it three times and notice which quiet sound returns first.',
+        'If it never lets up, make your own gap: cup your palms over your ears for ten seconds, then lift them. Do it three times, listening for the quiet sound that is there every single time.',
       minutes: 4,
       capture: {
         key: 'gap',
         label: 'The sound hiding underneath',
         placeholder: 'a low hum, like the building breathing',
       },
-      amplify: "When you catch it, give one slow nod: the nod of a detective who knew all along. (You didn't. Nod anyway.)",
+      amplify: "When you catch it, tap your temple twice: the universal sign of a detective who knew all along. (You didn't. Tap anyway.)",
       crewTip: 'Whoever hears the hidden sound first raises a hand without a word. Nobody speaks until every hand is up.',
       next: 'the-decoy',
     },
@@ -123,7 +125,7 @@ const soundDetective: Adventure = {
       capture: {
         key: 'quiet',
         label: 'The quietest sound you held onto',
-        placeholder: 'the fridge, humming one long note',
+        placeholder: 'a hum nobody ever switched off',
       },
       amplify: 'Give it a code name the moment you find it, something like “The Accountant,” and refer to it by code name only.',
       crewTip: "Each of you stakes out a different faint sound. After a minute, swap, and try to find each other's.",
@@ -143,9 +145,9 @@ const soundDetective: Adventure = {
       capture: {
         key: 'statement',
         label: "The witness's statement, in one line",
-        placeholder: 'I heard every midnight snack. I said nothing.',
+        placeholder: "I've heard every door slam since 2009. I forgive you.",
       },
-      amplify: "Read the statement aloud in the witness's own voice: one long, flat note, no expression whatsoever. Fridges are terrible actors.",
+      amplify: 'Swear the witness in first, right hand raised: “Do you swear to tell the truth, the whole truth and nothing but the hum?” Take the hum as a yes.',
       crewTip: 'Everyone writes a statement for the same witness. Read them aloud; the most suspiciously specific one goes in the file.',
       next: 'second-witness',
     },
@@ -155,7 +157,7 @@ const soundDetective: Adventure = {
       id: 'the-decoy',
       title: 'The Decoy',
       twist:
-        'Plot twist: the loudmouth was a decoy. It had an alibi, and so did {{oddest|your oddest suspect}}: they came, they went. Only one sound was there before your first count and will still be there after you leave: {{gap|the hum beneath it all}}. Loud things get noticed. Steady things hear everything.',
+        "Plot twist: the loudmouth was a decoy. Loud things make noise so you'll look their way, and for years it worked. All along, one sound was underneath, hearing everything: {{gap|the hum beneath it all}}. It heard a detective count on their fingers, chase {{suspect|the wrong suspect}} and then stand very, very still. Its statement is in. It's mostly about you.",
       closingLine: 'Star witness: {{gap|a low hum, like the building breathing}}. It never left the scene.',
       traits: { curiosity: 1 },
     },
@@ -163,8 +165,8 @@ const soundDetective: Adventure = {
       id: 'second-witness',
       title: 'The Second Witness',
       twist:
-        'Plot twist: there were two witnesses. You took a statement from {{quiet|the quiet one}}, but the other has been at every scene of your life without missing a word. Listen under everything, one last time. That breathing? Yours. Witnesses are shy. This one has waited years to be asked.',
-      closingLine: '“{{statement|I heard every midnight snack. I said nothing.}}” — the witness',
+        'Plot twist: there were two witnesses. You took a statement from {{quiet|the quiet one}}, but the other has been at every scene of your life without interrupting once. Listen under everything, one last time. That soft, steady breathing? Yours. The shyest witness on the case was the detective.',
+      closingLine: "The witness, on the record: {{statement|I heard everything. I'm not one to gossip.}}",
       traits: { connection: 1 },
     },
   ],

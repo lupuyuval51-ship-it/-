@@ -3,6 +3,7 @@ import { PALETTES } from '../../../shared/constants.ts';
 import type { Generation } from '../../state/store.tsx';
 import type { DrawEnvelope } from '../../state/types.ts';
 import { formatCost } from '../hooks.ts';
+import { typographic } from '../../../shared/template.ts';
 import { IconSparkle, KindGlyph } from '../icons.tsx';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -185,8 +186,8 @@ export function Envelope({
           </div>
           <PostageStamp adventure={adventure} />
         </div>
-        <h3 className="t-display mt-auto pt-4 text-[clamp(25px,7.4vw,30px)] text-paper-ink">{adventure.title}</h3>
-        <p className="t-serif-italic mt-1.5 max-w-[34ch] text-[15.5px] text-paper-mute">{adventure.tagline}</p>
+        <h3 className="t-display mt-auto pt-4 text-[clamp(25px,7.4vw,30px)] text-paper-ink">{typographic(adventure.title)}</h3>
+        <p className="t-serif-italic mt-1.5 max-w-[34ch] text-[15.5px] text-paper-mute">{typographic(adventure.tagline)}</p>
         <div className="mt-4 flex items-end justify-between">
           <span className="t-kicker text-paper-ink/80">{envelope.opened ? 'Opened · tap to reread' : 'Tap to break the seal'}</span>
           <WaxSeal kind={adventure.kind} color={isAi ? '#c2410c' : palette.accent === '#E8E2D0' ? '#8c1c30' : palette.accent} seed={sealSeed} broken={envelope.opened} />

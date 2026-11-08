@@ -57,12 +57,31 @@ export function cleanNote(note: string | undefined | null): string {
   return cleaned.slice(0, MAX_NOTE_LENGTH - 1).trimEnd() + '…';
 }
 
-/** Renders tokens with the user's notes (or fallbacks). */
+const CLOSING_QUOTES = new Set(['"', '”', "'", '’', '»', ')']);
+const JOINING_PUNCTUATION = /[.,;:!?…]/;
+
+/**
+ * Renders tokens with the user's notes (or fallbacks). When the template puts
+ * punctuation right after a token, the note's own trailing punctuation is
+ * dropped so sentences read cleanly ("loudly.:" → "loudly:").
+ */
 export function renderTemplate(text: string, notes: Record<string, string | undefined> = {}): string {
-  return text.replace(TOKEN, (_raw, key: string, fallback: string) => {
-    const note = cleanNote(notes[key]);
-    return note || fallback.trim();
+  return text.replace(TOKEN, (_raw, key: string, fallback: string, offset: number, whole: string) => {
+    const value = cleanNote(notes[key]) || fallback.trim();
+    let i = offset + _raw.length;
+    while (i < whole.length && CLOSING_QUOTES.has(whole[i])) i++;
+    if (i < whole.length && JOINING_PUNCTUATION.test(whole[i])) return value.replace(/[.,;:!?…]+$/u, '');
+    return value;
   });
+}
+
+/** Typographic quotes and apostrophes for display ("it's" → “it’s”). */
+export function typographic(text: string): string {
+  return text
+    .replace(/(^|[\s([{—–-])"/g, '$1“')
+    .replace(/"/g, '”')
+    .replace(/(^|[\s([{—–-])'/g, '$1‘')
+    .replace(/'/g, '’');
 }
 
 /** Renders every token with its fallback — what text reads like when no notes exist. */

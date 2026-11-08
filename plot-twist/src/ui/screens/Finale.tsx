@@ -10,6 +10,7 @@ import { PosterActions, PosterImage } from '../components/Poster.tsx';
 import { formatClock, pad2 } from '../hooks.ts';
 import { IconArrowRight, IconFilm, IconSparkle } from '../icons.tsx';
 import { navigate } from '../router.ts';
+import { typographic } from '../../../shared/template.ts';
 import { uiAccent } from '../color.ts';
 
 export function Recap({ episode }: { episode: CompletedEpisode }) {
@@ -21,7 +22,7 @@ export function Recap({ episode }: { episode: CompletedEpisode }) {
             Stage {s.stage} · {s.title}
             {s.usedAlternative ? ' · alternate route' : ''}
           </p>
-          <p className="mt-1 text-[14.5px] text-ivory-dim">{s.action}</p>
+          <p className="mt-1 text-[14.5px] text-ivory-dim">{typographic(s.action)}</p>
           {s.choiceLabel && (
             <p className="mt-2 text-[14px]">
               <span className="text-ivory-mute">{s.choicePrompt ? `${s.choicePrompt} → ` : 'You chose: '}</span>
@@ -155,7 +156,7 @@ export function Finale({ episodeId }: { episodeId: string }) {
           Episode {pad2(episode.episodeNumber)} · complete · {formatClock(episode.elapsedMs)} played
         </p>
         <h1 id="finale-title" ref={titleRef} tabIndex={-1} className="t-display anim-letterbox mt-2 text-[clamp(36px,11vw,48px)] outline-none">
-          {episode.title}
+          {typographic(episode.title)}
         </h1>
         <div className="mt-7 flex justify-center">
           <span className="anim-stamp stamp px-5 py-2.5 text-[26px] tracking-[0.2em]" style={{ color: accent, borderWidth: 3, animationDelay: '250ms' }}>
@@ -163,7 +164,7 @@ export function Finale({ episodeId }: { episodeId: string }) {
           </span>
         </div>
         <p className="t-serif anim-rise mt-7 text-[20px] leading-relaxed text-ivory" style={{ animationDelay: '700ms' }}>
-          {episode.twist}
+          {typographic(episode.twist)}
         </p>
       </section>
 
@@ -171,8 +172,8 @@ export function Finale({ episodeId }: { episodeId: string }) {
         <p className="t-kicker text-[color:var(--ep-accent)]">
           Ending unlocked{totalEndings ? ` · ${foundEndings} of ${totalEndings} found` : ''}
         </p>
-        <h2 className="t-display mt-2 text-[34px]">{episode.endingTitle}</h2>
-        <blockquote className="t-serif-italic mt-3 border-l-2 border-[color:var(--ep-accent)] pl-4 text-[19px] text-ivory-dim">“{episode.closingLine}”</blockquote>
+        <h2 className="t-display mt-2 text-[34px]">{typographic(episode.endingTitle)}</h2>
+        <blockquote className="t-serif-italic mt-3 border-l-2 border-[color:var(--ep-accent)] pl-4 text-[19px] text-ivory-dim">“{typographic(episode.closingLine)}”</blockquote>
       </section>
 
       <section className="anim-rise mt-10" style={{ animationDelay: '1250ms' }} aria-label="Your poster">

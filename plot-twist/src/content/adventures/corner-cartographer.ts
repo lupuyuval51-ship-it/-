@@ -5,8 +5,10 @@ import type { Adventure } from '../../../shared/types.ts';
  * cartographer ever to bother. Branch A surveys what is there (census,
  * official names: precise and observational); branch B maps what is missing
  * (proposals in dotted lines, a trap street: imaginative). Running bit: the
- * Royal Society of Small Maps treats a hundred steps like an epic voyage.
- * Both twists pay off the territory the user named in stage 1.
+ * Royal Society of Small Maps treats a hundred steps like an epic voyage and
+ * delivers every finding with stiff regret. Both twists pay off the territory
+ * the user named in stage 1; B rests on the real story of Agloe, New York
+ * (a 1930s copyright-trap town that a store later made real).
  */
 const cornerCartographer: Adventure = {
   id: 'corner-cartographer',
@@ -47,7 +49,7 @@ const cornerCartographer: Adventure = {
         label: 'The name of your territory',
         placeholder: 'the Lower Kiosk Lands',
       },
-      amplify: 'Before you set off, plant an imaginary flag at Point Zero and claim the territory, under your breath, in the name of the Society.',
+      amplify: 'Before you set off, plant an imaginary flag at Point Zero and claim the territory for the Society. Explorers always say a few words. “Yes, this will do” is plenty.',
       crewTip: 'Split the jobs: one counts steps, one navigates, one draws. Name the territory by vote; the losing names become street names.',
       choice: {
         prompt: 'The outline of {{territory|your territory}} is drawn. What goes on the first edition?',
@@ -85,7 +87,7 @@ const cornerCartographer: Adventure = {
         label: 'Your official census results',
         placeholder: '23 plant pots, 2 cats, 1 suspicious chair',
       },
-      amplify: 'Add one bonus category of no practical use whatsoever: suspicious chairs, very confident pigeons, doors painted the wrong color.',
+      amplify: 'Add one bonus category of no practical use whatsoever: suspicious chairs, very confident pigeons, cracks shaped like countries.',
       crewTip: 'Each person counts a different thing. Combine the totals into one official census and read it aloud in a tone of great importance.',
       next: 'official-names',
     },
@@ -103,9 +105,9 @@ const cornerCartographer: Adventure = {
       capture: {
         key: 'named',
         label: 'The best name you gave',
-        placeholder: 'Pigeon Ledge Passage',
+        placeholder: 'Lesser Shade Plaza',
       },
-      amplify: 'Unveil your best name out loud beside the spot itself, quietly, like a mayor cutting a very small ribbon.',
+      amplify: 'Unveil your best name out loud beside the spot itself, then shake hands with the nearest lamp post, as officials do.',
       crewTip: 'Each person names one spot. For the rest of the day, everyone must use the official names with a straight face.',
       next: 'last-unmapped-place',
     },
@@ -118,7 +120,7 @@ const cornerCartographer: Adventure = {
       action:
         'Walk your territory again and find three spots begging for something: a corner that wants a bench, a wall that wants a mural, a gap that wants a tree. Draw each in dotted lines, labeled “Proposed.”',
       alternative:
-        'Stay put and pick three spots in view that are missing something. Draw them in dotted lines, or pitch each one under your breath like a slightly overexcited city planner.',
+        "Stay put and pick three spots in view that are missing something. Draw them in dotted lines or, if drawing isn't your thing, pitch each one quietly to yourself like an overexcited city planner.",
       minutes: 5,
       capture: {
         key: 'missing',
@@ -126,7 +128,7 @@ const cornerCartographer: Adventure = {
         placeholder: 'a tiny fountain beside the bus stop',
       },
       amplify: 'Add one proposal clearly beyond the city budget: a lighthouse, a staircase to nowhere, a very small volcano.',
-      crewTip: 'Everyone proposes something for the same empty spot. Vote. The losing ideas go on the map anyway, in smaller letters.',
+      crewTip: 'Everyone proposes something for the same empty spot and pitches it in ten seconds flat. The most convincing planner gets the biggest letters.',
       next: 'trap-street',
     },
     {
@@ -136,7 +138,7 @@ const cornerCartographer: Adventure = {
       narrative:
         "Real mapmakers used to hide fake streets in their maps to catch copycats. They're called trap streets. Now that your map proposes {{missing|several improvements}}, it's valuable enough to need one.",
       action:
-        "Draw one place that doesn't exist exactly where it would fit (a lane, a tiny square, a museum of one thing) and give it a name and opening hours.",
+        "Draw one place that doesn't exist exactly where it would fit (a lane, a tiny square, a shop that only sells spoons) and give it a name and opening hours.",
       alternative:
         'Done with drawing? Face the spot where your trap street would begin and describe it in a 20-second voice note to yourself: its name, its hours, what visitors will find there.',
       minutes: 4,
@@ -145,8 +147,8 @@ const cornerCartographer: Adventure = {
         label: "Your trap street's name (and hours)",
         placeholder: 'Little Spoon Lane (open Tuesdays)',
       },
-      amplify: "From the pavement, gaze down your trap street from the exact spot it begins, with a satisfied nod, as if it's always been there.",
-      crewTip: 'Each person secretly adds one trap street to the shared map. Then swap maps and try to spot the fakes.',
+      amplify: "Stand at the exact spot where your trap street begins and check the time, as if you're waiting for it to open.",
+      crewTip: 'While the others look away, each of you sneaks one trap street onto the shared map. Then everyone tries to spot the fakes.',
       next: 'paper-town',
     },
   ],
@@ -155,7 +157,7 @@ const cornerCartographer: Adventure = {
       id: 'last-unmapped-place',
       title: 'The Last Unmapped Place',
       twist:
-        "Plot twist: satellites have photographed every rooftop on Earth, and not one of them knows about {{census|your census}}. On official maps, this corner is a gray block with no name. On yours it's {{territory|a whole territory}}, home of {{named|three brand-new names}}. The last unmapped place on Earth was a hundred steps from where you started.",
+        "Plot twist: satellites photograph every street on Earth, and not one of them knows about {{census|your census}} or {{named|the names you just gave}}. That makes you the world's leading authority on {{territory|this territory}}. There is no second-leading authority. The last unmapped place on Earth was a hundred steps from where you started.",
       closingLine: 'Now entering {{territory|the Lower Kiosk Lands}}. Population: {{census|23 plant pots, 2 cats, 1 suspicious chair}}',
       traits: { connection: 1 },
     },

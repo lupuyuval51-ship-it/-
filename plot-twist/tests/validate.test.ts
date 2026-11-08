@@ -75,3 +75,14 @@ describe('checkPrefsFit', () => {
     expect(checkPrefsFit(exemplar, { minutes: 30, budget: 0, setting: 'outside', company: 'group', mood: 'social', weirdness: 1 })).toEqual([]);
   });
 });
+
+describe('template rendering', () => {
+  it('joins notes into sentences cleanly and renders typographic quotes', async () => {
+    const { renderTemplate, typographic } = await import('../shared/template.ts');
+    expect(renderTemplate('Title: {{t|Untitled}}: a story', { t: 'Untitled, but loudly.' })).toBe('Title: Untitled, but loudly: a story');
+    expect(renderTemplate('"{{t|x}}", it went well.', { t: 'Loud.' })).toBe('"Loud", it went well.');
+    expect(renderTemplate('It was {{t|x}} today', { t: 'Loud.' })).toBe('It was Loud. today');
+    expect(renderTemplate('It was {{t|a quiet day}}.', {})).toBe('It was a quiet day.');
+    expect(typographic(`It isn't "done" yet ('really')`)).toBe('It isn’t “done” yet (‘really’)');
+  });
+});

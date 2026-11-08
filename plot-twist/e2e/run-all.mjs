@@ -460,17 +460,19 @@ async function conflictSuite(browser, devBase) {
 
 // ─────────────────────────────────────────────────────────────────────
 async function main() {
+  // Build into an isolated directory so E2E never disturbs a dist/ someone else is serving.
+  const DIST = join(ROOT, 'e2e', '.dist');
   if (!args.has('--skip-build')) {
     console.log('Building…');
-    execSync('npm run build', { cwd: ROOT, stdio: 'inherit' });
+    execSync(`npx vite build --outDir ${JSON.stringify(DIST)} --emptyOutDir`, { cwd: ROOT, stdio: 'inherit' });
   }
   const MOCK = 8788;
   start('node', ['e2e/mockAnthropic.ts'], { MOCK_PORT: String(MOCK), MOCK_MODE: 'ok', MOCK_DELAY_MS: '60' }, 'mock');
   start('node', ['e2e/mockAnthropic.ts'], { MOCK_PORT: String(MOCK + 1), MOCK_MODE: 'always-invalid', MOCK_DELAY_MS: '10' }, 'mock-bad');
   const noKey = { ANTHROPIC_API_KEY: '', PLOT_TWIST_ANTHROPIC_API_KEY: '' };
-  start('node', ['server/index.ts'], { ...noKey, PORT: '8790' }, 'curated');
-  start('node', ['server/index.ts'], { PORT: '8791', ANTHROPIC_API_KEY: 'e2e-test-key', PLOT_TWIST_ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK}` }, 'ai');
-  start('node', ['server/index.ts'], { PORT: '8792', ANTHROPIC_API_KEY: 'e2e-test-key', PLOT_TWIST_ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK + 1}` }, 'ai-bad');
+  start('node', ['server/index.ts'], { ...noKey, PORT: '8790', PLOT_TWIST_DIST: DIST }, 'curated');
+  start('node', ['server/index.ts'], { PORT: '8791', PLOT_TWIST_DIST: DIST, ANTHROPIC_API_KEY: 'e2e-test-key', PLOT_TWIST_ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK}` }, 'ai');
+  start('node', ['server/index.ts'], { PORT: '8792', PLOT_TWIST_DIST: DIST, ANTHROPIC_API_KEY: 'e2e-test-key', PLOT_TWIST_ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK + 1}` }, 'ai-bad');
   start('npx', ['vite', '--port', '5197', '--strictPort'], noKey, 'dev');
   await Promise.all([waitFor('http://127.0.0.1:8790/api/health'), waitFor('http://127.0.0.1:8791/api/health'), waitFor('http://127.0.0.1:8792/api/health'), waitFor('http://127.0.0.1:5197/')]);
 

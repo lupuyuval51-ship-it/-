@@ -17,6 +17,7 @@ import { Fact } from '../components/Bits.tsx';
 import { Envelope, WaxSeal } from '../components/Envelope.tsx';
 import { Sheet } from '../components/Sheet.tsx';
 import { formatCost, pad2 } from '../hooks.ts';
+import { typographic } from '../../../shared/template.ts';
 import { IconArrowLeft, IconClock, IconCoin, IconGroup, IconHome, IconNote, IconOutside, IconRefresh, IconSolo, IconSparkle } from '../icons.tsx';
 import { navigate } from '../router.ts';
 
@@ -42,13 +43,13 @@ function Letter({ adventure, source, episodeNumber, onStart, onBack }: { adventu
         {KIND_LABEL[adventure.kind]}
         {adventure.narrator ? ` · from ${adventure.narrator}` : ''}
       </p>
-      <h3 className="t-display mt-2 text-[clamp(34px,10vw,44px)] text-paper-ink">{adventure.title}</h3>
+      <h3 className="t-display mt-2 text-[clamp(34px,10vw,44px)] text-paper-ink">{typographic(adventure.title)}</h3>
       {source === 'ai' && (
         <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#c2410c]/10 px-3 py-1 text-[12.5px] font-semibold text-[#9a3412]">
           <IconSparkle size={14} /> Written for you by the AI Director · checked against our rules
         </p>
       )}
-      <p className="t-serif mt-4 text-[17.5px] leading-relaxed text-paper-ink">{adventure.intro}</p>
+      <p className="t-serif mt-4 text-[17.5px] leading-relaxed text-paper-ink">{typographic(adventure.intro)}</p>
 
       <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-paper-ink/15 pt-5">
         <Fact icon={<IconClock size={18} />} label="Duration" value={`~${adventure.minutes} min`} />

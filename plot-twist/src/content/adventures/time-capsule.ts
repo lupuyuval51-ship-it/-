@@ -5,10 +5,12 @@ import type { Adventure } from '../../../shared/types.ts';
  * and a short letter) for future you. Branch A (one month) is a near check-in:
  * playful predictions, a dare, the capsule left in plain sight. Branch B (one
  * year) is a long shot: a reflective letter that starts from the oldest thing
- * found while gathering, hidden away behind a riddle. Running bit: the Bureau
- * of Delayed Mail, punctual about being late. Both twists pay off the "relic"
- * found in stage 1; B lands the seed twist (past-you already sent a capsule,
- * and today's letter is the reply). Needs no special container.
+ * found while digging, hidden back in that same forgotten spot behind a riddle.
+ * Running bit: the Bureau of Delayed Mail, punctual about being late. Both
+ * twists pay off the "relic" found in stage 1; B lands the seed twist (past-you
+ * already sent a capsule, and today's letter is the reply). Every stage has a
+ * fully digital route (phone album, typed note or voice memo); no special
+ * container is needed.
  */
 const timeCapsule: Adventure = {
   id: 'time-capsule',
@@ -17,7 +19,7 @@ const timeCapsule: Adventure = {
   title: 'The Time Capsule Protocol',
   tagline: 'The only post office where every letter arrives exactly as late as you asked.',
   intro:
-    "Welcome to the Bureau of Delayed Mail. We run one route for one customer, with a spotless record: every delivery arrives exactly as late as requested. Today you'll pack a tiny time capsule, three small things and a short letter, for the only person guaranteed to receive it.",
+    "Welcome to the Bureau of Delayed Mail. We serve exactly one customer, and in all our years we have never once delivered early. Today you'll pack a tiny time capsule, three small things and a short letter, for the only person guaranteed to receive it.",
   kind: 'ritual',
   moods: ['change'],
   weirdness: 1,
@@ -25,7 +27,7 @@ const timeCapsule: Adventure = {
   cost: { min: 0, max: 0 },
   settings: ['home'],
   company: ['solo'],
-  items: ['Paper and a pen', 'Any envelope, jar or phone folder'],
+  items: ['Paper and a pen', 'An envelope or jar, if you have one'],
   palette: 'dusk',
   motif: 'arches',
   traits: { connection: 2, creativity: 1 },
@@ -40,7 +42,7 @@ const timeCapsule: Adventure = {
       narrative:
         'Bureau protocol: before anything is sent forward, someone has to look back. Every home has a few places where small things go to be forgotten. Start with one.',
       action:
-        'Gather three small things that only make sense right now: a receipt from this week, a ticket, a sticky note, a photo from this month. Dig through one forgotten spot (a drawer, an old bag, a coat pocket) and your camera roll, noticing the oldest thing you stumble on.',
+        'Gather three small things that only make sense this week: a receipt, a ticket stub, a sticky note, a shopping list. Then dig through one forgotten spot (a drawer, an old bag, a coat pocket) for the oldest thing hiding there.',
       alternative:
         'Go fully digital: choose three photos or screenshots from this week and drop them into a new phone album. Then scroll back as far as your camera roll goes and find the oldest photo there.',
       minutes: 10,
@@ -49,7 +51,7 @@ const timeCapsule: Adventure = {
         label: 'The oldest thing you stumbled across',
         placeholder: 'a cinema ticket from 2019, still folded',
       },
-      amplify: 'Weigh each find in your palm like a postal clerk and announce its postage: “One receipt. Very light. Thirty days, first class.”',
+      amplify: 'Weigh each find in your palm like a postal clerk and announce its postage: “One receipt. Very light. First class, no rush.”',
       choice: {
         prompt: 'Protocol requires a delivery date. When should this capsule reach you?',
         options: [
@@ -96,9 +98,9 @@ const timeCapsule: Adventure = {
       narrative:
         "The Bureau doesn't do overnight. It does exactly thirty days: long enough for the dare ({{dare|yes, that one}}), short enough that you can't pretend you forgot.",
       action:
-        "Seal the letter and your three things in an envelope, jar or phone folder, write “Do not open until” with the date, and put it where you'll see it daily. Then set a calendar reminder for 30 days from now with a mysterious title.",
+        "Seal the letter and your three things in an envelope or jar (or fold the letter around them), write “Do not open until” and the date, and put it where you'll see it every day. Then set a 30-day calendar reminder with a mysterious title.",
       alternative:
-        'No envelope or jar? Fold the letter into a packet around your three things and tuck the flap shut. Prop it against something you see every day, and set the 30-day reminder all the same.',
+        'Kept it digital? Add your letter (or a screenshot of it) to the album, rename the album “Do not open until” plus the date, and set the same 30-day reminder with a mysterious title.',
       minutes: 7,
       capture: {
         key: 'reminder',
@@ -115,7 +117,7 @@ const timeCapsule: Adventure = {
       narrative:
         "A year is far enough that whoever opens this will be a slight stranger. They'll remember the big things. What they'll have lost are the small ones: today's prices, today's worries, today's song.",
       action:
-        "Write a one-page letter to yourself a year from now. Open with your oldest find ({{relic|whatever it was}}) and what has changed since, add one ordinary detail of today, and end with one question for next-year you.",
+        'Write half a page to yourself a year from now. Open with your oldest find ({{relic|whatever it was}}) and what has changed since, add one ordinary detail of today, and end with one question for next-year you.',
       alternative:
         'Rather talk than write? Record a two-minute voice memo to next-year you: the old find, one ordinary detail of today, one question. Name the file with the delivery date.',
       minutes: 10,
@@ -132,11 +134,11 @@ const timeCapsule: Adventure = {
       stage: 3,
       title: 'The Hiding Place',
       narrative:
-        'Long-haul mail needs a hiding place good enough to forget and bad enough to find. Somewhere in this home, a year from now, a question will be waiting for whoever asked it.',
+        'Long-haul mail needs a hiding place good enough to forget and bad enough to find. You already know one: the spot where {{relic|your oldest find}} waited all this time without a word.',
       action:
-        'Seal the letter and your three things in an envelope, jar or phone folder, and hide it somewhere you visit once a season: a winter coat pocket, a book you love, the back of a drawer. Then set a reminder for one year from today, titled with a riddle about where it is.',
+        'Seal the letter and your three things in an envelope or jar (or fold the letter around them) and hide it in that same forgotten spot, or anywhere you only visit once a season. Then set a reminder for one year from today, titled with a riddle about where it is.',
       alternative:
-        'Going digital? Give the album a name too dull to open, like “Receipts 3,” hide it if your phone allows, and set the one-year reminder with a riddle about that name.',
+        'Kept it digital? Give the album a name too dull to open, like “Receipts 3,” hide it if your phone allows, and set the one-year reminder with a riddle about that name.',
       minutes: 7,
       capture: {
         key: 'riddle',

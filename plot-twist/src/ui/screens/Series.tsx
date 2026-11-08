@@ -10,6 +10,7 @@ import { Sheet } from '../components/Sheet.tsx';
 import { formatClock, pad2 } from '../hooks.ts';
 import { IconArrowLeft, IconEnvelope, IconPencil } from '../icons.tsx';
 import { navigate } from '../router.ts';
+import { typographic } from '../../../shared/template.ts';
 import { uiAccent } from '../color.ts';
 import { JournalField, Recap } from './Finale.tsx';
 
@@ -211,7 +212,7 @@ export function EpisodeDetail({ episodeId }: { episodeId: string }) {
           Episode {pad2(episode.episodeNumber)} · {date}
         </p>
       </div>
-      <h1 className="t-display mt-3 text-[clamp(34px,10vw,44px)]">{episode.title}</h1>
+      <h1 className="t-display mt-3 text-[clamp(34px,10vw,44px)]">{typographic(episode.title)}</h1>
       <p className="mt-1 text-[14px] text-ivory-dim">
         {episode.source === 'ai' ? 'Written for you by the AI Director' : episode.narrator ? `From ${episode.narrator}` : 'From the archive'} · {formatClock(episode.elapsedMs)} played
       </p>
@@ -228,8 +229,8 @@ export function EpisodeDetail({ episodeId }: { episodeId: string }) {
         <h2 id="ending" className="t-display mt-2 text-[30px]">
           {episode.endingTitle}
         </h2>
-        <p className="t-serif mt-3 text-[17px] leading-relaxed">{episode.twist}</p>
-        <blockquote className="t-serif-italic mt-4 border-l-2 border-[color:var(--ep-accent)] pl-4 text-[18px] text-ivory-dim">“{episode.closingLine}”</blockquote>
+        <p className="t-serif mt-3 text-[17px] leading-relaxed">{typographic(episode.twist)}</p>
+        <blockquote className="t-serif-italic mt-4 border-l-2 border-[color:var(--ep-accent)] pl-4 text-[18px] text-ivory-dim">“{typographic(episode.closingLine)}”</blockquote>
       </section>
 
       <section className="mt-10" aria-labelledby="choices">

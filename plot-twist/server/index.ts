@@ -11,7 +11,8 @@ import { createApiHandler } from './api.ts';
 import { loadDotEnv, readConfig } from './config.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const DIST = join(ROOT, 'dist');
+/** Built app directory (PLOT_TWIST_DIST overrides it, e.g. for isolated E2E builds). */
+const DIST = resolve(ROOT, process.env.PLOT_TWIST_DIST || 'dist');
 
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',

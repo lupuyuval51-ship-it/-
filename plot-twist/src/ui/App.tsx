@@ -21,7 +21,7 @@ function useVibe(route: Route): Weirdness {
     case 'finale':
     case 'episode': {
       const ep = state.p.completed.find((c) => c.id === route.episodeId);
-      return ep?.weirdness ?? state.p.prefs.weirdness;
+      return ep?.prefs.weirdness ?? ep?.weirdness ?? state.p.prefs.weirdness;
     }
     default:
       return state.p.prefs.weirdness;

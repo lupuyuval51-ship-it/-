@@ -6,9 +6,11 @@ import type { Adventure } from '../../../shared/types.ts';
  * (two opinions, zero doubts), sulking whenever it is overruled.
  * Branch A follows the coin (pure chance, then an invented legend); branch B
  * follows a local tip, with a no-talking alternative (notice boards, maps,
- * shop windows), and finds a real legend. Safety is built in: the way home is
- * planned first, daylight or a busy line, re-flip anything empty or dark.
- * Cost is the round trip (two rides, about ₪12–24 depending on distance).
+ * shop windows), and finds a real story (a plaque, a street name, a date).
+ * Safety is built in: daylight or a busy line, the last ride back checked
+ * before boarding, re-flip anything empty, dark or private, and the outbound
+ * ride is capped at 20 minutes so the trip home fits inside the two hours.
+ * Cost is the round trip: two rides, about ₪12–30 depending on distance.
  */
 const tenStopGambit: Adventure = {
   id: 'ten-stop-gambit',
@@ -22,7 +24,7 @@ const tenStopGambit: Adventure = {
   moods: ['change', 'curious'],
   weirdness: 3,
   minutes: 120,
-  cost: { min: 10, max: 30 },
+  cost: { min: 12, max: 30 },
   settings: ['outside'],
   company: ['solo', 'group'],
   items: ['A coin (or a coin-flip app)', 'A charged phone', 'Transit card or fare app', 'Water bottle'],
@@ -40,16 +42,16 @@ const tenStopGambit: Adventure = {
       narrative:
         "Rule one of the Gambit: we go in daylight or on a busy line, and we plan the way home before we leave. Rule two: past the last stop you know, I'm in charge, and there are no appeals.",
       action:
-        "Screenshot your route home and the time of the last ride back, then board a city bus or light rail line you've never taken. Ten stops past the last one you recognize (or 25 minutes in, whichever comes first), flip me: heads, get off; tails, two more stops, then off.",
+        "Find a bus or light-rail line you've never taken and screenshot the time of its last ride back. Board it, and ten stops past the last one you recognize (or 20 minutes in, whichever comes first), flip me: heads, off you get; tails, two more stops, then off.",
       alternative:
-        'No ride today? Run the Gambit on foot: walk to the edge of the streets you know, then let me pick your next ten turns, heads left, tails right, busy streets only. Screenshot the way back first.',
+        'No ride today? Walk it: check the way back on your map, then follow busy streets you never take for 20 minutes, until nothing looks familiar. Flip me: heads, stop right there; tails, one more block.',
       minutes: 35,
       capture: {
         key: 'stop',
         label: 'The stop where I dropped you',
         placeholder: 'Pomegranate Square (zero pomegranates)',
       },
-      amplify: 'Board like the opening scene of a film: window seat, deep breath, one long look back at the known world. Whisper “Ten stops. No regrets.”',
+      amplify: 'Take a window seat. As you pass the last stop you recognize, whisper the announcement nobody else gets to hear: “We are now leaving the known world.”',
       crewTip: 'One of you carries the coin, one carries the screenshot home. Nobody is allowed to say “I think I know this area.”',
       choice: {
         prompt: "You're off the edge of your map at {{stop|a brand-new stop}}. Who's navigating now?",
@@ -78,16 +80,16 @@ const tenStopGambit: Adventure = {
       narrative:
         "Excellent choice: I've never been wrong. (Never been right either, but let's not dwell.) Every corner is a question, I'm the answer, and your only job is to stop for anything that makes you look twice.",
       action:
-        'Walk for 25 minutes and flip me at every corner: heads left, tails right. If I ever point somewhere empty, dark or private, or across a road with no crossing, flip again.',
+        'Walk for 20 minutes and flip me at every corner: heads left, tails right. If I ever point somewhere empty, dark or private, or across a road with no crossing, flip again.',
       alternative:
         'Rather not walk that far? Take a seat with a view, like a bench or a bus shelter, and let me steer your eyes instead: ten flips, heads look left, tails look right, one detail per flip.',
-      minutes: 30,
+      minutes: 25,
       capture: {
         key: 'find',
         label: 'The best thing I led you to',
         placeholder: 'a shop that only sells buttons',
       },
-      amplify: 'Call every flip like a referee, under your breath: “Heads. Left. No appeals.” Then point the way with total authority.',
+      amplify: 'Call every flip like a referee: “Heads. Left. No appeals.” Then point the way with total authority.',
       crewTip: "Pass the coin at every corner. Whoever flips decides what's worth stopping for; everyone else must act impressed.",
       next: 'myth-maker',
     },
@@ -107,8 +109,8 @@ const tenStopGambit: Adventure = {
         label: "Your legend's first line",
         placeholder: 'No one knows why the bench faces the wall.',
       },
-      amplify: 'Before you leave, give the legendary object a small, respectful nod. One legend to another.',
-      crewTip: 'Each person writes one sentence of the legend without peeking at the others. Read the whole thing aloud on the ride home.',
+      amplify: 'Before you go, salute the legendary object like an explorer at a summit. One legend to another.',
+      crewTip: 'Each person writes one sentence of the legend without peeking at the others. Read the whole thing aloud, quietly, on the ride home.',
       next: 'coins-confession',
     },
     {
@@ -121,7 +123,7 @@ const tenStopGambit: Adventure = {
         "Ask someone who works around here, like a kiosk owner, a market vendor or a librarian: “What's your favorite spot within ten minutes' walk?” Thank them and go; if you get two answers, I break the tie.",
       alternative:
         'Rather not talk to anyone? Read the neighborhood instead: a notice board, the map at the bus stop, posters in shop windows. Go wherever is mentioned, posted or pointed to most.',
-      minutes: 30,
+      minutes: 20,
       capture: {
         key: 'spot',
         label: 'Where the neighborhood sent you',
@@ -138,9 +140,9 @@ const tenStopGambit: Adventure = {
       narrative:
         "Every neighborhood hides its legend in plain sight: a plaque, a street sign, the oldest shop window. Start at {{spot|the spot you were sent to}}. (I'd have found it faster, just saying.)",
       action:
-        'Find one real story here: read a plaque, a dedication or a cornerstone, or look up who the street is named after. Then head for the nearest stop home and reread it on the ride.',
+        'Find one real story here: a plaque, a dedication, a date on a cornerstone, or whoever the street is named after (look it up). Then head for the nearest stop home and, on the ride, write the story down in one line.',
       alternative:
-        'No plaque, no signal, no story? Invent the legend of the oldest thing in sight, mark it “unconfirmed,” and fact-check it on the ride home.',
+        "No plaque in sight? Hunt for the oldest date on the street instead: a “since 1968” on a shop sign, a year on a cornerstone or a manhole cover. That date is your legend's first line.",
       minutes: 45,
       capture: {
         key: 'legend',
@@ -157,16 +159,16 @@ const tenStopGambit: Adventure = {
       id: 'coins-confession',
       title: "The Coin's Confession",
       twist:
-        "Plot twist: I never chose anything. I said left or right, that's all. You were the one who stopped for {{find|that one thing}}, looked twice, and wrote a legend for a street you'd never seen. Somewhere past {{stop|that stop}}, a neighborhood has new folklore, and its author is riding home.",
-      closingLine: '“{{myth|No one knows why the bench faces the wall.}}” A local legend, est. today.',
+        "Plot twist: I never chose anything. I said left or right, that's all. You were the one who stopped for {{find|that one thing}}, looked twice, and wrote a legend for a street you'd never seen before today. Somewhere past {{stop|that stop}}, a neighborhood has new folklore, and its author is on the way home.",
+      closingLine: 'A local legend, est. today: {{myth|No one knows why the bench faces the wall.}}',
       traits: { creativity: 2 },
     },
     {
       id: 'edge-of-the-map',
       title: 'The Edge of the Map',
       twist:
-        "Plot twist: the Gambit only works once. When you set out, {{stop|that stop}} was past the edge of your map. Now it's somewhere you've been, with a favorite spot and a legend of its own, so next time you'll have to ride ten stops further. Your city just got bigger. (For the record, I'd have picked the same spot.)",
-      closingLine: 'Heard ten stops from home: {{legend|the street is named after a poet who planted trees}}',
+        "Plot twist: the Gambit only works once. When you set out, {{stop|that stop}} was past the edge of your map. Now it's a place you know, with {{spot|a favorite spot}} and a story of its own, so next time you'll have to ride ten stops further. Your city just got bigger. (For the record, I'd have picked the same spot.)",
+      closingLine: 'Found past the edge of my map: {{legend|the street is named after a poet who planted trees}}',
       traits: { curiosity: 1, connection: 1 },
     },
   ],

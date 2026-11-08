@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PALETTES } from '../../../shared/constants.ts';
 import { getNode } from '../../../shared/graph.ts';
-import { renderTemplate } from '../../../shared/template.ts';
+import { renderTemplate, typographic } from '../../../shared/template.ts';
 import type { Adventure, StageNode } from '../../../shared/types.ts';
 import { currentNode, elapsedMs, isFinished, isPaused } from '../../engine/run.ts';
 import type { Run } from '../../engine/types.ts';
@@ -89,7 +89,7 @@ function Amplify({ text, weirdness }: { text: string; weirdness: 1 | 2 | 3 }) {
 function StageCard({ run, node }: { run: Run; node: StageNode }) {
   const { setNote, toggleAlternative, completeStage } = useStore();
   const adventure = run.adventure;
-  const r = (t: string) => renderTemplate(t, run.notes);
+  const r = (t: string) => typographic(renderTemplate(t, run.notes));
   const alt = run.usingAlternative;
   const capture = node.capture;
   const [draft, setDraft] = useState(capture ? run.notes[capture.key] ?? '' : '');
@@ -118,7 +118,7 @@ function StageCard({ run, node }: { run: Run; node: StageNode }) {
         {adventure.stageLabel ?? 'Stage'} {node.stage} of 3 · ~{node.minutes} min
       </p>
       <h2 id={`stage-${node.id}`} ref={headingRef} tabIndex={-1} className="t-display mt-2 text-[clamp(32px,9.5vw,40px)] outline-none">
-        {node.title}
+        {typographic(node.title)}
       </h2>
       <p className="t-serif-italic mt-3 text-[18px] text-ivory-dim">{r(node.narrative)}</p>
 
@@ -188,7 +188,7 @@ function ChoicePanel({ run, node }: { run: Run; node: StageNode }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => headingRef.current?.focus(), []);
   if (!node.choice) return null;
-  const prompt = renderTemplate(node.choice.prompt, run.notes);
+  const prompt = typographic(renderTemplate(node.choice.prompt, run.notes));
   return (
     <section className="anim-rise mt-8" aria-labelledby="choice-title">
       <p className="t-kicker">The fork in the road</p>
@@ -209,8 +209,8 @@ function ChoicePanel({ run, node }: { run: Run; node: StageNode }) {
             style={{ animationDelay: `${120 + i * 90}ms` }}
           >
             <span className="t-kicker text-[color:var(--ep-accent)]">Option {String.fromCharCode(65 + i)}</span>
-            <span className="t-display mt-1.5 block text-[25px]">{opt.label}</span>
-            <span className="mt-1 block text-[15px] text-ivory-dim">{opt.description}</span>
+            <span className="t-display mt-1.5 block text-[25px]">{typographic(opt.label)}</span>
+            <span className="mt-1 block text-[15px] text-ivory-dim">{typographic(opt.description)}</span>
           </button>
         ))}
       </div>
@@ -257,7 +257,7 @@ export function Play() {
         <p className="t-kicker">
           Episode {pad2(run.episodeNumber)} · {adventure.source === 'ai' ? 'written for you' : adventure.narrator ?? 'from the archive'}
         </p>
-        <p className="t-display mt-1 text-[22px] text-ivory-dim">{adventure.title}</p>
+        <p className="t-display mt-1 text-[22px] text-ivory-dim">{typographic(adventure.title)}</p>
         <div className="mt-4">
           <ProgressRail stage={node.stage} phase={run.phase} finished={false} label={adventure.stageLabel ?? 'Stage'} />
         </div>

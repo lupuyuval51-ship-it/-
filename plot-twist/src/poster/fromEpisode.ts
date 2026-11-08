@@ -75,7 +75,8 @@ export function posterInputFromEpisode(ep: CompletedEpisode, seriesName: string 
     palette: ep.palette,
     motif: ep.motif,
     seed: ep.posterSeed >>> 0,
-    weirdness: ep.weirdness,
+    // The user's chosen weirdness (the dial) shapes the poster, not just the episode's natural level.
+    weirdness: ep.prefs?.weirdness ?? ep.weirdness,
     kind: ep.kind,
     endingTitle: ep.endingTitle,
     closingLine: ep.closingLine,
