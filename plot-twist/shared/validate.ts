@@ -196,7 +196,6 @@ export function validateAdventure(input: unknown): ValidationResult {
     ids.add(value);
   };
 
-  const captureKeySeen = new Set<string>();
   (a.nodes as unknown[]).forEach((raw, i) => {
     const p = `${P}.nodes[${i}]`;
     if (!isObj(raw)) {
@@ -222,8 +221,6 @@ export function validateAdventure(input: unknown): ValidationResult {
       else {
         const key = raw.capture.key;
         if (typeof key !== 'string' || !CAPTURE_KEY.test(key)) c.err(`${label}.capture.key`, 'must be a lowercase slug');
-        else if (captureKeySeen.has(key)) c.err(`${label}.capture.key`, `duplicate capture key ${JSON.stringify(key)}`);
-        else captureKeySeen.add(key);
         c.text(raw.capture, 'label', `${label}.capture`, TEXT_LIMITS.captureLabel);
         c.text(raw.capture, 'placeholder', `${label}.capture`, TEXT_LIMITS.capturePlaceholder);
       }
@@ -317,10 +314,12 @@ export function validateAdventure(input: unknown): ValidationResult {
   if (reachedEndings.size < 2) c.err(`${P}.endings`, 'needs at least two reachable endings');
   if (!adv.nodes.some((n) => n.choice)) c.err(`${P}.nodes`, 'needs at least one branching choice');
 
-  // Every path must be exactly three stages long.
+  // Every path must be exactly three stages long, and its capture keys must not collide.
   for (const path of paths) {
     const stages = path.nodes.map((n) => n.stage).join('→');
     if (stages !== '1→2→3') c.err(`${P}.paths`, `path to ${path.ending.id} visits stages ${stages} (must be 1→2→3)`);
+    const keys = path.nodes.flatMap((n) => (n.capture ? [n.capture.key] : []));
+    if (new Set(keys).size !== keys.length) c.err(`${P}.paths`, `path to ${path.ending.id} reuses a capture key (${keys.join(', ')})`);
   }
 
   // A choice must change later content: its branches may not reconverge immediately.

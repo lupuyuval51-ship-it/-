@@ -1,0 +1,132 @@
+/**
+ * A tiny Anthropic-compatible mock (Models + streaming Messages) so the real SDK
+ * code path can be exercised without an API key:
+ *   node e2e/mockAnthropic.ts            (listens on MOCK_PORT or 8788)
+ * Then run the app with PLOT_TWIST_ANTHROPIC_BASE_URL=http://127.0.0.1:8788 ANTHROPIC_API_KEY=test-key
+ */
+import { createServer, type IncomingMessage, type Server } from 'node:http';
+import { fileURLToPath } from 'node:url';
+import { mockAiEpisode } from '../tests/fixtures/aiEpisode.ts';
+
+export type MockMode = 'ok' | 'invalid-then-ok' | 'always-invalid' | 'refusal' | 'auth' | 'overloaded';
+
+export interface RecordedRequest {
+  method: string;
+  path: string;
+  headers: IncomingMessage['headers'];
+  body: Record<string, unknown> | null;
+}
+
+export interface MockOptions {
+  port?: number;
+  mode?: MockMode;
+  /** Delay between streamed chunks (ms). */
+  chunkDelayMs?: number;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function sse(event: string, data: unknown) {
+  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
+function availableMinutes(body: Record<string, unknown> | null): number {
+  const messages = (body?.messages as { content: unknown }[] | undefined) ?? [];
+  const text = typeof messages[0]?.content === 'string' ? (messages[0].content as string) : '';
+  const m = /Available time: (\d+) minutes/.exec(text);
+  return m ? Number(m[1]) : 30;
+}
+
+export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url: string; requests: RecordedRequest[]; close: () => Promise<void>; server: Server }> {
+  const mode = opts.mode ?? 'ok';
+  const delay = opts.chunkDelayMs ?? 5;
+  const requests: RecordedRequest[] = [];
+  let messageCalls = 0;
+
+  const server = createServer(async (req, res) => {
+    const chunks: Buffer[] = [];
+    for await (const c of req) chunks.push(c as Buffer);
+    const raw = Buffer.concat(chunks).toString('utf8');
+    let body: Record<string, unknown> | null = null;
+    try {
+      body = raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
+    } catch {
+      body = null;
+    }
+    const path = (req.url ?? '').split('?')[0];
+    requests.push({ method: req.method ?? '', path, headers: req.headers, body });
+
+    if (mode === 'auth') {
+      res.writeHead(401, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' } }));
+      return;
+    }
+
+    if (req.method === 'GET' && path.startsWith('/v1/models/')) {
+      const id = decodeURIComponent(path.slice('/v1/models/'.length));
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ id, type: 'model', display_name: id, created_at: '2026-01-01T00:00:00Z', max_input_tokens: 1000000, max_tokens: 128000 }));
+      return;
+    }
+
+    if (req.method === 'POST' && path === '/v1/messages') {
+      messageCalls++;
+      if (mode === 'overloaded') {
+        res.writeHead(529, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }));
+        return;
+      }
+      const minutes = availableMinutes(body);
+      const episode = mockAiEpisode(minutes);
+      const invalid = mode === 'always-invalid' || (mode === 'invalid-then-ok' && messageCalls === 1);
+      if (invalid) episode.stage1.minutes = minutes * 3; // breaks the time constraint → triggers repair
+      const text = JSON.stringify(episode);
+      const model = typeof body?.model === 'string' ? body.model : 'claude-opus-5-5';
+
+      res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' });
+      res.write(sse('message_start', { type: 'message_start', message: { id: `msg_mock_${messageCalls}`, type: 'message', role: 'assistant', model, content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1200, output_tokens: 1 } } }));
+      // A thinking block first, like a real adaptive-thinking response (display omitted → empty text).
+      res.write(sse('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '', signature: '' } }));
+      res.write(sse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'mock-signature' } }));
+      res.write(sse('content_block_stop', { type: 'content_block_stop', index: 0 }));
+      if (mode === 'refusal') {
+        res.write(sse('message_delta', { type: 'message_delta', delta: { stop_reason: 'refusal', stop_sequence: null }, usage: { output_tokens: 3 } }));
+        res.write(sse('message_stop', { type: 'message_stop' }));
+        res.end();
+        return;
+      }
+      res.write(sse('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }));
+      for (let i = 0; i < text.length; i += 400) {
+        res.write(sse('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: text.slice(i, i + 400) } }));
+        if (delay) await sleep(delay);
+      }
+      res.write(sse('content_block_stop', { type: 'content_block_stop', index: 1 }));
+      res.write(sse('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: Math.round(text.length / 4) } }));
+      res.write(sse('message_stop', { type: 'message_stop' }));
+      res.end();
+      return;
+    }
+
+    res.writeHead(404, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ type: 'error', error: { type: 'not_found_error', message: 'not found' } }));
+  });
+
+  await new Promise<void>((r) => server.listen(opts.port ?? 0, '127.0.0.1', () => r()));
+  const address = server.address();
+  const port = typeof address === 'object' && address ? address.port : 0;
+  return {
+    url: `http://127.0.0.1:${port}`,
+    requests,
+    server,
+    close: () => new Promise<void>((r) => server.close(() => r())),
+  };
+}
+
+// Run standalone: node e2e/mockAnthropic.ts
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const port = Number(process.env.MOCK_PORT ?? 8788);
+  const mode = (process.env.MOCK_MODE as MockMode | undefined) ?? 'ok';
+  const delay = Number(process.env.MOCK_DELAY_MS ?? 40);
+  const mock = await startMockAnthropic({ port, mode, chunkDelayMs: delay });
+  console.log(`[mock-anthropic] ${mode} mode on ${mock.url}`);
+}

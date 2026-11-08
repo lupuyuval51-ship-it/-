@@ -429,3 +429,85 @@ export function aiEpisodeToAdventure(ai: AiEpisode, prefs: Prefs, opts: ConvertO
   if (!adventure.narrator) delete adventure.narrator;
   return { adventure, fixes };
 }
+
+// ── inverse conversion (curated → AI shape), used for the few-shot example and tests ──
+
+function topTrait(t: TraitBoost | undefined, fallback: Trait): Trait {
+  let best: Trait = fallback;
+  let bestPoints = -1;
+  for (const trait of TRAITS) {
+    const p = t?.[trait] ?? 0;
+    if (p > bestPoints) {
+      best = trait;
+      bestPoints = p;
+    }
+  }
+  return bestPoints > 0 ? best : fallback;
+}
+
+/**
+ * Converts a canonical-topology adventure (stage 1 choice with two options, each
+ * a straight 2 → 3 → ending path) into the AI shape. Returns null otherwise.
+ */
+export function adventureToAiEpisode(adv: Adventure): AiEpisode | null {
+  const byId = new Map(adv.nodes.map((n) => [n.id, n]));
+  const endings = new Map(adv.endings.map((e) => [e.id, e]));
+  const s1 = byId.get(adv.start);
+  if (!s1 || s1.stage !== 1 || !s1.choice || s1.choice.options.length !== 2) return null;
+
+  // Capture keys become note1/note2/note3 by stage.
+  const keyMap = new Map<string, string>();
+  for (const n of adv.nodes) if (n.capture) keyMap.set(n.capture.key, `note${n.stage}`);
+  const rekey = (text: string) =>
+    text.replace(/\{\{\s*([a-z0-9][a-z0-9-]*)\s*\|([^{}]*)\}\}/g, (raw, key: string, fallback: string) => {
+      const mapped = keyMap.get(key);
+      return mapped ? `{{${mapped}|${fallback.trim()}}}` : raw;
+    });
+
+  const primary = topTrait(adv.traits, 'curiosity');
+  const stage = (n: StageNode): AiStage => ({
+    title: n.title,
+    narrative: rekey(n.narrative),
+    action: rekey(n.action),
+    alternative: rekey(n.alternative),
+    minutes: n.minutes,
+    fieldNoteLabel: n.capture?.label ?? '',
+    fieldNotePlaceholder: n.capture?.placeholder ?? '',
+    crewTip: n.crewTip ? rekey(n.crewTip) : '',
+    amplify: n.amplify ? rekey(n.amplify) : '',
+  });
+
+  const paths: AiPath[] = [];
+  for (const opt of s1.choice.options) {
+    const s2 = byId.get(opt.next);
+    const s3 = s2?.next ? byId.get(s2.next) : undefined;
+    const end = s3?.next ? endings.get(s3.next) : undefined;
+    if (!s2 || !s3 || !end || s2.choice || s3.choice) return null;
+    paths.push({
+      option: { label: opt.label, description: opt.description, trait: topTrait(opt.traits, primary) },
+      stage2: stage(s2),
+      stage3: stage(s3),
+      ending: { title: end.title, twist: rekey(end.twist), closingLine: rekey(end.closingLine), trait: topTrait(end.traits, primary) },
+    });
+  }
+
+  return {
+    title: adv.title,
+    tagline: adv.tagline,
+    intro: adv.intro,
+    kind: adv.kind,
+    moods: [...adv.moods],
+    costMin: adv.cost.min,
+    costMax: adv.cost.max,
+    items: [...adv.items],
+    palette: adv.palette,
+    motif: adv.motif,
+    stageLabel: adv.stageLabel ?? '',
+    narrator: adv.narrator ?? '',
+    primaryTrait: primary,
+    stage1: stage(s1),
+    choicePrompt: rekey(s1.choice.prompt),
+    pathA: paths[0],
+    pathB: paths[1],
+  };
+}
