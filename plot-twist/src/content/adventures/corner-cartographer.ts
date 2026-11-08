@@ -157,7 +157,7 @@ const cornerCartographer: Adventure = {
       id: 'last-unmapped-place',
       title: 'The Last Unmapped Place',
       twist:
-        "Plot twist: satellites photograph every street on Earth, and not one of them knows about {{census|your census}} or {{named|the names you just gave}}. That makes you the world's leading authority on {{territory|this territory}}. There is no second-leading authority. The last unmapped place on Earth was a hundred steps from where you started.",
+        "Plot twist: satellites photograph every street on Earth, and not one of them has heard of {{named|the places you just named}}. That makes you the world's leading authority on {{territory|this territory}}. There is no second-leading authority. The last unmapped place on Earth was a hundred steps from where you started.",
       closingLine: 'Now entering {{territory|the Lower Kiosk Lands}}. Population: {{census|23 plant pots, 2 cats, 1 suspicious chair}}',
       traits: { connection: 1 },
     },
@@ -165,7 +165,7 @@ const cornerCartographer: Adventure = {
       id: 'paper-town',
       title: 'The Paper Town',
       twist:
-        "Plot twist: in the 1930s, two mapmakers invented a town called Agloe to catch copycats. Years later, someone opened a store on that empty spot and named it Agloe, because the map said so. Today {{trap|a street that doesn't exist}} appeared on the only map of {{territory|your territory}}. That's exactly how Agloe started.",
+        "Plot twist: in the 1930s, two mapmakers invented a town called Agloe to catch copycats. Years later, a real store opened on that exact empty spot, and its sign said Agloe. The fake town had come true. Today {{trap|a street that doesn't exist}} appeared on the only map of {{territory|your territory}}. That's exactly how Agloe started.",
       closingLine: 'Coming soon to {{territory|the Lower Kiosk Lands}}: {{trap|Little Spoon Lane (open Tuesdays)}}',
       traits: { creativity: 1 },
     },

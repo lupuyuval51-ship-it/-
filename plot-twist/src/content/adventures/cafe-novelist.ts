@@ -4,7 +4,9 @@ import type { Adventure } from '../../../shared/types.ts';
  * The Café Novelist: a one-hour solo writing date. Buy one drink, write a 100-word story set in
  * the café using only objects (never people), and take the title from whatever the café printed.
  * Branch A is a mystery (find an absence, end on the evidence); branch B is a romance (find a pair,
- * write it on a napkin). Running bit: the Editor's word-count tyranny and war on adverbs.
+ * write it on a napkin). Running bit: the Editor's word-count tyranny, war on adverbs and secret
+ * soft spot for love stories. A's twist: the receipt printed the title before the story existed
+ * (foreshadowing). B's twist: every café romance resets at closing time and starts again each morning.
  */
 const cafeNovelist: Adventure = {
   id: 'cafe-novelist',
@@ -38,8 +40,8 @@ const cafeNovelist: Adventure = {
       action:
         'Walk to a café, buy a drink and take a seat facing the room. Before writing a word of story, list ten details you can see, objects only, never people: a chipped saucer, a sign missing a letter.',
       alternative:
-        'Rather not sit in? Take your drink to go, find a bench or a ledge with a view into the café, and list ten object details from there. The story can still be set inside.',
-      minutes: 15,
+        'Rather not sit in? Take your drink to go, find a bench or an outdoor seat with a view of the café, and list ten object details from there. The story can still be set inside.',
+      minutes: 18,
       capture: {
         key: 'detail',
         label: 'The best detail on your list',
@@ -75,8 +77,8 @@ const cafeNovelist: Adventure = {
       action:
         'Find one thing that should be here but isn\'t, then draft a mystery about it with three details from your list as clues, starting with {{detail|your best detail}}. Don\'t count words yet. That\'s the Editor\'s job.',
       alternative:
-        'Writing by hand isn\'t working? Dictate the draft as a quiet voice memo, like a detective\'s case notes: the same missing thing, the same three clues.',
-      minutes: 25,
+        'Rather talk than write? Dictate the draft quietly with your phone\'s voice typing, like a detective\'s case notes: the same missing thing, the same three clues.',
+      minutes: 22,
       capture: {
         key: 'missing',
         label: 'What is missing',
@@ -102,7 +104,7 @@ const cafeNovelist: Adventure = {
         placeholder: 'Change Due',
       },
       amplify: 'Read the finished story under your breath like an audiobook narrator who has been paid entirely in coffee.',
-      next: 'the-prime-suspect',
+      next: 'the-receipt-knew',
     },
     {
       id: 'star-crossed',
@@ -113,8 +115,8 @@ const cafeNovelist: Adventure = {
       action:
         'Choose two objects that belong together, or should. Draft their love story (how they met, what keeps them apart, the moment it changes) with three details from your list as scenery, {{detail|your best detail}} included.',
       alternative:
-        'Dictate it instead: a whispered voice memo, like an old radio drama, starring your two objects, with three details from your list as the set.',
-      minutes: 25,
+        'Rather talk than write? Dictate it quietly with your phone\'s voice typing, like an old radio drama: your two objects as the stars, three details from your list as the set.',
+      minutes: 22,
       capture: {
         key: 'pair',
         label: 'Your star-crossed pair',
@@ -140,23 +142,23 @@ const cafeNovelist: Adventure = {
         placeholder: 'Careful, Hot',
       },
       amplify: 'Sign the napkin with a dramatic pen name and fold it like a letter you may never send. (You keep it. That is the tragedy.)',
-      next: 'table-for-one',
+      next: 'same-time-tomorrow',
     },
   ],
   endings: [
     {
-      id: 'the-prime-suspect',
-      title: 'The Prime Suspect',
+      id: 'the-receipt-knew',
+      title: 'The Receipt Knew',
       twist:
-        'Plot twist: the Editor has one note, and it isn\'t about word count. This café had a real mystery today. It began the minute a stranger bought one drink, sat down and started writing down every object in the room, right down to {{detail|the last sugar packet}}. In any café mystery, that\'s the prime suspect. The mystery was you.',
+        'Plot twist: the café cracked the case before you did. Your title, {{mystery-title|Change Due}}, was printed long before you noticed {{missing|anything}} was gone. In a novel, that\'s called foreshadowing. In a café, it\'s called a receipt. Every receipt is the title of a story nobody has written yet. As of today, one of them has exactly 100 words.',
       closingLine: '{{mystery-title|Change Due}}: a mystery in exactly 100 words, starring {{missing|something that wasn\'t there}}.',
       traits: { curiosity: 1, creativity: 1 },
     },
     {
-      id: 'table-for-one',
-      title: 'Table for One',
+      id: 'same-time-tomorrow',
+      title: 'Same Time Tomorrow',
       twist:
-        'Plot twist: you went looking for two things that belong together and missed the most obvious pair in the room: you and this table. One drink, one chair, a whole hour, {{detail|a nosy sugar packet}} as chaperone. That wasn\'t a café visit. It was a first date, and judging by the title, "{{romance-title|Careful, Hot}}", it went well.',
+        'Plot twist: every café romance resets at closing time. Cups go to the dishwasher, chairs go up on the tables, the lights go out. Then someone opens up in the morning, and {{pair|your two objects}} meet for the first time, all over again. It has been happening every day for years. The Editor, who hates love stories, has asked for tomorrow\'s chapter.',
       closingLine: '{{romance-title|Careful, Hot}}: a love story in exactly 100 words, starring {{pair|two objects who should know better}}.',
       traits: { connection: 1, creativity: 1 },
     },

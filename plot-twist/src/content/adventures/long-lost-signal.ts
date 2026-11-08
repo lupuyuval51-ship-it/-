@@ -6,12 +6,13 @@ import type { Adventure } from '../../../shared/types.ts';
  * someone you drifted from by accident, not on purpose.
  * Branch A sends a memory ("this reminded me of you"), then spends ten phone-down minutes doing one
  * small thing their way; branch B asks a real question (one you'd love to be asked yourself), then
- * answers it yourself while it travels. Every send has an unsent-letter alternative, and nothing in
- * the episode depends on a reply. Running bit: the Long-Wave Operator signs off every transmission
- * with "Over", never "Out"; both twists explain why ("over" means "your turn"), so the line stays
- * open whether or not anyone has answered yet. A reframes the artifact as their signal, which the
- * user just answered; B reframes the self-answer as preparation: good questions come back as
- * "What about you?", and the user's answer is already written.
+ * answers it yourself. Every send has an unsent-letter alternative, and nothing in the episode
+ * depends on a reply.
+ * Running bit: the Long-Wave Operator signs off every transmission with "Over", never "Out".
+ * A's twist is radio drift (pays off "by accident" and the tagline): a dial left alone slips off the
+ * station a hair at a time, nobody's fault, and the fix is easing back onto their wavelength, which
+ * the user just did twice. B's twist explains the sign-off: "over" means "your turn", a real question
+ * is the purest "over", and it comes back as "What about you?", which the user has already answered.
  */
 const longLostSignal: Adventure = {
   id: 'long-lost-signal',
@@ -78,9 +79,9 @@ const longLostSignal: Adventure = {
       stage: 2,
       title: 'This Reminded Me of You',
       narrative:
-        '“Long time no see” is static: it fills the line and says nothing. But {{artifact|that artifact}} is a memory only the two of you would recognize, and memories cut through anything, even years. Over.',
+        '“Long time no see” fills the line and says nothing. But {{artifact|that artifact}} is a memory only two people on Earth would recognize, which makes it the clearest signal there is. Over.',
       action:
-        'Send them the artifact (a photo, a song link, a snap of the object, or just its name) with one line: “This reminded me of you,” plus one detail only they would get. Then send it before you can rewrite it.',
+        'Message them the artifact (a photo, a song link, a snap of the object, or just its name) with one line: “This reminded me of you,” plus one detail only they would get. Hit send before you can rewrite it.',
       alternative:
         "Not ready to send, or no way to reach them? Write it as a letter you won't send: the artifact, “this reminded me of you” and the detail. Unsent letters are still transmissions.",
       minutes: 7,
@@ -97,7 +98,7 @@ const longLostSignal: Adventure = {
       stage: 3,
       title: 'On Their Wavelength',
       narrative:
-        'Replies keep their own schedule: some come back in a minute, some in a month, and none come back faster while you watch the screen. While yours travels, we get on their wavelength. Over.',
+        'Replies keep their own schedule: some come back in a minute, some in a month, and none come back faster while you watch the screen. So for the next ten minutes, we tune to their wavelength instead. Over.',
       action:
         'Put your phone face down for ten minutes (if a reply comes in, it can wait) and do one small thing their way: tea how they make it, their kind of song start to finish, a short walk at their pace.',
       alternative:
@@ -105,11 +106,11 @@ const longLostSignal: Adventure = {
       minutes: 12,
       capture: {
         key: 'their-way',
-        label: 'The thing you did their way',
+        label: 'Your ten minutes on their wavelength',
         placeholder: 'tea with two sugars, exactly how they make it',
       },
       amplify: 'Go all the way: their posture, their favorite mug, their famously bad humming. Nobody is watching except the Operator.',
-      next: 'signal-received',
+      next: 'small-turn-of-the-dial',
     },
     {
       id: 'real-question',
@@ -118,13 +119,13 @@ const longLostSignal: Adventure = {
       narrative:
         '“How are you?” is static: everyone answers “good” and the line goes quiet. A real question is a signal only one person can pick up. Over.',
       action:
-        "Write them one real question, the kind you'd love to be asked yourself (“What was the best part of your year?” “Do you still miss the old place?”), and send it by text or voice note, with {{artifact|the artifact}} if it fits.",
+        "Send them a hello and one real question, the kind you'd love to be asked yourself (“What was the best part of your year?” “Do you still miss the old place?”), by text or voice note, with {{artifact|the artifact}} if it fits.",
       alternative:
-        "Not ready to send, or no way to reach them? Write the question at the top of a letter you won't send, and under it, why you've been wondering. Unsent letters are still transmissions.",
+        "Not ready to send, or no way to reach them? Write the question at the top of a letter you won't send, and under it, why you've always wondered. The Operator logs unsent transmissions too.",
       minutes: 7,
       capture: {
         key: 'question',
-        label: 'The real question you asked',
+        label: 'The real question you sent (or wrote)',
         placeholder: 'Do you still miss the old neighborhood?',
       },
       amplify: "Skip the safe question and ask the one you've actually wondered about for years, as long as it's a kind one.",
@@ -135,7 +136,7 @@ const longLostSignal: Adventure = {
       stage: 3,
       title: 'The Other End of the Line',
       narrative:
-        'A good question deserves two answers, and only one of them depends on the other side. While yours travels, the line is all yours. Over.',
+        'A good question deserves two answers, and only one of them depends on the other end of the line. The other one is yours, and it can start right now. Over.',
       action:
         'Silence notifications for ten minutes and answer your own question as honestly as you hope they will: five sentences, on paper or in a note, no editing.',
       alternative: 'Not a writing moment? Answer it out loud instead: a two-minute voice memo to yourself, as if they had asked you first.',
@@ -151,10 +152,10 @@ const longLostSignal: Adventure = {
   ],
   endings: [
     {
-      id: 'signal-received',
-      title: 'Signal Received',
+      id: 'small-turn-of-the-dial',
+      title: 'A Small Turn of the Dial',
       twist:
-        "Plot twist: you didn't start this conversation. Years ago they sent you {{artifact|that artifact}} without knowing it, and today it finally came in range. You answered, then spent ten minutes on their wavelength ({{their-way|doing one thing their way}}). Notice I never signed off with “out”? “Out” ends a call. “Over” means your turn. Whenever their turn comes, the line is open.",
+        "Plot twist: radios drift. Leave any dial alone long enough and it slips off the station, a hair at a time. Nobody's fault, and the station never stopped broadcasting. You don't fix drift with a new radio; you ease back onto their wavelength. You just did, twice: first {{artifact|a memory}}, then {{their-way|ten minutes their way}}. Back on frequency. Over.",
       closingLine: 'Over to you: {{memory|this reminded me of you}}',
       traits: { connection: 1 },
     },
@@ -162,7 +163,7 @@ const longLostSignal: Adventure = {
       id: 'the-open-line',
       title: 'The Open Line',
       twist:
-        "Plot twist: good questions boomerang. Ask one, and sooner or later it comes back as “What about you?” Yours ({{question|a real one}}) already has an answer waiting, so whenever the line crackles, you won't have to say “good.” Notice I never signed off with “out”? “Out” ends a call. “Over” means your turn. Tonight or next month, the line is open.",
+        "Plot twist: did you notice I never once signed off with “out”? On the radio, “out” ends a call. “Over” means your turn. A real question is the purest “over” there is, and sooner or later it comes back around as “What about you?” Whenever yours does, tonight, next month or the day you finally hit send, you won't have to say “good.” You already went first. Over.",
       closingLine: '{{question|What was the best part of your year?}} — I went first: {{answer|today, honestly}}',
       traits: { connection: 1, curiosity: 1 },
     },

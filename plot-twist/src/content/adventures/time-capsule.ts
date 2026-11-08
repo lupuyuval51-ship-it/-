@@ -100,7 +100,7 @@ const timeCapsule: Adventure = {
       action:
         "Seal the letter and your three things in an envelope or jar (or fold the letter around them), write “Do not open until” and the date, and put it where you'll see it every day. Then set a 30-day calendar reminder with a mysterious title.",
       alternative:
-        'Kept it digital? Add your letter (or a screenshot of it) to the album, rename the album “Do not open until” plus the date, and set the same 30-day reminder with a mysterious title.',
+        'Kept it digital? Add a photo or screenshot of your letter to the album, rename the album “Do not open until” plus the date, and set the same 30-day reminder with a mysterious title.',
       minutes: 7,
       capture: {
         key: 'reminder',
@@ -134,7 +134,7 @@ const timeCapsule: Adventure = {
       stage: 3,
       title: 'The Hiding Place',
       narrative:
-        'Long-haul mail needs a hiding place good enough to forget and bad enough to find. You already know one: the spot where {{relic|your oldest find}} waited all this time without a word.',
+        'Long-haul mail needs a hiding place good enough to forget and bad enough to find. You already know one: wherever you found {{relic|that oldest thing}}.',
       action:
         'Seal the letter and your three things in an envelope or jar (or fold the letter around them) and hide it in that same forgotten spot, or anywhere you only visit once a season. Then set a reminder for one year from today, titled with a riddle about where it is.',
       alternative:

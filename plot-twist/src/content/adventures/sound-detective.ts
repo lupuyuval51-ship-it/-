@@ -78,7 +78,7 @@ const soundDetective: Adventure = {
       narrative:
         "The loudest suspect always talks first. It's confident, it's everywhere, and it swears it was only passing through. Let's check its story.",
       action:
-        'Track the loudest thing you can hear toward its source, no further than your window, your door or the end of the block, and name it. Then time it for two minutes: does it stop, loop or fade?',
+        'Track the loudest sound back to the thing making it, no further than your window, your door or the end of the block, and name it. Then time it for two minutes: does it stop, loop or fade?',
       alternative:
         'Track it without moving: cup your hands behind your ears, turn your head slowly until the sound peaks, and point. Then time it for two minutes from right where you are.',
       minutes: 5,

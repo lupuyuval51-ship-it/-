@@ -2,9 +2,11 @@ import type { Adventure } from '../../../shared/types.ts';
 
 /**
  * The Museum of One Drawer: a 15-minute home episode for one curator (or a small crew).
- * Branch A is earnest and archival (labels, dates, a retrospective that turns into a life story);
- * branch B is gossip and melodrama (scandals, an inquiry, a masterpiece nobody valued).
+ * Branch A is earnest and archival (labels, dates, provenance, a retrospective that saves the
+ * mystery for last); branch B is gossip and melodrama (scandals, an inquiry, a masterpiece nobody valued).
  * Running bit: the Board's obsession with the Unidentified Object every drawer contains.
+ * A's twist: real museums hold famous objects nobody can explain (Roman dodecahedra), and those get
+ * glass cases, not the bin. B's twist answers the inquiry: useless things are kept for love.
  */
 const museumOfOneDrawer: Adventure = {
   id: 'museum-of-one-drawer',
@@ -13,7 +15,7 @@ const museumOfOneDrawer: Adventure = {
   title: 'The Museum of One Drawer',
   tagline: 'The smallest museum in the world is somewhere in your home. It has never had a curator.',
   intro:
-    'Congratulations: the Board of Trustees has appointed you Chief Curator. The museum is one drawer. The collection has never been catalogued, the press arrives in fifteen minutes, and nobody (nobody!) can explain one of the objects.',
+    'The Board of Trustees has made its decision: you are the new Chief Curator. The museum is one drawer. The collection has never been catalogued, the press arrives in fifteen minutes, and nobody (nobody!) can explain one of the objects.',
   kind: 'maker',
   moods: ['creative', 'curious'],
   weirdness: 2,
@@ -36,9 +38,9 @@ const museumOfOneDrawer: Adventure = {
       narrative:
         'Every great museum starts with a collection. Yours has spent years in the dark between a dead battery and a takeaway menu, waiting for someone to take it seriously.',
       action:
-        'Pick a drawer you\'re allowed to empty (junk drawers are the national collection; sharp things stay in storage) and lay every object out in one neat row. Then find the Unidentified Object: the one nobody can explain.',
+        'Empty a drawer you\'re allowed to raid onto a table (junk drawers are the national collection; sharp things stay in storage). Spread the collection out so nothing touches, then find the Unidentified Object: the one nobody can explain.',
       alternative:
-        'No drawer to spare? Tip out a bag, a coat pocket or your wallet onto a table or your lap instead. Smaller wing, same prestige, and it still holds one object nobody can explain.',
+        'No drawer to spare? Tip out a bag, a pencil case or a coat pocket onto a table or your lap instead. Smaller wing, same prestige, and it still holds one object nobody can explain.',
       minutes: 4,
       capture: {
         key: 'mystery',
@@ -76,7 +78,7 @@ const museumOfOneDrawer: Adventure = {
       action:
         'Write museum labels for three objects, the mystery piece included: a name, a date ("c. 2019" is very museum) and where it came from ("Gift of the sofa cushions"). Prop each label against its object.',
       alternative:
-        'Writing fiddly today? Record a one-minute audio guide instead: "Stop one. Rubber band, circa 2017, gift of some broccoli." Cover three objects, the mystery piece included.',
+        'Writing fiddly today? Record a one-minute audio guide instead: "Stop one. Bread clip, circa 2021, gift of a loaf." Cover three objects, the mystery piece included.',
       minutes: 5,
       capture: {
         key: 'label',
@@ -92,20 +94,20 @@ const museumOfOneDrawer: Adventure = {
       stage: 3,
       title: 'Opening Night',
       narrative:
-        'Critics who have read "{{label|c. 2019}}" are already calling the show devastating. A retrospective runs oldest to newest, and the best ones end on a mystery.',
+        'The press preview went well: one reporter wept at a single label ({{label|your finest one}}). A retrospective runs oldest to newest, and the great ones save the mystery for last.',
       action:
-        'Line up the labeled objects by date, oldest first, with {{mystery|the Unidentified Object}} last. Stroll past the whole show once, slowly, then give the exhibition a title with years in it.',
+        'Line up the labeled objects by date, oldest first, with {{mystery|the Unidentified Object}} last (date: unknown). Stroll past the whole show once, slowly, then give the exhibition a title with years in it.',
       alternative:
-        'Short on space? Line up just the labels in date order, or write the dates as a timeline down one page. Then give the exhibition its title.',
+        'Short on space? Write the dates as a timeline down one page instead, oldest at the top and the mystery piece at the very bottom. Then give the exhibition its title.',
       minutes: 5,
       capture: {
         key: 'show-title',
         label: 'The exhibition\'s title',
         placeholder: 'Just in Case: Works from 2016 to Today',
       },
-      amplify: 'Open the show by snapping a ribbon (a rubber band will do) and thank the donors in a 20-second speech. They are mostly the sofa.',
-      crewTip: 'Everyone adds one sentence to the opening speech. The word "junk" is banned from the building.',
-      next: 'the-artist-is-present',
+      amplify: 'Stand guard beside the show for ten seconds, hands clasped behind your back. Then tell the nearest houseplant: "No flash photography, please."',
+      crewTip: 'Tour the show in a slow single-file line, hands behind your backs. The word "junk" is banned from the building.',
+      next: 'purpose-unknown',
     },
     {
       id: 'scandal-wing',
@@ -132,11 +134,11 @@ const museumOfOneDrawer: Adventure = {
       stage: 3,
       title: 'The Inquiry',
       narrative:
-        'After {{headline|the battery scandal}} hit the front page, the Board opened an inquiry. Every scandal leads to the one question no curator dares ask out loud: why is some of this stuff even here?',
+        'After {{headline|the scandal}} hit the front page, the Board opened an inquiry. Every scandal leads to the one question no curator dares ask out loud: why is some of this stuff even here?',
       action:
         'Find the least valuable object in the collection: the one that would lose a vote to the bin. Put it on a pedestal (an upturned mug), light it with your phone flashlight and ask it: why are you still here?',
       alternative:
-        'No mug or flashlight to hand? Hold the object up to a window or lamp and study it for a slow count of ten, like an appraiser who can\'t believe their eyes.',
+        'No mug or flashlight? Hold the least valuable object up to a window or lamp and study it for a slow count of ten, like a baffled appraiser. Then ask it, quietly: why are you still here?',
       minutes: 5,
       capture: {
         key: 'humble',
@@ -150,18 +152,18 @@ const museumOfOneDrawer: Adventure = {
   ],
   endings: [
     {
-      id: 'the-artist-is-present',
-      title: 'The Artist Is Present',
+      id: 'purpose-unknown',
+      title: 'Purpose Unknown',
       twist:
-        'Plot twist: read the dates in order and they stop being dates. That move. That trip. The long "just in case" era. A retrospective is never really about the objects; it is about the artist who kept them. Even {{mystery|the Unidentified Object}} turns out to be a self-portrait.',
-      closingLine: '{{show-title|Just in Case: Works from 2016 to Today}}. The artist is present.',
-      traits: { connection: 2 },
+        'Plot twist: real museums have your problem. Across Europe, they hold more than a hundred Roman dodecahedra: hollow bronze objects, about 1,700 years old, purpose completely unknown. Experts are still arguing. In a museum, a thing nobody can explain never goes in the bin. It gets a glass case. As of today, so does {{mystery|the Unidentified Object}}.',
+      closingLine: '{{show-title|Just in Case: Works from 2016 to Today}}. Star exhibit: one object, purpose unknown.',
+      traits: { curiosity: 1, creativity: 1 },
     },
     {
       id: 'the-priceless-nothing',
       title: 'The Priceless Nothing',
       twist:
-        'Plot twist: the real scandal was in plain sight all along. Nobody, in all these years, has thrown out {{humble|the least valuable object in the house}}. Useful things get kept for a reason. Useless things get kept for love. That makes it the one true masterpiece in the building. (The Unidentified Object is furious.)',
+        'Plot twist: the inquiry has its answer, and it is the biggest scandal of all. Nobody has ever thrown out {{humble|the least valuable object in the house}}. Useful things are kept for a reason. Useless things are kept for love. That makes it the one true masterpiece in the collection. (The Unidentified Object is furious.)',
       closingLine: 'Now on view: {{humble|the least valuable object in the house}}. Priceless. Please do not touch.',
       traits: { connection: 1, creativity: 1 },
     },

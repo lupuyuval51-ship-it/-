@@ -7,9 +7,11 @@ import type { Adventure } from '../../../shared/types.ts';
  * Branch A is the late-night advice line (letters from the objects in your room, answered warmly,
  * then a quiet-storm dedication); branch B is breaking news from home (tiny events, huge coverage,
  * housemates off the record, then a Person of the Week).
- * Running bit: the Night Producer's "one loyal listener" and the "slight delay". A's twist finds the
- * listener through Solomon's paradox (we advise strangers more wisely than ourselves); B's twist
- * reveals the delay: the only listener is you, months from now.
+ * Running bit: the Night Producer's "one loyal listener", broadcast to "on a slight delay". The two
+ * twists find different listeners. A: Solomon's paradox (we reason more wisely about other people's
+ * problems than our own), so the advice was for you all along. B: only someone who loves you wants
+ * live coverage of tiny news, and the user just named one of them; they hear the show on a slight
+ * delay, the next time you talk.
  */
 const midnightRadio: Adventure = {
   id: 'midnight-radio',
@@ -77,7 +79,7 @@ const midnightRadio: Adventure = {
       stage: 2,
       title: 'The Mailbag',
       narrative:
-        "Every late-night advice show runs on letters from people who can't sleep. Ours come from an unusual address. Tonight, every single listener is writing in from inside your home.",
+        "Every late-night advice show runs on letters from people who can't sleep. Ours come from an unusual address: every single one was posted from inside your home.",
       action:
         'Write two short letters to the show from objects in this room, each with one small midnight problem ("Dear Midnight, the window and I have drifted apart. Signed, Wilting on the Sill"). Record yourself reading each one and answering it, warmly, in under a minute.',
       alternative:
@@ -88,7 +90,7 @@ const midnightRadio: Adventure = {
         label: 'Your best advice on air',
         placeholder: "Lean toward the light. The window isn't going anywhere.",
       },
-      amplify: 'Let the fridge hum be your background music (or hum something low yourself) and pause before each piece of advice like it cost you something.',
+      amplify: 'Hum a little smooth late-night jazz under each letter, and pause before every piece of advice like it cost you something.',
       crewTip: 'Everyone secretly writes one letter; the host answers them live, unseen. Authors may not reveal themselves until after the sign-off.',
       next: 'the-quiet-storm',
     },
@@ -117,7 +119,7 @@ const midnightRadio: Adventure = {
       stage: 2,
       title: 'Live From the Kitchen',
       narrative:
-        'This just in: things are happening in your home, and nobody is covering them. The fridge has been humming for hours. A sock has been missing for weeks. The newsroom is awake.',
+        'This just in: things are happening in your home, and nobody is covering them. A sock has been missing for weeks. The last biscuit has gone unclaimed since Sunday. The newsroom is awake.',
       action:
         'Go live from three spots in your home, twenty seconds each, covering one tiny event per spot with full breaking-news urgency ("Reports are coming in: the tap is dripping. Again."). Things only; housemates are off the record. Record it all as one voice memo.',
       alternative:
@@ -128,7 +130,7 @@ const midnightRadio: Adventure = {
         label: "Tonight's top story, as a headline",
         placeholder: 'KETTLE BOILS, NATION STUNNED',
       },
-      amplify: 'Interview a witness: hold the phone out to the fridge for three seconds of silence, then report gravely, "The fridge declined to comment."',
+      amplify: 'Interview a witness: hold the phone out to the microwave for three seconds of silence, then report gravely, "The microwave declined to comment."',
       crewTip: 'One anchor stays in the studio (the sofa) while a field reporter roams. Every report ends with "Back to you in the studio," no matter what.',
       next: 'person-of-the-week',
     },
@@ -137,7 +139,7 @@ const midnightRadio: Adventure = {
       stage: 3,
       title: 'Person of the Week',
       narrative:
-        "Every news hour ends on a human-interest story, the one that makes the anchor's voice go soft. After {{scoop|tonight's top story}}, the newsroom has one honor left to give, to a real person who has never made the news.",
+        "The news always saves a human-interest story for last, the one that makes the anchor's voice go soft. After {{scoop|tonight's top story}}, the newsroom has one honor left to give, to a real person who has never made the news.",
       action:
         'Record the closing segment: "Our Person of the Week is…" Name someone real, report the small, great thing they did lately in twenty seconds, then sign off with your station ID. Send it to them only if you want to.',
       alternative:
@@ -146,7 +148,7 @@ const midnightRadio: Adventure = {
       capture: {
         key: 'hero',
         label: 'Your Person of the Week, and why',
-        placeholder: 'Dana, for remembering my coffee order',
+        placeholder: 'Dana, for texting me every dog she sees',
       },
       amplify: 'Give their name a drumroll on the nearest table, then a round of whispered applause from the newsroom. The newsroom is you, clapping very quietly.',
       crewTip: 'Every reporter nominates one Person of the Week. Announce them all; nobody loses. This is the news, not a game show.',
@@ -158,15 +160,15 @@ const midnightRadio: Adventure = {
       id: 'solomons-paradox',
       title: "Solomon's Paradox",
       twist:
-        "Plot twist: we found our listener. This station never gets letters; the host writes them all, and psychologists know why it works. They call it Solomon's paradox: we advise strangers more wisely than ourselves. So you invented some. Every answer was for the listener tuned in all along: you. Only one song was ever for anyone else: the one for {{dedication|someone real}}.",
-      closingLine: "{{advice|Lean toward the light. The window isn't going anywhere.}} Good night from {{station|our little station}}.",
+        "Plot twist: we found our listener. Psychologists have a name for why this show works: Solomon's paradox. We reason more wisely about other people's problems than our own, so you invented a few other people and answered their letters. Every answer went to the listener tuned in all along: you. Only one song was ever for anyone else: the one for {{dedication|someone real}}.",
+      closingLine: "{{advice|Lean toward the light. The window isn't going anywhere}}. Good night from {{station|our little station}}.",
       traits: { connection: 1, creativity: 1 },
     },
     {
       id: 'slight-delay',
       title: 'On a Slight Delay',
       twist:
-        "Plot twist: we found our listener. They're just tuning in on a slight delay. Months from now, you'll stumble on this show somewhere in your phone. To that listener, {{scoop|tonight's top story}} won't be small news at all. It will be the only live coverage of an ordinary night in this home, back when the newsroom was a kitchen and the anchor was you.",
+        'Plot twist: we found our listener. Only one kind of audience wants live coverage of {{scoop|a kettle boiling}}: someone who asks how your night went and actually wants the answer. You just named one of them Person of the Week. They will catch tonight\'s show on a slight delay: the next time you two talk.',
       closingLine: 'BREAKING: {{scoop|KETTLE BOILS, NATION STUNNED}}. Person of the Week: {{hero|you know who you are}}.',
       traits: { curiosity: 1, connection: 1 },
     },

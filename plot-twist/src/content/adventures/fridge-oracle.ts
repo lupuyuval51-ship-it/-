@@ -2,14 +2,14 @@ import type { Adventure } from '../../../shared/types.ts';
 
 /**
  * The Fridge Oracle: a 15-minute home game. The fridge is an ancient oracle; three items drawn
- * without looking (peek before lifting; nothing raw, glass, open, expired or someone else's)
+ * without looking (peek before lifting; nothing raw, spillable, expired or someone else's)
  * become a Past / Present / Future reading.
- * Branch A accepts the prophecy: a tiny no-cook snack (or an allergy-safe still life), eaten in
- * three ceremonial bites. Branch B defies it: swap a card with eyes open, reshuffle fate, and pin
- * the new law to the fridge door.
+ * Branch A accepts the prophecy: a tiny no-cook, no-chop snack (or a still life for anyone not
+ * eating), eaten in three ceremonial bites. Branch B defies it: swap a card with eyes open,
+ * reshuffle fate, and pin the new law to the fridge door. Either way, the cards go back in the fridge.
  * Running bits, both planted in stage 1: the "sacred light" that lets the Oracle see all (A's
- * twist: it is a door switch, so the Oracle only ever saw what you showed it) and the cards that
- * "arrive mysteriously, in plastic bags" (B's twist: fate is just choices made before you got here).
+ * twist: it runs on a door switch, so the Oracle only ever saw what you showed it) and the cards
+ * that "arrive mysteriously, in plastic bags" (B's twist: fate is just choices made before you got here).
  */
 const fridgeOracle: Adventure = {
   id: 'fridge-oracle',
@@ -27,7 +27,7 @@ const fridgeOracle: Adventure = {
   settings: ['home'],
   company: ['solo', 'group'],
   items: ['A fridge (any contents will do)', 'A plate', 'Paper and a pen'],
-  palette: 'neon',
+  palette: 'tide',
   motif: 'dots',
   traits: { creativity: 2, boldness: 1 },
   stageLabel: 'Vision',
@@ -41,7 +41,7 @@ const fridgeOracle: Adventure = {
       narrative:
         'The Oracle has stood in your kitchen for years, humming one long note. Its cards arrive mysteriously, in plastic bags, about once a week. When its door opens, a sacred light comes on, and the Oracle sees all.',
       action:
-        "Close your eyes, open the fridge and let your hand land on three things, peeking before you lift each one. Raw, expired, spillable or someone else's? Back it goes: redraw. Line them up as Past, Present and Future, and read each one aloud as an omen.",
+        "Eyes closed, open the fridge and let your hand land on three things, peeking before you lift each one (raw, expired, spillable or someone else's goes back: redraw). Line them up as Past, Present and Future, and read each aloud as an omen: \"Mustard, the Past. Something sharp is behind you.\"",
       alternative:
         'Fridge off-limits, bare or hard to reach? Consult a lesser oracle: the fruit bowl, the snack cupboard or the bread bin. Same rite: eyes closed, three touches, look before you lift, then Past, Present, Future.',
       minutes: 5,
@@ -79,7 +79,7 @@ const fridgeOracle: Adventure = {
       narrative:
         'A prophecy accepted must be fulfilled, and this one is edible. The Oracle decrees a single offering made from {{cards|your three cards}}. It does not believe in ovens. It barely believes in forks.',
       action:
-        "Build one tiny no-cook snack on a plate from all three cards: a cracker tower, a dip, a very small salad. Any card that isn't safe to eat cold, or isn't for you, takes the place of honor beside the plate. Then name the dish.",
+        "Build one tiny snack starring all three cards, no cooking or chopping: a cracker tower, a dip, one heroic spoonful. Any card that isn't safe to eat cold, or isn't for you, takes the place of honor beside the plate. Name the dish, then put the leftovers back in the Oracle.",
       alternative:
         'Not hungry, or a card is off-limits for you? Build a still life instead: arrange all three cards on the plate as a face, a landscape or a tiny shrine, and give the artwork a prophetic name.',
       minutes: 5,
@@ -101,7 +101,7 @@ const fridgeOracle: Adventure = {
       action:
         'Eat it in three slow bites (Past, Present, Future) and after each one, say aloud what the Oracle meant. Then write your whole fortune down in one grand sentence.',
       alternative:
-        'Made a still life? Study it for one slow minute, a card at a time, and say aloud what each part of the picture means. Then write your whole fortune down in one grand sentence.',
+        'Not eating, or made a still life? Study the plate for one slow minute, a card at a time, and say aloud what each part of it means. Then write your whole fortune down in one grand sentence.',
       minutes: 4,
       capture: {
         key: 'fortune',
@@ -139,7 +139,7 @@ const fridgeOracle: Adventure = {
       narrative:
         'The rebellion ({{swap|one card out, one card in}}) was the easy part. Now comes the law. Ancient decrees were carved in stone; yours goes somewhere far more permanent: the fridge door, where takeaway menus survive for decades.',
       action:
-        'Write your rewritten fate on a scrap of paper (one sentence, present tense, no take-backs) and pin it to the fridge door at eye level with a magnet or tape. Then read it aloud once, like a law being passed.',
+        'Put the cards back on their shelves. Then write your rewritten fate on a scrap of paper (one sentence, present tense, no take-backs), pin it to the fridge door at eye level with a magnet or tape, and read it aloud once, like a law being passed.',
       alternative:
         'No magnet, no tape, no free space on the door? Prop the decree inside the fridge instead, right in front of the card you rejected. It can read the news every time the light comes on.',
       minutes: 4,
@@ -158,15 +158,15 @@ const fridgeOracle: Adventure = {
       id: 'the-open-door',
       title: 'The One Who Opens the Door',
       twist:
-        'Plot twist: the sacred light is a tiny switch in the door. It only comes on when someone opens up. All these years the Oracle has stood in the dark, seeing nothing. Every vision it ever had came from you: your hand chose {{cards|those three cards}}, and your voice read them. It never told your fortune. It just held the light while you did.',
-      closingLine: '{{fortune|A sour past, a sharp present, a soft future.}} Read by the light of an open fridge.',
+        'Plot twist: the sacred light runs on a tiny switch in the door. It only comes on when someone opens up. All these years the Oracle has stood in the dark, seeing nothing. Every vision it ever had came from you: your hand chose {{cards|those three cards}}, and your voice read them. It never told your fortune. It just held the light while you did.',
+      closingLine: '{{fortune|A sour past, a sharp present, a soft future}}. Read by the light of an open fridge.',
       traits: { curiosity: 1, creativity: 1 },
     },
     {
       id: 'free-will-refrigerated',
       title: 'Free Will, Refrigerated',
       twist:
-        'Plot twist: the cards never arrived mysteriously. Someone picked every one of them, aisle by aisle, and carried them home in plastic bags. That is all fate has ever been: choices made before you got here. Today you made one of your own, eyes open ({{swap|one card out, one card in}}). The Oracle calls that defiance. Everyone else calls it free will.',
+        'Plot twist: the cards never arrived mysteriously. Someone (possibly you, last Tuesday) picked every one, aisle by aisle, and carried them home in plastic bags. That is all fate ever was: choices made before you got here. Today you made one of your own, eyes open ({{swap|one card out, one card in}}). The Oracle calls that defiance. Everyone else calls it free will.',
       closingLine: 'New law of this kitchen: {{decree|The future is a peach. The past can keep the mustard.}}',
       traits: { boldness: 1, creativity: 1 },
     },

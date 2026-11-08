@@ -2,13 +2,16 @@ import type { Adventure } from '../../../shared/types.ts';
 
 /**
  * The Color Heist: a 15-minute game for home or outside, solo or with a crew.
- * Steal five colors (a close-up photo or a note, never touching anything, never people) and name
- * each like a paint chip. Stage 1 is the warm-up: the most boring color in sight, made to sound expensive.
- * Branch A hunts one-of-a-kind colors (the Twin Test, then a coin-sized crown jewel);
- * branch B steals a mood (three shades of how you feel, then a getaway color for how you want to feel).
- * Running bit: the Fence's rule one, "no fingerprints". Both twists reveal the user broke it at every
- * scene, because the haul is a self-portrait: A through a final twin test on the whole haul,
- * B because every color was wearing the user's mood ("caught red-handed").
+ * Steal five colors (a close-up photo or a note; touch nothing; objects and places only, never
+ * people) and name each like a paint chip. Stage 1 is the warm-up: the most boring color in sight,
+ * made to sound expensive.
+ * Branch A hunts one-of-a-kind colors (the Twin Test, then a coin-sized crown jewel, then a name for
+ * the collection); branch B is an inside job (three colors of the feeling you walked in with, then
+ * one getaway color for the feeling you want to leave with).
+ * Running bit: the trade's one rule, "no fingerprints". A's twist runs a twin test on the whole haul:
+ * no other thief would pick these five, and a pattern with no twin is a fingerprint. B's twist: a
+ * color only looks like a mood to someone feeling it, so spotting the getaway color means the user
+ * is already halfway there ("caught red-handed").
  */
 const colorHeist: Adventure = {
   id: 'color-heist',
@@ -38,11 +41,11 @@ const colorHeist: Adventure = {
       stage: 1,
       title: 'Casing the Joint',
       narrative:
-        "Rule one: no fingerprints. We touch nothing and take only color (objects and places, never people or what they're wearing), and nobody ever knows they were robbed. First, a warm-up so easy it's insulting.",
+        "The trade has one rule: no fingerprints. We touch nothing and take only color (from objects and places, never people or what they're wearing), so nobody ever knows they were robbed. First, a warm-up so easy it's insulting.",
       action:
         "Find the most boring color in sight (a wall, a lid, a paving stone) and steal it: a close-up photo so tight it's only color, or a note of where it lives. Then give it a paint-chip name fancy enough to sell.",
       alternative:
-        'Rather not look around? Steal from memory: picture the dullest color you saw today (a bus seat, a waiting-room wall, a dish sponge), note where it lives, and give it a paint-chip name all the same.',
+        "Eyes need a rest, or the light's too low? Steal from memory: the dullest color you saw today (a bus seat, a waiting-room wall, a dish sponge). Note where it lives, then give it a paint-chip name all the same.",
       minutes: 4,
       capture: {
         key: 'first',
@@ -64,7 +67,7 @@ const colorHeist: Adventure = {
           {
             id: 'mood',
             label: 'Steal a mood',
-            description: 'Pick a feeling and lift its colors, one shade at a time.',
+            description: 'An inside job: the colors of how you feel, then a getaway.',
             next: 'the-insider',
             traits: { creativity: 1 },
           },
@@ -78,7 +81,7 @@ const colorHeist: Adventure = {
       narrative:
         "Rare colors fetch rare prices, and the Fence has a test for them: if a color has a twin anywhere in sight, it's common stock. Common stock fetches nothing. Sad, but that's the trade.",
       action:
-        'Hunt for colors that appear exactly once in sight (one red lid, one sticker, one wildflower in a pavement crack) and give each a ten-second twin check. Steal and name the first three survivors.',
+        'Prowl the room or the street for colors that appear exactly once (one red lid, one sticker, one wildflower in a pavement crack). Give each a ten-second twin check, then steal and name the first three survivors.',
       alternative:
         'Staying in one spot? Split your view into three slices (left, middle, right) and find the rarest color in each, twin check included. Steal and name all three without getting up.',
       minutes: 6,
@@ -120,7 +123,7 @@ const colorHeist: Adventure = {
       action:
         'Name the feeling you walked in with, in a word or two. Then steal three colors that look exactly like it and name each like a paint chip (“Unread Messages Blue” is a real seller).',
       alternative:
-        "Rather not hunt? Steal all three from memory: places you've been this week that felt exactly like this mood. Note where each color lives, then give it a paint-chip name.",
+        'Rather not hunt? Name the feeling you walked in with, then steal its three colors from memory: places from this week that felt exactly like it. Note where each color lives and give it a paint-chip name.',
       minutes: 6,
       capture: {
         key: 'mood',
@@ -138,14 +141,14 @@ const colorHeist: Adventure = {
       narrative:
         "A getaway doesn't need a car. Yours needs one color: the shade of how you'd like to feel when this is over. Let {{mood|that feeling}} ride in the back.",
       action:
-        'Steal your fifth color: one that looks like how you want to feel next, named like a paint chip. Then line up all five, from your boring first steal to the getaway, and name the palette.',
+        'Pick the feeling you want to leave with, then steal one color that looks exactly like it: your fifth and final job. Name it like the priciest paint chip in the shop.',
       alternative:
-        "Can't spot it from here? Steal it from memory: a color from a place that always puts you in that mood. Then write all five names in order, first steal to getaway, and name the palette.",
+        "Can't spot it from here? Steal it from memory: the color of a place that always puts you in the mood you're after (a sunny kitchen, a beach towel, a library lamp). Name it like the priciest paint chip in the shop.",
       minutes: 4,
       capture: {
-        key: 'palette',
-        label: "Your palette's name",
-        placeholder: 'From Snooze to Sunlight',
+        key: 'getaway',
+        label: "Your getaway color's paint-chip name",
+        placeholder: 'First Warm Day Yellow',
       },
       amplify: 'Make the getaway in slow motion: three steps toward the getaway color while an imaginary saxophone plays. Swagger mandatory.',
       crewTip: "Pool everyone's swatches into one crew palette: each person's “now” on the left, their “next” on the right. Name it together, dramatically.",
@@ -157,16 +160,16 @@ const colorHeist: Adventure = {
       id: 'no-twin-found',
       title: 'No Twin Found',
       twist:
-        'Plot twist: you broke rule one at every scene. The Fence ran one last twin test, on the whole haul: anyone could lift {{rare|one rare color}}, but nobody else alive would steal these five, starting with {{first|that boring one}}. No twin found. Detectives call that a fingerprint. Painters call it a self-portrait.',
-      closingLine: '{{collection|The Overlooked Collection}}: a self-portrait in five stolen colors. No twin found.',
+        'Plot twist: the Fence ran one last twin test, on the whole haul. Plenty of thieves could lift {{rare|one rare color}}, but nobody else alive would pick these five, from {{first|that boring one}} to the crown jewel. No twin found. Detectives have a name for a pattern with no twin: a fingerprint. Yours is on every scene. So much for the one rule.',
+      closingLine: '{{collection|The Overlooked Collection}}: five stolen colors, one set of fingerprints.',
       traits: { curiosity: 1, creativity: 1 },
     },
     {
       id: 'caught-red-handed',
       title: 'Caught Red-Handed',
       twist:
-        "Plot twist: those colors were never the world's. A wall only looks like {{mood|that feeling}} when someone feeling it walks past. Five swatches, from {{first|the boring one}} to the getaway, all wearing your mood: that's not a palette, it's a self-portrait. So much for rule one. Caught red-handed (or whatever color {{mood|that feeling}} turned out to be).",
-      closingLine: '{{palette|From Snooze to Sunlight}}: a self-portrait in five stolen colors. Caught red-handed.',
+        "Plot twist: those colors were never the world's. A wall only looks like {{mood|that feeling}} when someone feeling it walks past, so every swatch you lifted was wearing you. That includes the getaway: you could only spot {{getaway|that last color}} because part of you already feels that way. So much for no fingerprints. Caught red-handed, and halfway out the door.",
+      closingLine: 'In: {{mood|one mood}}. Out: {{getaway|one getaway color}}. Caught red-handed.',
       traits: { creativity: 1, connection: 1 },
     },
   ],
