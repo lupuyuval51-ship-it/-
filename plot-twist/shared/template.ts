@@ -43,11 +43,12 @@ export function malformedTokens(text: string): string[] {
 /** Cleans a user note for display inside generated text. */
 export function cleanNote(note: string | undefined | null): string {
   if (!note) return '';
-  // Remove control characters and collapse whitespace.
+  // Line breaks and tabs become spaces (so words don't merge); other control characters are dropped.
   const cleaned = Array.from(note)
-    .filter((ch) => {
+    .map((ch) => {
       const code = ch.codePointAt(0) ?? 0;
-      return code >= 0x20 && code !== 0x7f;
+      if (code >= 0x09 && code <= 0x0d) return ' ';
+      return code < 0x20 || code === 0x7f ? '' : ch;
     })
     .join('')
     .replace(/\s+/g, ' ')

@@ -13,7 +13,8 @@ interface Rule {
 const RULES: Rule[] = [
   { pattern: /\btrespass/i, reason: 'mentions trespassing' },
   { pattern: /\b(?:train|railway|rail|tram) tracks?\b/i, reason: 'involves rail tracks' },
-  { pattern: /\brooftops?\b|\bon(?:to)? the roof\b/i, reason: 'involves a rooftop' },
+  // Instructions to get onto a roof — not mere mentions ("satellites photographed every rooftop").
+  { pattern: /\b(?:on(?:to)?|up to|up on|go up|climb up|climb onto)\s+(?:a |the |your |any )?roof(?:top)?s?\b/i, reason: 'involves going onto a roof' },
   { pattern: /\bclimb(?:ing)? (?:up |onto |over )?(?:a |the )?(?:fence|wall|roof|building|scaffold|pole|tree|bridge)/i, reason: 'involves climbing structures' },
   { pattern: /\b(?:middle of|into|onto|stand in|lie (?:down )?(?:in|on)) the (?:road|street|traffic)\b/i, reason: 'involves traffic' },
   { pattern: /\b(?:secretly|covertly|without (?:them|anyone) (?:noticing|knowing)) (?:photograph|film|record|follow)/i, reason: 'involves covert surveillance of people' },

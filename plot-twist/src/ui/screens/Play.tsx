@@ -101,8 +101,16 @@ function StageCard({ run, node }: { run: Run; node: StageNode }) {
   }, [node.id]);
 
   const commitNote = () => {
-    if (capture && draft !== (run.notes[capture.key] ?? '')) setNote(capture.key, draft);
+    if (capture && draft.trim() !== (run.notes[capture.key] ?? '')) setNote(capture.key, draft);
   };
+  // Save while typing (debounced) so a refresh never loses a note. The input shows the local
+  // draft, so the store trimming the saved value never eats the space being typed.
+  useEffect(() => {
+    if (!capture) return;
+    const id = window.setTimeout(commitNote, 400);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
 
   return (
     <article className="anim-rise mt-7" aria-labelledby={`stage-${node.id}`}>

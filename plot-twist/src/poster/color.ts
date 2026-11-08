@@ -98,3 +98,41 @@ export function mostContrasting(bg: string, candidates: readonly string[]): stri
   }
   return best;
 }
+
+/** Hue in degrees (0 … 360). */
+export function hue(hex: string): number {
+  const c = parseColor(hex);
+  const r = c.r / 255;
+  const g = c.g / 255;
+  const b = c.b / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  if (d === 0) return 0;
+  let h: number;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
+}
+
+/** How much a colour reads as sunlight (saturated reds → yellows score high). */
+export function warmth(hex: string): number {
+  const dh = Math.abs(hue(hex) - 35);
+  const dist = Math.min(dh, 360 - dh);
+  return saturation(hex) * Math.max(0, 1 - dist / 75);
+}
+
+/** The warmest candidate — suns should be suns, whatever the palette order. */
+export function warmest(candidates: readonly string[]): string {
+  let best = candidates[0];
+  let score = -1;
+  for (const c of candidates) {
+    const w = warmth(c);
+    if (w > score + 0.02) {
+      score = w;
+      best = c;
+    }
+  }
+  return best;
+}

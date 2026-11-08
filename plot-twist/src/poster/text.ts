@@ -53,9 +53,13 @@ export function applyFont(ctx: Ctx, f: FontSpec): void {
   ctx.textBaseline = 'alphabetic';
 }
 
-/** Tracking (px) that will really be applied when drawing — negative tracking needs native support. */
-function effectiveTracking(ctx: Ctx, f: FontSpec): number {
+/**
+ * Tracking (px) that will really be applied when drawing: negative tracking
+ * needs native support, and right-to-left scripts are never letter-spaced.
+ */
+function effectiveTracking(ctx: Ctx, f: FontSpec, text: string): number {
   const t = (f.tracking ?? 0) * f.size;
+  if (t === 0 || RTL_CHAR.test(text)) return 0;
   if (t < 0 && !hasLetterSpacing(ctx)) return 0;
   return t;
 }
@@ -68,7 +72,7 @@ export function measureText(ctx: Ctx, text: string, f: FontSpec): number {
   applyFont(ctx, f);
   const w = ctx.measureText(text).width;
   const n = chars(text).length;
-  return w + effectiveTracking(ctx, f) * Math.max(0, n - 1);
+  return w + effectiveTracking(ctx, f, text) * Math.max(0, n - 1);
 }
 
 export interface InkMetrics {
@@ -113,7 +117,7 @@ export function textDirection(text: string): 'ltr' | 'rtl' {
 export function drawText(ctx: Ctx, text: string, x: number, y: number, f: FontSpec, color: string): number {
   if (!text) return 0;
   const modern = ctx as Ctx & ModernTextCtx;
-  const track = effectiveTracking(ctx, f);
+  const track = effectiveTracking(ctx, f, text);
   const width = measureText(ctx, text, f); // also applies the font
   ctx.fillStyle = color;
   ctx.direction = textDirection(text);

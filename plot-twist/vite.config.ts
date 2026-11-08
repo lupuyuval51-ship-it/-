@@ -27,7 +27,12 @@ function plotTwistApi(): Plugin {
 export default defineConfig({
   plugins: [react(), tailwindcss(), plotTwistApi()],
   server: { port: 5173, strictPort: false },
-  build: { target: 'es2022', sourcemap: true },
+  build: {
+    target: 'es2022',
+    sourcemap: true,
+    // Fonts are always emitted as files: the production CSP allows font-src 'self' only (no data: URLs).
+    assetsInlineLimit: (filePath: string) => (filePath.endsWith('.woff2') || filePath.endsWith('.woff') ? false : undefined),
+  },
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',

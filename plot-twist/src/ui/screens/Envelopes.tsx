@@ -66,7 +66,7 @@ function Letter({ adventure, source, episodeNumber, onStart, onBack }: { adventu
           Start episode
         </button>
         <button type="button" className="btn btn-ghost w-full text-paper-ink/75 hover:bg-paper-ink/[0.06] hover:text-paper-ink" onClick={onBack}>
-          Back to envelopes
+          Look at another envelope
         </button>
       </div>
     </div>
@@ -116,7 +116,16 @@ export function Envelopes() {
       {conflict && (
         <div className="card anim-fade-up mt-6 p-5" role="alert">
           <p className="t-serif text-[17px]">{conflict.reason}</p>
-          <p className="mt-2 text-[14px] text-ivory-dim">Change one thing and we will find you a plot:</p>
+          {relaxations.length > 0 ? (
+            <p className="mt-2 text-[14px] text-ivory-dim">Change one thing and we will find you a plot:</p>
+          ) : (
+            <>
+              <p className="mt-2 text-[14px] text-ivory-dim">No single change fixes this one — loosen a couple of things and try again.</p>
+              <button type="button" className="btn btn-primary mt-4" onClick={() => navigate({ name: 'scene' })}>
+                Edit the scene
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -162,7 +171,7 @@ export function Envelopes() {
         </div>
       )}
 
-      <Sheet open={Boolean(openAdventure)} onClose={() => setOpenSlot(null)} title={openAdventure ? `Envelope: ${openAdventure.title}` : 'Envelope'} variant="paper" labelHidden closeLabel="Back to envelopes">
+      <Sheet open={Boolean(openAdventure)} onClose={() => setOpenSlot(null)} title={openAdventure ? `Envelope: ${openAdventure.title}` : 'Envelope'} variant="paper" labelHidden closeLabel="Close envelope">
         {openAdventure && openEnv && (
           <Letter
             adventure={openAdventure}

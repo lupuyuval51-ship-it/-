@@ -21,7 +21,7 @@
 import { PALETTES, type PaletteColors } from '../../shared/constants.ts';
 import type { PaletteName, Weirdness } from '../../shared/types.ts';
 import { FONT_DISPLAY, FONT_MONO, FONT_SANS } from '../fonts.ts';
-import { contrast, ensureContrast, flatten, luminance, mix, mostContrasting, rgba, saturation } from './color.ts';
+import { contrast, ensureContrast, flatten, luminance, mix, mostContrasting, saturation } from './color.ts';
 import { drawKindAccent, drawMotif, drawTexture, type ArtColors, type MotifContext, type Rect } from './motifs.ts';
 import { hashParts, mulberry32, stream, unitHash } from './prng.ts';
 import {
@@ -33,6 +33,7 @@ import {
   measureText,
   splitWords,
   wrapClamped,
+  wrapGreedy,
   type FontSpec,
 } from './text.ts';
 import { POSTER_HEIGHT, POSTER_WIDTH, type PosterInput } from './types.ts';
@@ -55,7 +56,7 @@ const PLATE_RECIPES: Partial<Record<PaletteName, PlateRecipe>> = {
   ember: { deep: 'accent3', amount: [0.42, 0.62, 0.84], order: ['accent', 'accent2', 'ink'] },
   noir: { deep: 'ink', amount: [0.06, 0.085, 0.11], order: ['accent', 'accent3', 'accent2'] },
   tide: { deep: 'accent3', amount: [0.36, 0.56, 0.78], order: ['accent', 'accent2', 'ink'] },
-  neon: { deep: 'accent2', amount: [0.1, 0.16, 0.24], order: ['accent', 'accent3', 'accent2'] },
+  neon: { deep: 'accent', amount: [0.1, 0.15, 0.2], order: ['accent', 'accent3', 'accent2'] },
   citrus: { deep: 'accent', amount: [0.07, 0.14, 0.24], order: ['accent', 'accent2', 'accent3'] },
   moss: { deep: 'accent3', amount: [0.34, 0.52, 0.72], order: ['accent', 'accent2', 'ink'] },
   dusk: { deep: 'accent3', amount: [0.55, 0.75, 0.95], order: ['accent', 'accent2', 'ink'] },
@@ -147,7 +148,17 @@ export function formatPosterDate(dateISO: string): string {
 }
 
 const tidy = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
-const upper = (text: string) => tidy(text).toLocaleUpperCase('en-US');
+
+/** Typographer's quotes and apostrophes: don't → don’t, "x" → “x”. */
+export function smartQuotes(text: string): string {
+  return text
+    .replace(/(\p{L}|\p{N})'(?=\p{L}|\p{N}|\s|$|[.,!?;:)])/gu, '$1’')
+    .replace(/'(\p{L}|\p{N})/gu, '‘$1')
+    .replace(/'/g, '’')
+    .replace(/(^|[\s(\[{—–-])"/gu, '$1“')
+    .replace(/"/g, '”');
+}
+const upper = (text: string) => smartQuotes(tidy(text)).toLocaleUpperCase('en-US');
 
 function stripQuotes(text: string): string {
   return tidy(text).replace(/^["'“”‘’«»„]+/u, '').replace(/["'“”‘’«»]+$/u, '').trim();
@@ -161,7 +172,7 @@ export function evidenceNotes(notes: readonly string[], closingLine: string): st
   const out: string[] = [];
   const seen = new Set<string>();
   for (const raw of notes) {
-    const note = tidy(raw);
+    const note = smartQuotes(tidy(raw));
     const key = normalizeForCompare(note);
     if (!key || seen.has(key)) continue;
     if (key === closing || (key.length >= 14 && closing.includes(key))) continue;
@@ -174,7 +185,7 @@ export function evidenceNotes(notes: readonly string[], closingLine: string): st
 
 /** All characters the poster will draw (for font subset loading). */
 export function posterText(input: PosterInput): string {
-  return [input.title, input.endingTitle, input.closingLine, input.seriesName ?? '', input.narrator ?? '', ...input.notes].join(' ');
+  return [input.title, input.endingTitle, input.closingLine, input.seriesName ?? '', input.narrator ?? '', ...(input.notes ?? [])].join(' ');
 }
 
 // ── layout ────────────────────────────────────────────────────────────
@@ -276,15 +287,26 @@ function fitTitle(ctx: Ctx, title: string, maxW: number, maxSize: number, minSiz
     const widths = lines.map(unit);
     const widest = Math.max(...widths);
     const k = lines.length;
-    let size = Math.min(maxSize, (maxW / widest) * 100);
+    let size = Math.min(k === 1 ? maxSize * 1.22 : maxSize, (maxW / widest) * 100);
     size = Math.min(size, maxH / (0.95 + (k - 1) * leading));
     const ragged = k > 1 ? (widest - Math.min(...widths)) / widest : 0;
     const lastWords = splitWords(lines[k - 1]).length;
     const widow = k > 1 && lastWords === 1 && widths[k - 1] < widest * 0.42 ? 1 : 0;
-    const score = size * (1 - 0.06 * (k - 1)) * (1 - 0.16 * ragged) * (1 - 0.14 * widow);
+    const dangling = lines.slice(0, -1).filter((l) => /\b(a|an|the)$/i.test(l)).length;
+    const score = size * (1 - 0.12 * (k - 1)) * (1 - 0.16 * ragged) * (1 - 0.14 * widow) * (1 - 0.06 * dangling);
     if (!best || score > best.score) best = { lines, size, score };
   }
   let fit: TitleFit = best ?? { lines: [title], size: minSize };
+  if (fit.size < minSize * 1.25) {
+    // A word too long for the measure: hyphenate across lines at a real display size rather than shrink it away.
+    for (let size = maxSize; size >= minSize; size *= 0.95) {
+      const lines = wrapGreedy(ctx, title, titleFont(size, weight), maxW);
+      if (lines.length <= 3 && size * (0.95 + (lines.length - 1) * leading) <= maxH) {
+        if (size > fit.size * 1.12) fit = { lines, size };
+        break;
+      }
+    }
+  }
   const floor = Math.min(minSize, 34 * (maxW / 952));
   if (fit.size < floor) {
     // Pathological input (one enormous word): break it at the floor size.
@@ -292,10 +314,11 @@ function fitTitle(ctx: Ctx, title: string, maxW: number, maxSize: number, minSiz
     fit = { lines: wrapped.lines, size: floor };
   }
   // Exact check at the final size (optical sizing changes widths a little).
-  for (let i = 0; i < 40; i++) {
-    const widest = Math.max(...fit.lines.map((l) => measureText(ctx, l, titleFont(fit.size, weight))));
-    if (widest <= maxW) break;
-    fit = { lines: fit.lines, size: fit.size * 0.975 };
+  const widestAt = (f: TitleFit) => Math.max(...f.lines.map((l) => measureText(ctx, l, titleFont(f.size, weight))));
+  for (let i = 0; i < 40 && widestAt(fit) > maxW; i++) fit = { lines: fit.lines, size: fit.size * 0.975 };
+  if (widestAt(fit) > maxW) {
+    // Safety net — never overflow: re-wrap with word breaking at the size we ended up with.
+    fit = { lines: wrapClamped(ctx, fit.lines.join(' '), titleFont(fit.size, weight), maxW, 3, false).lines, size: fit.size };
   }
   return fit;
 }
@@ -370,7 +393,7 @@ function layoutBilling(ctx: Ctx, credits: Credit[], left: number, cw: number, s:
       x += item.nameW + sep;
     });
   });
-  block.height = capN + (lines.length - 1) * pitch;
+  block.height = capN + (lines.length - 1) * pitch + nameSize * 0.2;
   return block;
 }
 
@@ -394,8 +417,8 @@ function layoutStack(ctx: Ctx, input: PosterInput, theme: Theme, left: number, c
   const leading = 0.95;
 
   // Title
-  const maxSize = (168 - o.attempt * 13) * s;
-  const fit = fitTitle(ctx, tidy(input.title) || 'Untitled', cw, maxSize, 58 * s, weight, leading, (480 - o.attempt * 40) * s);
+  const maxSize = (156 - o.attempt * 12) * s;
+  const fit = fitTitle(ctx, smartQuotes(tidy(input.title)) || 'Untitled', cw, maxSize, 58 * s, weight, leading, (410 - o.attempt * 36) * s);
   const tFont = titleFont(fit.size, weight);
   const title = emptyBlock();
   const firstInk = inkMetrics(ctx, fit.lines[0], tFont);
@@ -435,7 +458,7 @@ function layoutStack(ctx: Ctx, input: PosterInput, theme: Theme, left: number, c
   // Closing line, in quotes, hanging punctuation, balanced.
   const closing = emptyBlock();
   let closingLines: string[] = [];
-  const body = stripQuotes(input.closingLine);
+  const body = smartQuotes(stripQuotes(input.closingLine));
   if (body) {
     const cFont: FontSpec = { family: FONT_DISPLAY, size: (40 - o.attempt * 2) * s, weight: 340, style: 'italic', tracking: -0.004 };
     const quoteW = measureText(ctx, '“', cFont);
@@ -453,13 +476,13 @@ function layoutStack(ctx: Ctx, input: PosterInput, theme: Theme, left: number, c
 
   // Evidence: the user's field notes as labelled exhibits.
   const evidence = emptyBlock();
-  const notes = evidenceNotes(input.notes, input.closingLine);
+  const notes = evidenceNotes(input.notes ?? [], input.closingLine ?? '');
   if (notes.length) {
     const columns = notes.length === 1 ? 1 : 2;
     const colGap = 36 * s;
     const colW = (cw - colGap * (columns - 1)) / columns;
-    const labelFont: FontSpec = { family: FONT_MONO, size: 14 * s, weight: 600, tracking: 0.2 };
-    const noteFont: FontSpec = { family: FONT_SANS, size: (22 - (o.attempt >= 5 ? 2 : 0)) * s, weight: 450, tracking: 0.004 };
+    const labelFont: FontSpec = { family: FONT_MONO, size: 15 * s, weight: 600, tracking: 0.2 };
+    const noteFont: FontSpec = { family: FONT_SANS, size: (25 - (o.attempt >= 5 ? 2 : 0)) * s, weight: 450, tracking: 0 };
     const labelCap = capHeight(ctx, labelFont);
     const noteCap = capHeight(ctx, noteFont);
     const noteLH = noteFont.size * 1.3;
@@ -474,13 +497,15 @@ function layoutStack(ctx: Ctx, input: PosterInput, theme: Theme, left: number, c
         const x = left + col * (colW + colGap);
         const letter = String.fromCharCode(65 + i);
         evidence.rules.push({ x1: x, x2: x + colW, y, color: theme.hair, width: Math.max(1, s) });
-        const labelBase = y + 16 * s + labelCap;
+        const labelBase = y + 17 * s + labelCap;
+        const wordW = measureText(ctx, 'EVIDENCE', labelFont);
+        evidence.runs.push({ id: 'evidence-label', text: 'EVIDENCE', x, y: labelBase, font: labelFont, color: theme.label });
+        const tagX = x + wordW + 10 * s;
         const tagW = measureText(ctx, letter, labelFont) + 12 * s;
-        evidence.marks.push({ x, y: labelBase - labelCap - 5 * s, w: tagW, h: labelCap + 10 * s, color: theme.label });
-        evidence.runs.push({ id: 'evidence-letter', text: letter, x: x + 6 * s, y: labelBase, font: labelFont, color: theme.bg, bg: theme.label });
-        evidence.runs.push({ id: 'evidence-label', text: 'EVIDENCE', x: x + tagW + 10 * s, y: labelBase, font: labelFont, color: theme.label });
-        const lines = wrapClamped(ctx, notes[i], noteFont, colW, maxNoteLines, false).lines;
-        const first = labelBase + 14 * s + noteCap;
+        evidence.marks.push({ x: tagX, y: labelBase - labelCap - 5 * s, w: tagW, h: labelCap + 10 * s, color: theme.label });
+        evidence.runs.push({ id: 'evidence-letter', text: letter, x: tagX + 6 * s, y: labelBase, font: labelFont, color: theme.bg, bg: theme.label });
+        const lines = wrapClamped(ctx, notes[i], noteFont, colW, maxNoteLines, true).lines;
+        const first = labelBase + 15 * s + noteCap;
         lines.forEach((line, li) => {
           evidence.runs.push({ id: 'evidence-note', text: line, x, y: first + li * noteLH, font: noteFont, color: theme.soft });
         });
@@ -518,7 +543,6 @@ function computeLayout(ctx: Ctx, input: PosterInput, theme: Theme, width: number
   // Rail: EPISODE 04 ── SERIES ── 8 NOV 2026 · 31 MIN
   const railFont: FontSpec = { family: FONT_MONO, size: 17 * s, weight: 500, tracking: 0.2 };
   const railCap = capHeight(ctx, railFont);
-  const railBase = top + railCap;
   const ep = Math.max(0, Math.floor(Number.isFinite(input.episodeNumber) ? input.episodeNumber : 0));
   const leftText = `EPISODE ${String(ep).padStart(2, '0')}`;
   const minutes = Math.max(1, Math.round(Number.isFinite(input.minutes) ? input.minutes : 1));
@@ -526,24 +550,33 @@ function computeLayout(ctx: Ctx, input: PosterInput, theme: Theme, width: number
   const leftW = measureText(ctx, leftText, railFont);
   const rightShown = ellipsize(ctx, rightText, railFont, cw * 0.45);
   const rightW = measureText(ctx, rightShown, railFont);
+  const gap = 22 * s;
+  // The series name heads the poster like a show title; without one, the poster carries the brand.
+  const sFont: FontSpec = { ...railFont, weight: 600 };
+  const centreRoom = cw - leftW - rightW - gap * 4;
+  const series = centreRoom > 80 * s ? ellipsize(ctx, upper(input.seriesName ?? '') || 'PLOT TWIST', sFont, centreRoom) : '';
+  // Baseline from the real ink of the rail strings (digits and fallback scripts can overshoot the cap height).
+  const railAscent = Math.max(
+    railCap,
+    inkMetrics(ctx, leftText, railFont).ascent,
+    inkMetrics(ctx, rightShown, railFont).ascent,
+    series ? inkMetrics(ctx, series, sFont).ascent : 0,
+  );
+  const railBase = top + railAscent;
   runs.push({ id: 'rail-episode', text: leftText, x: M, y: railBase, font: railFont, color: theme.ink });
   runs.push({ id: 'rail-meta', text: rightShown, x: width - M - rightW, y: railBase, font: railFont, color: theme.soft });
-  const gap = 22 * s;
   const midY = railBase - railCap / 2;
-  const series = upper(input.seriesName ?? '');
-  const centreRoom = cw - leftW - rightW - gap * 4;
-  if (series && centreRoom > 80 * s) {
-    const sFont: FontSpec = { ...railFont, weight: 600 };
-    const shown = ellipsize(ctx, series, sFont, centreRoom);
-    const sw = measureText(ctx, shown, sFont);
+  if (series) {
+    const sw = measureText(ctx, series, sFont);
     const sx = M + leftW + gap + (cw - leftW - rightW - 2 * gap - sw) / 2;
-    runs.push({ id: 'rail-series', text: shown, x: sx, y: railBase, font: sFont, color: theme.label });
+    runs.push({ id: 'rail-series', text: series, x: sx, y: railBase, font: sFont, color: theme.label });
     rules.push({ x1: M + leftW + gap, x2: sx - gap, y: midY, color: theme.hair, width: Math.max(1, s) });
     rules.push({ x1: sx + sw + gap, x2: width - M - rightW - gap, y: midY, color: theme.hair, width: Math.max(1, s) });
   } else {
     rules.push({ x1: M + leftW + gap, x2: width - M - rightW - gap, y: midY, color: theme.hair, width: Math.max(1, s) });
   }
-  const plateTop = railBase + 30 * s;
+  // Fixed from the cap height, so plates align across a whole series whatever the rail says.
+  const plateTop = top + railCap + 30 * s;
 
   // Billing block, bottom-anchored, with a rule above.
   const billing = layoutBilling(ctx, creditsFor(input), M, cw, s, theme);
@@ -560,7 +593,7 @@ function computeLayout(ctx: Ctx, input: PosterInput, theme: Theme, width: number
   const minGapEvidence = 34 * s;
   const gapAboveRule = 36 * s;
   const minPlate = height * 0.4;
-  const maxPlate = height * 0.58;
+  const maxPlate = height * 0.62;
   let stack = layoutStack(ctx, input, theme, M, cw, s, { attempt: 0 });
   const textHeight = (st: Stack) =>
     st.title.height +
@@ -641,12 +674,27 @@ function misregister(ctx: Ctx, r: Rect, s: number, light: boolean, dx: number, d
   ctx.restore();
 }
 
-function drawVignette(ctx: Ctx, w: number, h: number, light: boolean): void {
-  const g = ctx.createRadialGradient(w / 2, h * 0.4, h * 0.2, w / 2, h * 0.5, h * 0.85);
-  g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(1, light ? 'rgba(74,48,20,0.13)' : 'rgba(0,0,0,0.4)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, w, h);
+/**
+ * Light falloff inside the plate, built from a few flat elliptical steps
+ * instead of a gradient: Skia dithers gradients, and dither under the grain
+ * roughly doubles the PNG size. The grain hides the steps.
+ */
+function drawPlateLight(ctx: Ctx, r: Rect, light: boolean): void {
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h * 0.46;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(r.x, r.y, r.w, r.h);
+  ctx.clip();
+  ctx.fillStyle = light ? 'rgba(74,48,20,0.012)' : 'rgba(0,0,0,0.026)';
+  for (let k = 0; k < 13; k++) {
+    const g = 1 + k * 0.07;
+    ctx.beginPath();
+    ctx.rect(r.x, r.y, r.w, r.h);
+    ctx.ellipse(cx, cy, r.w * 0.44 * g, r.h * 0.42 * g, 0, 0, Math.PI * 2);
+    ctx.fill('evenodd');
+  }
+  ctx.restore();
 }
 
 /**
@@ -663,12 +711,12 @@ function drawGrain(ctx: Ctx, w: number, h: number, s: number, light: boolean, se
   if (!scratch || !tctx) return;
   const img = tctx.createImageData(tile, tile);
   const data = img.data;
-  const strength = (light ? 0.075 : 0.1) * (1 + 0.35 * wear);
+  const strength = (light ? 0.075 : 0.1) * (1 + 0.35 * wear) * Math.min(1, 0.45 + 0.55 * s);
   for (let y = 0; y < tile; y += cell) {
     for (let x = 0; x < tile; x += cell) {
       const v = rng() + rng() - 1;
       const mag = Math.abs(v);
-      if (mag < 0.3) continue;
+      if (mag < 0.4) continue;
       const bright = v > 0;
       const level = Math.ceil(mag * 3) / 3;
       const a = Math.round(255 * strength * level * (bright === light ? 0.55 : 1));
@@ -747,7 +795,7 @@ export function drawPosterWithLayout(ctx: CanvasRenderingContext2D, input: Poste
     misregister(ctx, layout.plate, s, theme.art.light, 4 + rr() * 3, -(2 + rr() * 3), weirdness === 3 ? 0.24 : 0.14);
   }
 
-  drawVignette(ctx, width, height, theme.light);
+  drawPlateLight(ctx, layout.plate, theme.art.light);
 
   // Type.
   for (const rule of layout.rules) {

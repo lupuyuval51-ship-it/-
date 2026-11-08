@@ -361,7 +361,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const history = historyOf(latest.current.completed);
       const exclude = previous ? previous.shownIds : [];
       let match = matchAdventures(LIBRARY, prefs, { history, exclude, count, seed });
-      if (match.picks.length < count && exclude.length) match = matchAdventures(LIBRARY, prefs, { history, count, seed });
+      let cycled = false;
+      if (match.picks.length < count && exclude.length) {
+        // Everything that fits has been shown — start a fresh cycle instead of dealing fewer envelopes.
+        match = matchAdventures(LIBRARY, prefs, { history, count, seed });
+        cycled = true;
+      }
       const envelopes: DrawEnvelope[] = match.picks.map((pick, i) => ({ slot: i, status: 'ready', source: 'curated', adventure: pick.adventure, opened: false }));
       if (aiOn) envelopes.push({ slot: envelopes.length, status: 'writing', source: 'ai', adventure: null, opened: false, note: 'Written for you' });
       const draw: Draw = {
@@ -370,7 +375,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         prefs,
         seed,
         envelopes,
-        shownIds: Array.from(new Set([...(previous?.shownIds ?? []), ...match.picks.map((p) => p.adventure.id)])),
+        shownIds: Array.from(new Set([...(cycled ? [] : previous?.shownIds ?? []), ...match.picks.map((p) => p.adventure.id)])),
       };
       dispatch({ type: 'match', match });
       update((p) => ({ ...p, prefs, draw }));

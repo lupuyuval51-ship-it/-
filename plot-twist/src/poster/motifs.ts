@@ -14,7 +14,7 @@
  *   variant (hash of the choice labels) → proportions and placement
  */
 import type { Kind, Motif, Weirdness } from '../../shared/types.ts';
-import { mix, rgba } from './color.ts';
+import { mix, rgba, warmest } from './color.ts';
 import { chance, int, pick, range, shuffle, signedTri, type Rng } from './prng.ts';
 
 export interface Rect {
@@ -169,8 +169,8 @@ function orbits(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   const strokeRing = (i: number, a0: number, a1: number) => {
     ctx.beginPath();
     ctx.ellipse(cx, cy, radii[i], radii[i] * squash, tilt, a0, a1);
-    ctx.strokeStyle = i === hero ? c.primary : rgba(c.line, Math.max(0.2, 0.56 - i * 0.045));
-    ctx.lineWidth = (i === hero ? 3.2 : 1.4) * s;
+    ctx.strokeStyle = i === hero ? c.primary : rgba(c.line, Math.max(0.22, 0.62 - i * 0.045));
+    ctx.lineWidth = (i === hero ? 3.2 : 1.6) * s;
     ctx.setLineDash(W === 3 && i % 3 === 2 ? [1.5 * s, 7 * s] : []);
     ctx.stroke();
     ctx.setLineDash([]);
@@ -191,18 +191,21 @@ function orbits(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   ).slice(0, planetCount);
   const towardCentre = m.dir > 0 ? Math.PI : m.dir < 0 ? 0 : -Math.PI / 2;
   const planetColors = W === 1 ? [c.line] : W === 2 ? [c.secondary, c.line] : [c.secondary, c.tertiary, c.line];
-  const planets: Planet[] = ringPool.map((i, k) => {
-    const theta = towardCentre + signedTri(rng) * 1.1 + (k % 2 === 1 ? Math.PI * 0.6 : 0);
-    const ex = radii[i] * Math.cos(theta);
-    const ey = radii[i] * squash * Math.sin(theta);
-    return {
-      x: cx + ex * Math.cos(tilt) - ey * Math.sin(tilt),
-      y: cy + ex * Math.sin(tilt) + ey * Math.cos(tilt),
-      r: s * range(rng, 9, 16) * (1 + i * 0.1),
-      color: planetColors[k % planetColors.length],
-      front: squash === 1 || Math.sin(theta) > 0,
-      ringed: W === 3 && k === 0,
-    };
+  const planets: Planet[] = [];
+  ringPool.forEach((i, k) => {
+    const pr = s * range(rng, 9, 16) * (1 + i * 0.1);
+    const pad = pr * (W === 3 && k === 0 ? 2.3 : 1) + 12 * s;
+    // Planets live fully inside the frame — try a few positions along the orbit.
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const theta = towardCentre + signedTri(rng) * (1.1 + attempt * 0.3) + (k % 2 === 1 ? Math.PI * 0.6 : 0);
+      const ex = radii[i] * Math.cos(theta);
+      const ey = radii[i] * squash * Math.sin(theta);
+      const x = cx + ex * Math.cos(tilt) - ey * Math.sin(tilt);
+      const y = cy + ex * Math.sin(tilt) + ey * Math.cos(tilt);
+      if (x < r.x + pad || x > r.x + r.w - pad || y < r.y + pad || y > r.y + r.h - pad) continue;
+      planets.push({ x, y, r: pr, color: planetColors[k % planetColors.length], front: squash === 1 || Math.sin(theta) > 0, ringed: W === 3 && k === 0 });
+      break;
+    }
   });
   const drawPlanet = (p: Planet) => {
     disk(ctx, p.x, p.y, p.r + 5 * s, c.plate);
@@ -324,7 +327,8 @@ function grid(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   if (m.dir === 0 && cols % 2 === 1) cols += 1;
   const cell = r.w / cols;
   const rows = Math.max(3, Math.floor(r.h / cell));
-  const gy = r.y + (r.h - rows * cell) / 2;
+  // The grid hangs from the top edge; a partial last row is cropped by the frame (tiles use full rows only).
+  const gy = r.y;
   const angle = W === 3 ? (m.dir === 0 ? 1 : m.dir) * range(rng, 0.045, 0.075) : 0;
 
   ctx.save();
@@ -467,7 +471,7 @@ function rays(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   const weights = Array.from({ length: n }, () => (W === 1 ? 1 : range(rng, 0.55, 1.45)));
   const total = weights.reduce((a, b) => a + b, 0);
   const fill = W === 1 ? 0.4 : W === 2 ? 0.48 : 0.56;
-  const sunColor = W === 1 ? c.primary : c.secondary;
+  const sunColor = warmest(W === 1 ? [c.primary, c.secondary] : [c.primary, c.secondary, c.tertiary]);
 
   ctx.save();
   ctx.beginPath();
@@ -542,9 +546,15 @@ function waves(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   const sunY = top - sunR * 0.1;
 
   starDust(ctx, r, m, W === 1 ? 10 : W === 2 ? 22 : 36, { x: sunX, y: sunY, r: sunR * 1.4 }, top);
-  if (W === 1) ring(ctx, sunX, sunY, sunR, c.primary, 2.6 * s);
-  else disk(ctx, sunX, sunY, sunR, W === 2 ? c.primary : c.secondary);
+  const sun = warmest([...palette(m), c.secondary]);
+  if (W === 1) {
+    disk(ctx, sunX, sunY, sunR, rgba(sun, 0.16));
+    ring(ctx, sunX, sunY, sunR, sun, 3.4 * s);
+  } else disk(ctx, sunX, sunY, sunR, sun);
 
+  // Atmospheric depth: far ridges sit close to the sky, near ridges sink into shade.
+  const far = mix(c.plate, c.line, c.light ? 0.03 : 0.07);
+  const near = c.light ? mix(c.plate, c.line, 0.16) : c.shade;
   const bands =
     W === 3 ? [mix(c.plate, c.primary, 0.92), mix(c.plate, c.secondary, 0.86), mix(c.plate, c.tertiary, 0.7), c.plate] : null;
   const glowFrom = Math.floor(lines * 0.32);
@@ -574,13 +584,13 @@ function waves(ctx: Ctx, r: Rect, m: MotifContext): Focus {
     ctx.lineTo(r.x + r.w + step, r.y + r.h + 10 * s);
     ctx.lineTo(r.x - step, r.y + r.h + 10 * s);
     ctx.closePath();
-    ctx.fillStyle = bands ? bands[i % bands.length] : c.plate;
+    ctx.fillStyle = bands ? bands[i % bands.length] : mix(far, near, (i / (lines - 1)) ** 0.9);
     ctx.fill();
     ctx.beginPath();
     ctx.moveTo(pts[0], pts[1]);
     for (let k = 2; k < pts.length; k += 2) ctx.lineTo(pts[k], pts[k + 1]);
     ctx.strokeStyle = W === 2 && i >= glowFrom && i <= glowTo ? c.primary : rgba(c.line, 0.9);
-    ctx.lineWidth = s * (W === 1 ? 2 : 1.8);
+    ctx.lineWidth = s * (W === 1 ? 3 : W === 2 ? 2.4 : 2);
     ctx.lineJoin = 'round';
     ctx.stroke();
   }
@@ -630,6 +640,7 @@ function shards(ctx: Ctx, r: Rect, m: MotifContext): Focus {
     const push = pushBase * (0.55 + 0.45 * cell.ring) * range(rng, 0.6, 1.3);
     const rot = W === 3 ? signedTri(rng) * 0.05 : W === 2 ? signedTri(rng) * 0.012 : 0;
     const tint = rng();
+    const outer = cell.ring === radii.length - 1;
     ctx.save();
     ctx.translate(dx * push, dy * push);
     rotateAbout(ctx, cen.x, cen.y, rot);
@@ -638,17 +649,17 @@ function shards(ctx: Ctx, r: Rect, m: MotifContext): Focus {
     ctx.clip();
     ctx.fillStyle = c.plate;
     ctx.fill();
-    if (tint < 0.32) {
-      ctx.fillStyle = rgba(c.shade, 0.55);
+    if (!outer && tint < 0.32) {
+      ctx.fillStyle = rgba(c.shade, 0.45);
       ctx.fill();
-    } else if (tint > 0.86) {
+    } else if (!outer && tint > 0.86) {
       ctx.fillStyle = rgba(c.line, 0.05);
       ctx.fill();
     }
     disk(ctx, cx, cy, R, c.primary);
     if (W >= 2) ring(ctx, cx, cy, R * 0.64, c.secondary, R * 0.07);
     if (W === 3) disk(ctx, third.x, third.y, R * 0.2, c.tertiary);
-    if (tint < 0.2) {
+    if (!outer && tint < 0.2) {
       // a darker facet across the disc reads as broken glass
       ctx.beginPath();
       polyPath(ctx, cell.pts);
@@ -657,7 +668,7 @@ function shards(ctx: Ctx, r: Rect, m: MotifContext): Focus {
     }
     ctx.beginPath();
     polyPath(ctx, cell.pts);
-    ctx.strokeStyle = rgba(c.line, W === 1 ? 0.2 : 0.26);
+    ctx.strokeStyle = rgba(c.line, outer ? 0.14 : W === 1 ? 0.22 : 0.28);
     ctx.lineWidth = 2 * s;
     ctx.stroke();
     ctx.restore();
@@ -744,13 +755,13 @@ function archPath(ctx: Ctx, x: number, baseY: number, w: number, h: number): voi
 }
 
 function stairs(ctx: Ctx, r: Rect, m: MotifContext): Focus {
-  const { rng, colors: c, s } = m;
+  const { colors: c, s } = m;
   const W = m.weirdness;
   const asc = m.dir;
   const n = W === 1 ? 5 : W === 2 ? 7 : 9;
   const minDim = Math.min(r.w, r.h);
-  const floorY = r.y + r.h * 0.84;
-  const rh = (r.h * 0.5) / n;
+  const floorY = r.y + r.h * 0.875;
+  const rh = (r.h * 0.54) / n;
   const tilt = W === 3 ? (asc === 0 ? 1 : asc) * -0.045 : 0;
   const midX = r.x + r.w / 2;
   const mirrorX = (pts: Pt[]) => pts.map((p) => ({ x: 2 * midX - p.x, y: p.y }));
@@ -762,20 +773,25 @@ function stairs(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   ctx.fillStyle = c.shade;
   ctx.fillRect(r.x - r.w * 0.2, floorY, r.w * 1.4, r.h);
 
-  // The moon sits on the open side of the sky.
-  const moonX = asc === 0 ? r.x + r.w * (m.variant < 0.5 ? 0.2 : 0.8) : asc > 0 ? r.x + r.w * 0.22 : r.x + r.w * 0.78;
+  // The open side of the sky (opposite the climb) holds the moon — or, at full weirdness, the twist.
+  const openLeft = asc === 0 ? m.variant < 0.5 : asc > 0;
+  const moonX = openLeft ? r.x + r.w * 0.22 : r.x + r.w * 0.78;
   const moonY = r.y + r.h * 0.2;
   const moonR = minDim * 0.075;
   starDust(ctx, r, m, W === 1 ? 8 : W === 2 ? 18 : 30, { x: moonX, y: moonY, r: moonR * 2 }, floorY - r.h * 0.5);
   if (W === 1) ring(ctx, moonX, moonY, moonR, c.line, 2.2 * s);
-  else disk(ctx, moonX, moonY, moonR, W === 2 ? c.line : c.tertiary);
-
-  // A second, floating flight for the surreal version.
-  if (W === 3) {
-    const tw2 = (r.w * 0.36) / 4;
-    let ghost = stairProfile(r.x + r.w * 0.08, r.y + r.h * 0.42, 4, tw2, rh * 0.8, tw2 * 1.4, false);
-    if (asc >= 0) ghost = mirrorX(ghost);
-    extrude(ctx, ghost, { x: (asc >= 0 ? -1 : 1) * rh * 0.7, y: -rh * 0.6 }, c.tertiary, topTone(c.tertiary), sideTone(c.tertiary));
+  else if (W === 2) disk(ctx, moonX, moonY, moonR, c.line);
+  else {
+    // An upside-down flight hanging from the top edge: the plot twist, literally.
+    const n2 = 4;
+    const tw2 = (r.w * 0.3) / (n2 + 0.6);
+    const rh2 = rh * 0.9;
+    const yF = r.y - 4 * s;
+    const left2 = r.x + r.w * 0.07;
+    let hanging = stairProfile(left2, yF, n2, tw2, rh2, tw2 * 1.6, false).map((p) => ({ x: p.x, y: 2 * yF - p.y }));
+    if (!openLeft) hanging = mirrorX(hanging);
+    const tone = mix(c.tertiary, c.plate, 0.42);
+    extrude(ctx, hanging, { x: (openLeft ? 1 : -1) * rh2 * 0.62, y: -rh2 * 0.5 }, tone, topTone(tone), sideTone(tone));
   }
 
   const width = r.w * (asc === 0 ? 0.72 : 0.6);
@@ -871,8 +887,8 @@ function dots(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   const sphere = (hx: number, hy: number, ccx: number, ccy: number, rad: number, ground: boolean) => (x: number, y: number) => {
     const d = Math.hypot(x - ccx, y - ccy);
     if (d <= rad) {
-      const bright = 1 - Math.min(1, Math.hypot(x - hx, y - hy) / (rad * 1.9));
-      const lit = 0.06 + 0.94 * bright ** 1.2;
+      const bright = 1 - Math.min(1, Math.hypot(x - hx, y - hy) / (rad * 1.85));
+      const lit = 0.03 + 0.97 * bright ** 1.7;
       return c.light ? 1.02 - lit : lit;
     }
     if (!ground) return 0;
@@ -880,8 +896,8 @@ function dots(ctx: Ctx, r: Rect, m: MotifContext): Focus {
     const ey = (y - groundY) / (rad * 0.2);
     const e = ex * ex + ey * ey;
     if (c.light) return e < 1 ? (1 - e) * 0.62 : 0;
-    // dark plates: a faint lit floor with the shadow carved out of it
-    if (y < groundY - rad * 0.12) return 0;
+    // dark plates: a faint lit floor with the shadow carved out of it (calm versions only)
+    if (W === 3 || y < groundY - rad * 0.12) return 0;
     const floor = Math.min(0.22, ((y - (groundY - rad * 0.12)) / (rad * 0.9)) * 0.22);
     return e < 1 ? floor * e : floor;
   };
@@ -896,12 +912,25 @@ function dots(ctx: Ctx, r: Rect, m: MotifContext): Focus {
     const my = cy - R * 0.92;
     halftone(ctx, r, sp * 0.8, Math.PI / 12, 0, 0, sphere(mx + lightSide * mr * 0.38, my - mr * 0.4, mx, my, mr, false), c.secondary);
   } else {
+    // Two-colour riso eclipse: two halftone worlds overlap and the overlap mixes like ink,
+    // over an orderly halftone glow rising from the bottom edge.
+    const glowTop = r.y + r.h * 0.66;
+    halftone(ctx, r, sp * 0.9, 0, 0, 0, (_x, y) => (y < glowTop ? 0 : ((y - glowTop) / (r.y + r.h - glowTop)) ** 1.4 * 0.9), c.tertiary);
+    const ra = R * 0.92;
+    const rb = R * 0.74;
+    const ccx = r.x + r.w * (0.5 + m.dir * 0.08);
+    const ax = ccx + lightSide * R * 0.34;
+    const ay = cy + R * 0.12;
+    const bx = ccx - lightSide * R * 0.42;
+    const by = cy - R * 0.16;
     ctx.save();
     ctx.globalCompositeOperation = c.light ? 'multiply' : 'screen';
-    halftone(ctx, r, sp, 0.26, 2.5 * s, -1.5 * s, main, c.primary);
-    halftone(ctx, r, sp, 1.31, -2.5 * s, 1.5 * s, sphere(cx - lightSide * R * 0.2, cy - R * 0.5, cx, cy, R, true), c.secondary);
-    halftone(ctx, r, sp * 1.15, Math.PI / 4, 0, 2.5 * s, sphere(cx + lightSide * R * 0.1, cy + R * 0.3, cx, cy, R * 0.98, false), c.tertiary);
+    halftone(ctx, r, sp, 0.26, 0, 0, sphere(ax + lightSide * ra * 0.38, ay - ra * 0.4, ax, ay, ra, true), c.primary);
+    halftone(ctx, r, sp, 1.31, 0, 0, sphere(bx + lightSide * rb * 0.38, by - rb * 0.4, bx, by, rb, false), c.secondary);
     ctx.restore();
+    const pr = R * 0.1;
+    const px = Math.max(r.x + pr * 2, Math.min(r.x + r.w - pr * 2, bx - lightSide * rb * 1.05));
+    disk(ctx, px, Math.max(r.y + pr * 2, by - rb * 0.95), pr, c.tertiary);
   }
   return { x: cx, y: cy, r: R };
 }
@@ -1005,10 +1034,11 @@ function stripes(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   const W = m.weirdness;
   const lean = m.dir === 0 ? (m.variant < 0.5 ? -1 : 1) : m.dir;
   const angle = W === 1 ? 0 : W === 2 ? lean * 0.42 : lean * 0.78;
-  const period = r.w / (W === 1 ? 7 : W === 2 ? 10 : 15);
+  const period = r.w / (W === 1 ? 11 : W === 2 ? 10 : 15);
+  const ratio = W === 1 ? 0.24 : 0.5;
   const colors = W === 1 ? [c.primary] : W === 2 ? [c.primary, c.secondary] : [c.primary, c.secondary, c.tertiary, c.line];
   const extent = Math.hypot(r.w, r.h);
-  stripeField(ctx, r.x + r.w / 2, r.y + r.h / 2, extent, angle, period, 0.5, colors, 0);
+  stripeField(ctx, r.x + r.w / 2, r.y + r.h / 2, extent, angle, period, ratio, colors, 0);
 
   const minDim = Math.min(r.w, r.h);
   const lenses: Focus[] = [{ x: r.x + r.w * (0.5 + m.dir * 0.18), y: r.y + r.h * (0.46 + (m.variant - 0.5) * 0.1), r: minDim * (W === 1 ? 0.3 : 0.32) }];
@@ -1017,15 +1047,15 @@ function stripes(ctx: Ctx, r: Rect, m: MotifContext): Focus {
     lenses.push({ x: big.x - lean * big.r * 1.45, y: big.y + big.r * range(rng, 0.7, 1.0), r: big.r * 0.42 });
   }
   lenses.forEach((L, idx) => {
-    disk(ctx, L.x + 10 * s * lean, L.y + 12 * s, L.r, rgba(c.shade, W === 1 ? 0 : 0.6));
+    if (W > 1) disk(ctx, L.x + 10 * s * lean, L.y + 12 * s, L.r, rgba(c.shade, 0.6));
     ctx.save();
     ctx.beginPath();
     ctx.arc(L.x, L.y, L.r, 0, TAU);
     ctx.clip();
     ctx.fillStyle = c.plate;
     ctx.fillRect(L.x - L.r, L.y - L.r, L.r * 2, L.r * 2);
-    if (W === 1) stripeField(ctx, L.x, L.y, L.r * 2, angle, period, 0.5, colors, period / 2);
-    else stripeField(ctx, L.x, L.y, L.r * 2, angle + Math.PI / 2 + idx * 0.4, period * 0.7, 0.5, colors.slice().reverse(), 0);
+    if (W === 1) stripeField(ctx, L.x, L.y, L.r * 2, angle, period, ratio, colors, period / 2);
+    else stripeField(ctx, L.x, L.y, L.r * 2, angle + Math.PI / 2 + idx * 0.4, period * 0.7, ratio, colors.slice().reverse(), 0);
     ctx.restore();
     ring(ctx, L.x, L.y, L.r, c.line, 2 * s);
   });
@@ -1039,9 +1069,17 @@ function maze(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   const W = m.weirdness;
   const cols = W === 1 ? 9 : W === 2 ? 13 : 17;
   const pad = s * 40;
-  const cell = (r.w - 2 * pad) / cols;
+  let cell = (r.w - 2 * pad) / cols;
   const rows = Math.max(4, Math.floor((r.h - 2 * pad) / cell));
-  const mx = r.x + pad;
+  const tilt = W === 3 ? (m.dir === 0 ? 1 : m.dir) * 0.045 : 0;
+  if (tilt) {
+    const cos = Math.cos(tilt);
+    const sin = Math.abs(Math.sin(tilt));
+    const bw = (cols + 1.8) * cell * cos + rows * cell * sin;
+    const bh = (cols + 1.8) * cell * sin + (rows + 0.6) * cell * cos;
+    cell *= Math.min(1, (r.w - pad) / bw, (r.h - pad) / bh);
+  }
+  const mx = r.x + (r.w - cols * cell) / 2;
   const my = r.y + (r.h - rows * cell) / 2;
   const total = cols * rows;
   const TOP = 1;
@@ -1135,7 +1173,6 @@ function maze(ctx: Ctx, r: Rect, m: MotifContext): Focus {
   path.reverse();
   const onPath = new Set(path);
 
-  const tilt = W === 3 ? (m.dir === 0 ? 1 : m.dir) * 0.045 : 0;
   ctx.save();
   rotateAbout(ctx, r.x + r.w / 2, r.y + r.h / 2, tilt);
 
@@ -1254,6 +1291,26 @@ export function drawMotif(ctx: Ctx, motif: Motif, r: Rect, m: MotifContext): Mot
 
 // ── kind overlays ─────────────────────────────────────────────────────
 
+/** Top corner away from the focus (where the art is quiet). */
+function quietCorner(r: Rect, f: Focus, size: number, s: number): Pt {
+  const inset = 24 * s;
+  return { x: f.x > r.x + r.w / 2 ? r.x + inset : r.x + r.w - inset - size, y: r.y + inset };
+}
+
+/** A solid plate-coloured badge, so a small emblem reads on top of busy art. */
+function badge(ctx: Ctx, x: number, y: number, size: number, m: MotifContext, round: boolean): void {
+  const c = m.colors;
+  ctx.beginPath();
+  if (round) ctx.arc(x + size / 2, y + size / 2, size / 2, 0, TAU);
+  else if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, size, size, size * 0.2);
+  else ctx.rect(x, y, size, size);
+  ctx.fillStyle = c.plate;
+  ctx.fill();
+  ctx.strokeStyle = rgba(c.line, 0.8);
+  ctx.lineWidth = 2 * m.s;
+  ctx.stroke();
+}
+
 /** A small narrative mark tied to the kind of episode, drawn over the art. */
 export function drawKindAccent(ctx: Ctx, r: Rect, f: Focus, m: MotifContext): void {
   const { colors: c, s } = m;
@@ -1332,10 +1389,13 @@ export function drawKindAccent(ctx: Ctx, r: Rect, f: Focus, m: MotifContext): vo
       break;
     }
     case 'social': {
-      // An echo of the focal form: two overlapping circles.
-      const rr = Math.max(28 * s, Math.min(f.r, minDim * 0.36));
-      const off = rr * 0.62 * (m.dir === 0 ? 1 : -m.dir);
-      ring(ctx, f.x + off, f.y + rr * 0.08, rr, rgba(c.secondary, 0.85), 2.2 * s);
+      // Two linked rings, as a small badge in the quiet corner.
+      const size = 54 * s;
+      const at = quietCorner(r, f, size, s);
+      badge(ctx, at.x, at.y, size, m, true);
+      const rr = size * 0.22;
+      ring(ctx, at.x + size / 2 - rr * 0.58, at.y + size / 2, rr, rgba(c.line, 0.9), 2.2 * s);
+      ring(ctx, at.x + size / 2 + rr * 0.58, at.y + size / 2, rr, c.secondary === c.plate ? c.line : c.secondary, 2.2 * s);
       break;
     }
     case 'ritual': {
@@ -1345,16 +1405,13 @@ export function drawKindAccent(ctx: Ctx, r: Rect, f: Focus, m: MotifContext): vo
       break;
     }
     case 'game': {
-      // A die in the corner opposite the focus.
-      const size = 46 * s;
-      const x = f.x > r.x + r.w / 2 ? r.x + 26 * s : r.x + r.w - 26 * s - size;
-      const y = r.y + 26 * s;
-      ctx.beginPath();
-      ctx.roundRect(x, y, size, size, 9 * s);
-      ctx.strokeStyle = rgba(c.line, 0.8);
-      ctx.lineWidth = 2 * s;
-      ctx.stroke();
-      const pip = size * 0.09;
+      // A die, as a small badge in the quiet corner.
+      const size = 50 * s;
+      const at = quietCorner(r, f, size, s);
+      badge(ctx, at.x, at.y, size, m, false);
+      const x = at.x;
+      const y = at.y;
+      const pip = size * 0.085;
       for (const [u, v] of [
         [0.27, 0.27],
         [0.73, 0.27],

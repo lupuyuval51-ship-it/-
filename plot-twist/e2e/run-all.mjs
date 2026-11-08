@@ -74,6 +74,20 @@ async function storage(page) {
   return page.evaluate(() => JSON.parse(localStorage.getItem('plot-twist:v1') || 'null'));
 }
 
+/** Waits until the persisted state satisfies `predicate` (saving is debounced). Polls from Node — the app's CSP forbids eval in the page. */
+async function storageWhen(page, predicate, timeout = 15_000) {
+  const start = Date.now();
+  let last = null;
+  while (Date.now() - start < timeout) {
+    last = await storage(page);
+    try {
+      if (last && predicate(last)) return last;
+    } catch {}
+    await sleep(100);
+  }
+  throw new Error(`storage condition not met: ${predicate.toString().slice(0, 120)}`);
+}
+
 /** Plays the current stage loop until the finale. `pick(i, options)` chooses an option index. */
 async function playToEnd(page, { pick = () => 0, notes = [], useAlternativeAt = -1 } = {}) {
   let stage = 0;
@@ -136,7 +150,7 @@ async function journeySuite(browser, base) {
   await page.locator('button.envelope').first().waitFor();
   const envCount = await page.locator('button.envelope').count();
   check('three envelopes are dealt', envCount === 3, `${envCount}`);
-  const s1 = await storage(page);
+  const s1 = await storageWhen(page, (s) => s.draw && s.draw.envelopes.length === 3);
   const prefs = s1.draw.prefs;
   let allFit = true;
   let allValid = true;
@@ -158,7 +172,7 @@ async function journeySuite(browser, base) {
   const facts = await dialog.innerText();
   check('reveal shows intro, duration, items, cost and Start', /Duration/i.test(facts) && /You’ll need/i.test(facts) && /Expected cost/i.test(facts) && (await dialog.getByRole('button', { name: /start episode/i }).isVisible()));
   await page.screenshot({ path: join(ART, 'j03-letter.png') });
-  await dialog.getByRole('button', { name: /back to envelopes/i }).click();
+  await dialog.getByRole('button', { name: /look at another envelope/i }).click();
   await sleep(250);
   await page.locator('button.envelope').nth(1).click();
   await page.getByRole('dialog').waitFor();
@@ -168,7 +182,7 @@ async function journeySuite(browser, base) {
   // 4. Start the episode
   await page.getByRole('button', { name: /start episode/i }).click();
   await page.waitForURL(/#\/play/);
-  const s2 = await storage(page);
+  const s2 = await storageWhen(page, (s) => s.run !== null);
   check('episode run started and draw consumed', s2.run && s2.run.adventure.title === chosenTitle && s2.draw === null);
 
   // Stage 1 with a field note
@@ -184,26 +198,29 @@ async function journeySuite(browser, base) {
   check('a branching choice appears after stage 1', optionCount >= 2, `${optionCount} options`);
   await options.nth(1).click();
   await sleep(300);
-  const s3 = await storage(page);
+  const s3 = await storageWhen(page, (s) => s.run && s.run.steps[0] && s.run.steps[0].optionId);
   check('choice is recorded on the run', Boolean(s3.run.steps[0].optionId));
 
   // 6. Pause and resume — paused time never counts
   await page.getByRole('button', { name: /pause timer/i }).click();
   await page.getByText('Paused.', { exact: true }).waitFor();
-  const paused1 = (await storage(page)).run;
+  const paused1 = (await storageWhen(page, (s) => s.run && s.run.runningSince === null)).run;
   await sleep(2600);
   const paused2 = (await storage(page)).run;
   check('pausing stops the clock (runningSince = null)', paused1.runningSince === null && paused2.runningSince === null);
   check('no time accrues while paused', paused2.elapsedMs === paused1.elapsedMs, `${paused1.elapsedMs} → ${paused2.elapsedMs} ms`);
   const shownPaused = await page.locator('button[aria-label^="Resume timer"]').getAttribute('aria-label');
   await page.getByRole('button', { name: /resume episode/i }).click();
-  await sleep(1300);
-  const resumed = (await storage(page)).run;
+  const resumed = (await storageWhen(page, (s) => s.run && s.run.runningSince !== null)).run;
   check('resuming restarts the clock', resumed.runningSince !== null);
   check('timer label reflects paused state', /Resume timer/.test(shownPaused ?? ''));
 
   // 7. Refresh and recover
-  const before = await storage(page);
+  await page.locator('input[id^=note-]').count().then(async (n) => {
+    if (n) await page.locator('input[id^=note-]').fill('the oldest mailbox');
+  });
+  await page.locator('h2').first().click(); // blur commits the note
+  const before = await storageWhen(page, (s) => s.run && (Object.keys(s.run.notes).length === 0 || Object.values(s.run.notes).includes('the oldest mailbox') || !s.run.adventure.nodes.find((n) => n.id === s.run.nodeId)?.capture));
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForURL(/#\/play/);
   await page.getByRole('button', { name: /done — i did it/i }).waitFor();
@@ -217,7 +234,7 @@ async function journeySuite(browser, base) {
   // Save & exit → home shows resume card → resume
   await page.getByRole('button', { name: /save & exit/i }).click();
   await page.waitForURL((u) => !u.hash.includes('play'));
-  check('save & exit pauses the episode', (await storage(page)).run.runningSince === null);
+  check('save & exit pauses the episode', (await storageWhen(page, (s) => s.run && s.run.runningSince === null)).run.runningSince === null);
   check('home offers to resume the paused episode', await page.getByRole('button', { name: /resume episode/i }).isVisible());
   await page.getByRole('button', { name: /resume episode/i }).click();
   await page.waitForURL(/#\/play/);
@@ -231,7 +248,7 @@ async function journeySuite(browser, base) {
   await page.getByText('Plot twist', { exact: true }).first().waitFor();
   const finaleText = await page.locator('main').innerText();
   check('finale shows title, twist, ending and closing line', finaleText.includes(chosenTitle) && /Ending unlocked/i.test(finaleText));
-  const done = (await storage(page)).completed[0];
+  const done = (await storageWhen(page, (s) => s.completed.length === 1)).completed[0];
   check('completed episode recorded with ending, choices and award', done && done.endingId && done.steps.length === 3 && Object.values(done.award.points).some((v) => v > 0));
   check('alternative challenge recorded', done.steps.some((s) => s.usedAlternative));
   check('paused time excluded from the episode duration', done.elapsedMs < Date.now() - done.startedAt, `${Math.round(done.elapsedMs / 1000)}s played`);
@@ -289,8 +306,11 @@ async function journeySuite(browser, base) {
   await page.screenshot({ path: join(ART, 'j06-series.png'), fullPage: true });
   await tiles.first().click();
   await page.waitForURL(/#\/series\/.+/);
+  await page.locator('textarea[id^=journal-]').waitFor();
   const detail = await page.locator('main').innerText();
-  check('episode detail shows recap, choices, ending and journal', detail.includes(done.endingTitle) && /Your choices/i.test(detail) && (await page.locator('textarea[id^=journal-]').inputValue()).includes('second floor'));
+  const journal = await page.locator('textarea[id^=journal-]').inputValue();
+  check('episode detail shows ending and recap of choices', detail.includes(done.endingTitle) && /Your choices/i.test(detail), done.endingTitle);
+  check('journal entry persists to the episode detail', journal.includes('second floor'), JSON.stringify(journal));
   await page.screenshot({ path: join(ART, 'j07-detail.png'), fullPage: true });
 
   // Progress survives a full reload
@@ -318,11 +338,12 @@ async function aiSuite(browser, base, { expectFallback = false } = {}) {
   await page.locator('#ai-detail').fill('near a big park');
   await page.getByRole('button', { name: /give me a plot twist/i }).click();
   await page.waitForURL(/#\/envelopes/);
+  await page.locator('button.envelope').first().waitFor();
   const writing = page.locator('[aria-busy="true"]');
   check('third envelope shows the writing state', (await writing.count()) === 1);
   await page.screenshot({ path: join(ART, `${expectFallback ? 'f' : 'a'}01-writing.png`) });
   await page.waitForFunction(() => document.querySelectorAll('[aria-busy="true"]').length === 0, null, { timeout: 30_000 });
-  const s = await storage(page);
+  const s = await storageWhen(page, (st) => st.draw && st.draw.envelopes.every((e) => e.status !== 'writing'));
   const aiEnv = s.draw.envelopes[s.draw.envelopes.length - 1];
   if (!expectFallback) {
     check('AI envelope arrives sealed and validated', aiEnv.source === 'ai' && validateAdventure(aiEnv.adventure).ok && fitsPrefs(aiEnv.adventure, s.draw.prefs), aiEnv.adventure?.title);
@@ -334,7 +355,7 @@ async function aiSuite(browser, base, { expectFallback = false } = {}) {
     await page.waitForURL(/#\/play/);
     const ok = await playToEnd(page, { pick: (_i, n) => n - 1, notes: ['a bench with a plaque', 'pigeon treaty', 'a leaf from the treaty'] });
     check('AI episode plays through to its finale', ok);
-    const ep = (await storage(page)).completed[0];
+    const ep = (await storageWhen(page, (st) => st.completed.length === 1)).completed[0];
     check('AI episode is saved to the series', ep && ep.source === 'ai');
   } else {
     check('invalid AI output falls back to a curated episode', aiEnv.source === 'curated' && validateAdventure(aiEnv.adventure).ok, aiEnv.note ?? '');
@@ -377,7 +398,9 @@ async function layoutSuite(browser, base) {
   await page.locator('button.envelope').first().focus();
   await page.keyboard.press('Enter');
   await page.getByRole('dialog').waitFor();
-  const inDialog = await page.evaluate(() => Boolean(document.activeElement?.closest('[role=dialog]')));
+  const inDialog = await page
+    .waitForFunction(() => Boolean(document.activeElement?.closest('[role=dialog]')), null, { timeout: 2000 })
+    .then(() => true, () => false);
   check('opening an envelope moves focus into the dialog', inDialog);
   await page.keyboard.press('Escape');
   await sleep(200);
@@ -420,7 +443,7 @@ async function conflictSuite(browser, devBase) {
   await page.screenshot({ path: join(ART, 'c01-conflict.png'), fullPage: true });
   await page.goto(`${devBase}/?library=undercover-tourist#/`, { waitUntil: 'networkidle' });
   await page.getByText('15 min', { exact: true }).click();
-  await page.getByText('At home', { exact: true }).click();
+  await page.getByText('Outside', { exact: true }).click();
   await page.getByRole('button', { name: /give me a plot twist/i }).click();
   await page.waitForURL(/#\/envelopes/);
   const relax = page.locator('main button.chip');

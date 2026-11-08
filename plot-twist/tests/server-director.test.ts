@@ -195,3 +195,14 @@ describe('streaming title', () => {
 
 // type-only use to keep the import (AiEpisode) meaningful for readers
 export type _AiEpisode = AiEpisode;
+
+describe('safety screen precision', () => {
+  it('flags instructions, not mentions', async () => {
+    const { screenAdventure } = await import('../server/safety.ts');
+    const base = structuredClone(exemplar);
+    base.endings[0].twist = 'Plot twist: satellites have photographed every rooftop on Earth, but not your note.';
+    expect(screenAdventure(base)).toEqual([]);
+    base.nodes[1].action = 'Go up onto the roof of your building and wave at the city.';
+    expect(screenAdventure(base).join()).toMatch(/roof/);
+  });
+});
