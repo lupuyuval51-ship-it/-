@@ -12,7 +12,7 @@
  *   while the page is visible, so time away is detected after a refresh or
  *   when the tab was kept open in the background.
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import { DirectorError, fetchDirectorStatus, requestEpisode, type DirectorEvent, type DirectorStatus } from '../ai/client.ts';
 import { getCuratedAdventure, LIBRARY } from '../content/library.ts';
 import { matchAdventures } from '../engine/matching.ts';
@@ -33,7 +33,7 @@ import type { CompletedEpisode, MatchResult, Run } from '../engine/types.ts';
 import type { Adventure, Prefs } from '../../shared/types.ts';
 import { getBrowserStorage, loadState, sanitizeState, saveState, STORAGE_KEY } from './persistence.ts';
 import { dealCurated, samePrefs } from './deal.ts';
-import { mergeStates, readRaw, readSeen, storedStamp, writeSeen } from './sync.ts';
+import { clearGenBeat, mergeStates, ownedElsewhere, readGenBeat, readRaw, readSeen, restamp, storedStamp, writeGenBeat, writeSeen } from './sync.ts';
 import type { Draw, DrawEnvelope, LoadStatus, MotionPreference, PersistedState } from './types.ts';
 
 // ── ephemeral state ──────────────────────────────────────────────────
@@ -80,8 +80,10 @@ interface State {
   toasts: Toast[];
   /** The latest match result for the current draw (conflict + relaxations). */
   match: MatchResult | null;
-  /** Optional free-text detail for the AI Director (not persisted). */
+  /** Optional free-text detail for the AI Director (stored on the draw once used). */
   detail: string;
+  /** This browser has hit the AI Director's per-visitor limit: no AI envelopes until then. */
+  aiBlockedUntil: number;
 }
 
 type Action =
@@ -95,7 +97,8 @@ type Action =
   | { type: 'toast'; toast: Toast }
   | { type: 'dismissToast'; id: string }
   | { type: 'storage'; writable: boolean; issue: StorageIssue }
-  | { type: 'detail'; detail: string };
+  | { type: 'detail'; detail: string }
+  | { type: 'aiBlocked'; until: number };
 
 function generationReducer(g: Generation, e: DirectorEvent): Generation {
   if (e.type === 'phase') {
@@ -113,12 +116,30 @@ function generationReducer(g: Generation, e: DirectorEvent): Generation {
   return g;
 }
 
+/**
+ * While this browser is over the AI Director's per-visitor limit, the pill and
+ * the home copy must not promise an AI envelope, whatever the shared status says.
+ */
+function withClientLimit(status: DirectorStatus, blockedUntil: number, now: number): DirectorStatus {
+  if (now >= blockedUntil || !status.canGenerate) return status;
+  const minutes = Math.max(1, Math.ceil((blockedUntil - now) / 60_000));
+  return {
+    ...status,
+    state: 'rate_limited',
+    label: 'Busy',
+    detail: `You have asked the AI Director for a lot of episodes in a short time. It will write for you again in about ${minutes} minute${minutes === 1 ? '' : 's'}; until then all three envelopes come from the curated archive.`,
+    canGenerate: false,
+  };
+}
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'setPersisted':
       return state.p === action.p ? state : { ...state, p: action.p };
     case 'director':
-      return { ...state, director: action.status };
+      return { ...state, director: withClientLimit(action.status, state.aiBlockedUntil, Date.now()) };
+    case 'aiBlocked':
+      return { ...state, aiBlockedUntil: action.until, director: withClientLimit(state.director, action.until, Date.now()) };
     case 'generation':
       return { ...state, generation: action.generation };
     case 'retargetGeneration':
@@ -164,6 +185,16 @@ function historyOf(completed: readonly CompletedEpisode[]) {
 function isRunning(run: Run | null): run is Run {
   return Boolean(run && !isFinished(run) && run.runningSince !== null);
 }
+
+/** Only the tab that shows the episode counts as "seeing" it. */
+function onPlayRoute(): boolean {
+  return window.location.hash.startsWith('#/play');
+}
+
+/** Monotonic clock for tap guards (a wall-clock step backwards must not lock the buttons). */
+const monotonic = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+const TAB_ID = makeId('tab');
 
 /** The next episode number: one past the highest so far (robust to gaps and merges). */
 function nextEpisodeNumber(completed: readonly CompletedEpisode[]): number {
@@ -233,6 +264,7 @@ function bootState(): Boot {
       toasts: [],
       match: null,
       detail: '',
+      aiBlockedUntil: 0,
     },
     stamp,
     dirty: p !== loaded.state,
@@ -307,18 +339,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const gen = useRef<GenTarget | null>(null);
   /** No AI envelopes until then (server rate limit / busy). */
   const aiBlockedUntil = useRef(0);
+  /** In-memory "last seen" — the fallback when storage can't keep the seen key. */
+  const memSeen = useRef(0);
   /** The page is unloading: in-flight generation errors are not real failures. */
   const unloading = useRef(false);
-  const lastTransition = useRef(0);
+  const lastTransition = useRef(Number.NEGATIVE_INFINITY);
   /** Envelopes left "writing" by a previous page load wait for the first status check. */
   const pendingWriting = useRef(Boolean(state.p.draw?.envelopes.some((e) => e.status === 'writing')));
 
   const update = useCallback((fn: (p: PersistedState) => PersistedState) => {
-    const next = fn(latest.current);
-    if (next === latest.current) return;
+    const prev = latest.current;
+    const changed = fn(prev);
+    if (changed === prev) return;
+    const now = Date.now();
+    const next = restamp(prev, changed, now);
     latest.current = next;
     dirty.current = true;
-    changedAt.current = Date.now();
+    changedAt.current = now;
     dispatch({ type: 'setPersisted', p: next });
   }, []);
 
@@ -403,20 +440,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [adopt],
   );
 
-  /** Long-absence check for the running episode (refresh, background tab, sleep). */
-  const checkAbsence = useCallback(() => {
-    const run = latest.current.run;
-    if (!isRunning(run)) return;
-    const storage = getBrowserStorage();
-    const now = Date.now();
-    const seen = Math.max(run.lastSeenAt, readSeen(storage, run.id) ?? 0);
-    const { run: recovered, autoPaused } = recoverRun({ ...run, lastSeenAt: seen }, now);
-    if (autoPaused) {
-      update((p) => (p.run && p.run.id === run.id ? { ...p, run: recovered } : p));
-      toast(WELCOME_BACK);
-    }
-    writeSeen(storage, run.id, now);
-  }, [update, toast]);
+  /** Marks the running episode as seen now (only the visible play tab does this). */
+  const touchSeen = useCallback((runId: string, now: number) => {
+    memSeen.current = now;
+    writeSeen(getBrowserStorage(), runId, now);
+  }, []);
+
+  /**
+   * Long-absence check for the running episode (refresh, background tab, sleep).
+   * `touch`: this tab is showing the episode, so it also counts as "seen now".
+   */
+  const checkAbsence = useCallback(
+    (touch: boolean) => {
+      const run = latest.current.run;
+      if (!isRunning(run)) return;
+      const storage = getBrowserStorage();
+      const now = Date.now();
+      const seen = Math.max(run.lastSeenAt, readSeen(storage, run.id) ?? 0, memSeen.current);
+      const { run: recovered, autoPaused } = recoverRun({ ...run, lastSeenAt: seen }, now);
+      if (autoPaused) {
+        update((p) => (p.run && p.run.id === run.id ? { ...p, run: recovered } : p));
+        toast(WELCOME_BACK);
+      }
+      if (touch) touchSeen(run.id, now);
+    },
+    [update, toast, touchSeen],
+  );
 
   // Stable on purpose: inputs register once per mount, not on every store change.
   const registerDraft = useCallback((commit: () => void) => {
@@ -443,19 +492,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
         const run = latest.current.run;
-        if (isRunning(run)) writeSeen(getBrowserStorage(), run.id, Date.now());
+        if (isRunning(run) && onPlayRoute()) touchSeen(run.id, Date.now());
         commitDrafts();
         flush();
       } else {
         const raw = readRaw(getBrowserStorage());
         if (raw !== null) receive(raw);
-        checkAbsence();
+        checkAbsence(onPlayRoute());
       }
     };
     const onPageHide = () => {
       const run = latest.current.run;
-      // Only a page the user is looking at counts as "seen" at unload time.
-      if (isRunning(run) && document.visibilityState === 'visible') writeSeen(getBrowserStorage(), run.id, Date.now());
+      // Only a play screen the user is looking at counts as "seen" at unload time.
+      if (isRunning(run) && document.visibilityState === 'visible' && onPlayRoute()) touchSeen(run.id, Date.now());
       unloading.current = true;
       commitDrafts();
       flush();
@@ -465,7 +514,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!e.persisted) return;
       const raw = readRaw(getBrowserStorage());
       if (raw !== null) receive(raw);
-      checkAbsence();
+      checkAbsence(onPlayRoute());
     };
     window.addEventListener('storage', onStorage);
     window.addEventListener('pagehide', onPageHide);
@@ -477,29 +526,46 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('pageshow', onPageShow);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [receive, flush, checkAbsence, commitDrafts]);
+  }, [receive, flush, checkAbsence, commitDrafts, touchSeen]);
 
-  // "Last seen" heartbeat while an episode is running and visible. A long gap
+  // "Last seen" heartbeat while an episode is running and shown in a visible tab.
+  // Other tabs (Home, My Series, a second window) never keep it fresh. A long gap
   // between ticks (the device slept) is caught by the same absence check.
   const runningId = isRunning(state.p.run) ? state.p.run.id : null;
   useEffect(() => {
     if (!runningId) return;
     const tick = () => {
-      if (document.visibilityState === 'visible') checkAbsence();
+      if (document.visibilityState === 'visible' && onPlayRoute()) checkAbsence(true);
     };
     tick();
     const id = window.setInterval(tick, HEARTBEAT_MS);
-    return () => window.clearInterval(id);
+    window.addEventListener('hashchange', tick);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener('hashchange', tick);
+    };
   }, [runningId, checkAbsence]);
 
   // Startup notices go out after mount, so the live region already exists and announces them.
+  // (Cleared only when shown, so React StrictMode's remount in development still shows it.)
   useEffect(() => {
     const message = boot.current?.startupToast;
     if (!message) return;
-    boot.current!.startupToast = null;
-    const id = window.setTimeout(() => toast(message), 400);
+    const id = window.setTimeout(() => {
+      if (!boot.current?.startupToast) return;
+      boot.current.startupToast = null;
+      toast(message);
+    }, 400);
     return () => window.clearTimeout(id);
   }, [toast]);
+
+  // When the per-visitor AI pause ends, ask for a fresh status so the pill and copy recover.
+  useEffect(() => {
+    const wait = state.aiBlockedUntil - Date.now();
+    if (wait <= 0) return;
+    const id = window.setTimeout(() => refreshDirectorRef.current(false), wait + 500);
+    return () => window.clearTimeout(id);
+  }, [state.aiBlockedUntil]);
 
   // ── AI Director status ──
   const refreshDirector = useCallback((force = false) => {
@@ -509,6 +575,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       .catch(() => {});
     return ctl;
   }, []);
+  const refreshDirectorRef = useRef(refreshDirector);
+  refreshDirectorRef.current = refreshDirector;
   useEffect(() => {
     const ctl = refreshDirector();
     const id = window.setInterval(() => {
@@ -540,7 +608,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const others = draw.envelopes.filter((e) => e.slot !== slot && e.adventure).map((e) => e.adventure!);
       const recent = latest.current.completed.slice(-5).map((c) => c.title);
       dispatch({ type: 'generation', generation: { drawId: draw.id, slot, phase: 'plotting', progress: 0.02, title: null, startedAt: Date.now(), round: 1 } });
-      const detail = stateRef.current.detail.trim().slice(0, MAX_AI_DETAIL);
+      // The detail travels with the draw, so a retry after a reload still uses it.
+      const detail = (draw.detail ?? '').trim().slice(0, MAX_AI_DETAIL);
+
+      // Tell other tabs this envelope is being written here, so they don't start a duplicate.
+      const beat = () => writeGenBeat(getBrowserStorage(), { drawId: target.drawId, slot: target.slot, owner: TAB_ID, at: Date.now() });
+      beat();
+      const beatTimer = window.setInterval(beat, 3_000);
 
       // A reload while writing aborts the stream: that is not the AI failing, and
       // the envelope stays "writing" so the next load can ask again.
@@ -574,6 +648,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           if ((err as Error).name === 'AbortError' || ctl.signal.aborted || unloading.current) return;
           if (err instanceof DirectorError && (err.code === 'rate_limited' || err.code === 'busy' || err.code === 'too_many_streams')) {
             aiBlockedUntil.current = Date.now() + (err.retryAfterMs ?? (err.code === 'rate_limited' ? 60_000 : 20_000));
+            dispatch({ type: 'aiBlocked', until: aiBlockedUntil.current });
           }
           const reason = err instanceof DirectorError ? err.message : 'The AI Director could not finish.';
           const current = latest.current.draw;
@@ -588,6 +663,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         })
         .finally(() => {
           window.removeEventListener('beforeunload', onBeforeUnload);
+          window.clearInterval(beatTimer);
+          clearGenBeat(getBrowserStorage(), TAB_ID);
           if (gen.current === target) gen.current = null;
           dispatch({ type: 'endGeneration', drawId: target.drawId, slot: target.slot });
         });
@@ -597,29 +674,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => gen.current?.ctl.abort(), []);
 
-  // Envelopes a previous page load left "writing": ask again once we know the Director can write.
+  // Envelopes a previous page load left "writing": ask again once we know the Director can
+  // write — unless another open tab is still writing that envelope (then wait for its result).
+  const [writingCheck, setWritingCheck] = useState(0);
   useEffect(() => {
     if (!pendingWriting.current || state.director.state === 'checking') return;
-    pendingWriting.current = false;
     const draw = latest.current.draw;
     const env = draw?.envelopes.find((e) => e.status === 'writing');
-    if (!draw || !env) return;
+    if (!draw || !env || gen.current) {
+      pendingWriting.current = false;
+      return;
+    }
+    if (ownedElsewhere(readGenBeat(getBrowserStorage()), draw.id, env.slot, TAB_ID, Date.now())) {
+      const id = window.setTimeout(() => setWritingCheck((n) => n + 1), 5_000);
+      return () => window.clearTimeout(id);
+    }
+    pendingWriting.current = false;
     if (state.director.canGenerate) generate(draw, env.slot);
     else update((p) => settleWriting(p, 'The AI Director is offline right now.'));
-  }, [state.director, generate, update]);
+  }, [state.director, generate, update, writingCheck]);
 
   // ── draws ──
   const makeDraw = useCallback(
     (prefs: Prefs, previous: Draw | null) => {
       const s = stateRef.current;
       const aiOn = s.director.canGenerate && Date.now() >= aiBlockedUntil.current;
+      const detail = s.detail.trim().slice(0, MAX_AI_DETAIL);
       const current = latest.current.draw;
-      // An AI envelope that is still being written survives a re-deal with the same prefs.
+      // A personalized envelope survives a re-deal with the same prefs and detail: one still
+      // being written (no second paid request), or one written but not opened yet.
       const g = gen.current;
-      const carry =
-        g && current && g.drawId === current.id && samePrefs(current.prefs, prefs)
+      const sameAsk = Boolean(current && samePrefs(current.prefs, prefs) && (current.detail ?? '') === detail);
+      const carry = !sameAsk
+        ? null
+        : g && current && g.drawId === current.id
           ? current.envelopes.find((e) => e.slot === g.slot && e.status === 'writing') ?? null
-          : null;
+          : (current?.envelopes.find((e) => e.source === 'ai' && e.status === 'ready' && e.adventure && !e.opened) ?? null);
       const withAi = aiOn || carry !== null;
       const count = withAi ? 2 : 3;
       const seed = previous ? previous.seed + 1 : hashSeed('draw', Date.now(), latest.current.completed.length);
@@ -629,8 +719,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (carry) envelopes.push({ ...carry, slot: aiSlot });
       else if (aiOn) envelopes.push({ slot: aiSlot, status: 'writing', source: 'ai', adventure: null, opened: false, note: 'Written for you' });
       const draw: Draw = { id: makeId('draw'), createdAt: Date.now(), prefs, seed, envelopes, shownIds };
+      if (detail && (aiOn || carry)) draw.detail = detail;
       dispatch({ type: 'match', match });
-      if (carry && g) {
+      if (carry && g && carry.status === 'writing') {
         g.drawId = draw.id;
         g.slot = aiSlot;
         dispatch({ type: 'retargetGeneration', drawId: draw.id, slot: aiSlot });
@@ -657,9 +748,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return episode;
     };
 
-    /** Double-tap guard: the second tap of a double tap must not hit the next stage. */
+    /**
+     * Double-tap guard: the second tap of a double tap (on Done, an option or Resume)
+     * must not land on whatever appears under the finger next.
+     */
     const transitionAllowed = () => {
-      const now = Date.now();
+      const now = monotonic();
       if (now - lastTransition.current < TRANSITION_GUARD_MS) return false;
       lastTransition.current = now;
       return true;
@@ -694,13 +788,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         gen.current = null;
         dispatch({ type: 'generation', generation: null });
         const run = startRun(adventure, p.draw.prefs, nextEpisodeNumber(p.completed), Date.now(), makeId('run'));
-        lastTransition.current = Date.now();
+        lastTransition.current = monotonic();
         update((p) => ({ ...p, run, draw: null }));
         return run;
       },
       abandonRun: () => update((p) => ({ ...p, run: null })),
       pause: () => withRun((run, now) => pauseRun(run, now)),
-      resume: () => withRun((run, now) => resumeRun(run, now)),
+      resume: () => {
+        lastTransition.current = monotonic();
+        withRun((run, now) => resumeRun(run, now));
+      },
       toggleAlternative: () => withRun((run) => engineToggleAlt(run)),
       setNote: (key, value) => withRun((run) => engineSetNote(run, key, value)),
       completeStage: () => {
@@ -737,7 +834,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         gen.current?.ctl.abort();
         gen.current = null;
         dispatch({ type: 'generation', generation: null });
-        update((p) => ({ ...p, draw: null, run: null, completed: [], series: { name: null, namePromptDone: false } }));
+        update((p) => ({ ...p, draw: null, run: null, completed: [], series: { name: null, namePromptDone: false }, resetAt: Date.now() }));
         dispatch({ type: 'match', match: null });
       },
       refreshDirector: () => refreshDirector(true),

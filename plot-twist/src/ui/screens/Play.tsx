@@ -142,7 +142,7 @@ function useArrival(ref: React.RefObject<HTMLElement | null>, key: string, scrol
   }, [key]);
 }
 
-function StageCard({ run, node, scrollOnArrive }: { run: Run; node: StageNode; scrollOnArrive: boolean }) {
+function StageCard({ run, node, scrollOnArrive, armKey }: { run: Run; node: StageNode; scrollOnArrive: boolean; armKey: string }) {
   const { setNote, toggleAlternative, completeStage, registerDraft } = useStore();
   const adventure = run.adventure;
   const r = (t: string) => typographic(renderTemplate(t, run.notes));
@@ -151,7 +151,7 @@ function StageCard({ run, node, scrollOnArrive }: { run: Run; node: StageNode; s
   const [draft, setDraft] = useState(capture ? run.notes[capture.key] ?? '' : '');
   const finish = useFinish();
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const armed = useArmed(node.id);
+  const armed = useArmed(armKey);
   const pausedAtArrival = useRef(isPaused(run));
   useArrival(headingRef, node.id, scrollOnArrive, !pausedAtArrival.current);
 
@@ -252,11 +252,11 @@ function useFinish() {
   return (episodeId: string) => navigate({ name: 'finale', episodeId }, { replace: true });
 }
 
-function ChoicePanel({ run, node, scrollOnArrive }: { run: Run; node: StageNode; scrollOnArrive: boolean }) {
+function ChoicePanel({ run, node, scrollOnArrive, armKey }: { run: Run; node: StageNode; scrollOnArrive: boolean; armKey: string }) {
   const { choose } = useStore();
   const finish = useFinish();
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const armed = useArmed(`choice-${node.id}`);
+  const armed = useArmed(`choice-${armKey}`);
   const pausedAtArrival = useRef(isPaused(run));
   useArrival(headingRef, node.id, scrollOnArrive, !pausedAtArrival.current);
   if (!node.choice) return null;
@@ -341,11 +341,12 @@ function PausedOverlay({ run, onResume, onExit }: { run: Run; onResume: () => vo
 }
 
 export function Play() {
-  const { state, pause, resume, saveAndExit } = useStore();
+  const { state, pause, resume, saveAndExit, toast } = useStore();
   const run = state.p.run;
   const lastRunId = useRef<string | null>(run?.id ?? null);
   if (run) lastRunId.current = run.id;
   const firstNodeKey = useRef<string | null>(run ? `${run.nodeId}:${run.phase}` : null);
+  const hadRun = useRef(Boolean(run));
 
   // No run: a deep link, or another tab finished or discarded it. (Finishing here
   // navigates to the finale itself, to the same place.)
@@ -353,8 +354,20 @@ export function Play() {
     if (run) return;
     const id = lastRunId.current;
     const done = id ? state.p.completed.find((c) => c.id === id) : undefined;
+    if (!done && hadRun.current) toast('This episode was discarded in another tab.');
     navigate(done ? { name: 'finale', episodeId: done.id } : { name: 'scene' }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, state.p.completed]);
+
+  // Coming back from a pause re-arms the stage, so the second tap of a double tap on
+  // "Resume episode" can't land on the option or button underneath it.
+  const paused = run ? isPaused(run) : false;
+  const [armEpoch, setArmEpoch] = useState(0);
+  const wasPaused = useRef(paused);
+  useEffect(() => {
+    if (wasPaused.current && !paused) setArmEpoch((n) => n + 1);
+    wasPaused.current = paused;
+  }, [paused]);
 
   if (!run || isFinished(run)) return null;
 
@@ -362,7 +375,6 @@ export function Play() {
   const node = currentNode(run);
   if (!node) return null;
   const palette = PALETTES[adventure.palette];
-  const paused = isPaused(run);
   // Each episode tints the play screen with its own palette, kept readable on ink.
   const tint = { '--ep-accent': uiAccent(palette.accent), '--ep-ink': '#0b0a09' } as React.CSSProperties;
   const nodeKey = `${node.id}:${run.phase}`;
@@ -404,9 +416,9 @@ export function Play() {
         <History run={run} adventure={adventure} />
 
         {run.phase === 'choice' ? (
-          <ChoicePanel key={`choice-${node.id}`} run={run} node={node} scrollOnArrive={scrollOnArrive} />
+          <ChoicePanel key={`choice-${node.id}`} run={run} node={node} scrollOnArrive={scrollOnArrive} armKey={`${node.id}:${armEpoch}`} />
         ) : (
-          <StageCard key={node.id} run={run} node={node} scrollOnArrive={scrollOnArrive} />
+          <StageCard key={node.id} run={run} node={node} scrollOnArrive={scrollOnArrive} armKey={`${node.id}:${armEpoch}`} />
         )}
       </div>
 

@@ -314,10 +314,13 @@ async function journeySuite(browser, base) {
   // 10. Reopen in My Series
   await page.getByRole('button', { name: /see my series/i }).click();
   await page.waitForURL(/#\/series$/);
-  await page.getByText('The Tuesday Files').first().waitFor();
+  // (The "Series named …" toast also contains the name — wait for the page heading itself.)
+  await page.locator('main h1', { hasText: 'The Tuesday Files' }).waitFor();
   check('My Series shows the named series', true);
   const tiles = page.locator('a[href^="#/series/"]');
-  check('gallery shows the completed poster', (await tiles.count()) === 1);
+  await tiles.first().waitFor({ timeout: 5000 }).catch(() => {});
+  const tileCount = await tiles.count();
+  check('gallery shows the completed poster', tileCount === 1, `${tileCount} tile(s), ${(await storage(page)).completed.length} stored`);
   await page.screenshot({ path: join(ART, 'j06-series.png'), fullPage: true });
   await tiles.first().click();
   await page.waitForURL(/#\/series\/.+/);
@@ -387,6 +390,23 @@ async function aiSuite(browser, base, { expectFallback = false } = {}) {
   await ctx.close();
 
   if (!expectFallback) {
+    // While the AI envelope is being written, the archive count must not read as "only 2 fit".
+    const c3 = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const p3 = await c3.newPage();
+    await p3.goto(base, { waitUntil: 'networkidle' });
+    await p3.evaluate(() => localStorage.clear());
+    await p3.reload({ waitUntil: 'networkidle' });
+    await p3.waitForFunction(() => /AI Director: Online/.test(document.querySelector('header button[aria-label*="AI Director:"]')?.getAttribute('aria-label') || ''), null, { timeout: 10_000 });
+    await p3.getByText('15 min', { exact: true }).click();
+    await p3.getByText('At home', { exact: true }).click();
+    await p3.getByRole('button', { name: /give me a plot twist/i }).click();
+    await p3.waitForURL(/#\/envelopes/);
+    await p3.locator('[data-writing="true"]').waitFor({ timeout: 5000 }).catch(() => {});
+    const writingNow = (await p3.locator('[data-writing="true"]').count()) === 1;
+    const misleading = /fit everything/i.test(await p3.locator('main').innerText()) && (await p3.locator('main button.chip').count()) > 0;
+    check('while the AI writes, no "only N fit" note with chips that would discard it', writingNow && !misleading, writingNow ? '' : 'writing state already over');
+    await c3.close();
+
     // The header must fit at 320px with the longest live status labels too.
     const small = await browser.newContext({ viewport: { width: 320, height: 640 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
     const p2 = await small.newPage();
@@ -558,6 +578,14 @@ async function resilienceSuite(browser, base) {
     await page.reload({ waitUntil: 'networkidle' });
     await startFirstEpisode(page);
     await page.getByRole('button', { name: /done — i did it/i }).click();
+    // At the fork: pause, then double tap "Resume episode" — the 2nd tap must not pick an option.
+    await page.locator('section[aria-labelledby=choice-title] button').first().waitFor();
+    await sleep(600);
+    await page.getByRole('button', { name: /pause timer/i }).click();
+    await page.getByRole('button', { name: /resume episode/i }).dblclick();
+    await sleep(700);
+    const afterResume = await storage(page);
+    check('a double tap on Resume at the fork makes no blind choice', afterResume.run && afterResume.run.phase === 'choice' && afterResume.run.steps.length === 1 && !afterResume.run.steps[0].optionId);
     await page.locator('section[aria-labelledby=choice-title] button').first().click();
     await page.getByRole('button', { name: /done — i did it/i }).waitFor();
     const noteInput = page.locator('input[id^=note-]');
@@ -595,6 +623,28 @@ async function resilienceSuite(browser, base) {
     const minutes = st.run.elapsedMs / 60_000;
     check('time away is capped, not credited in full', minutes <= 61 && minutes >= 1, `${minutes.toFixed(1)} min credited`);
     await page.screenshot({ path: join(ART, 'r01-welcome-back.png') });
+    await ctx.close();
+  }
+
+  // D. Browsing My Series in a second tab while the play tab is in the background is not play time.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    await ctx.clock.install({ time: new Date('2026-11-08T10:00:00') });
+    const play = await ctx.newPage();
+    await play.goto(base, { waitUntil: 'networkidle' });
+    await play.evaluate(() => localStorage.clear());
+    await play.reload({ waitUntil: 'networkidle' });
+    await startFirstEpisode(play);
+    const other = await ctx.newPage();
+    await other.goto(`${base}#/series`, { waitUntil: 'networkidle' });
+    await ctx.clock.fastForward(5_000);
+    await setVisibility(play, 'hidden');
+    await ctx.clock.fastForward('03:00:00');
+    await setVisibility(play, 'visible');
+    await play.getByText(/welcome back — we paused the clock/i).waitFor({ timeout: 5000 }).then(
+      () => check('a second open tab does not count as watching the episode', true),
+      () => check('a second open tab does not count as watching the episode', false),
+    );
     await ctx.close();
   }
 }

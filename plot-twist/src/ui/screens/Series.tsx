@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { PALETTES, TRAITS } from '../../../shared/constants.ts';
 import { levelFor, seriesStats, totalTraits } from '../../engine/progression.ts';
 import type { CompletedEpisode } from '../../engine/types.ts';
@@ -12,7 +12,7 @@ import { IconArrowLeft, IconEnvelope, IconPencil } from '../icons.tsx';
 import { navigate } from '../router.ts';
 import { typographic } from '../../../shared/template.ts';
 import { uiAccent } from '../color.ts';
-import { JournalField, Recap, twistBody } from './Finale.tsx';
+import { JournalField, Recap, twistBody, useEpisodeGone } from './Finale.tsx';
 import { getCuratedAdventure } from '../../content/library.ts';
 
 function SeriesTitle() {
@@ -236,12 +236,9 @@ export function Series() {
 }
 
 export function EpisodeDetail({ episodeId }: { episodeId: string }) {
-  const { state } = useStore();
+  const { state, toast } = useStore();
   const episode = state.p.completed.find((c) => c.id === episodeId);
-  useEffect(() => {
-    if (!episode) navigate({ name: 'series' }, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEpisodeGone(Boolean(episode), toast);
   if (!episode) return null;
   const accent = uiAccent(PALETTES[episode.palette].accent);
   const date = new Date(episode.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });

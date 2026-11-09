@@ -11,11 +11,16 @@
  * The "last seen" heartbeat for an active run lives under its own small key so
  * that keeping it fresh never rewrites (or races) the main state.
  */
-import type { CompletedEpisode } from '../engine/types.ts';
+import type { CompletedEpisode, Run } from '../engine/types.ts';
 import { STORAGE_KEY } from './persistence.ts';
-import type { PersistedState, StorageLike } from './types.ts';
+import { SECTIONS } from './types.ts';
+import type { Draw, DrawEnvelope, PersistedState, Section, SectionStamps, StorageLike } from './types.ts';
 
 export const SEEN_KEY = `${STORAGE_KEY}:seen`;
+/** Heartbeat of the tab that is writing an AI envelope, so other tabs don't start a duplicate. */
+export const GEN_KEY = `${STORAGE_KEY}:gen`;
+/** A generation beat older than this means its tab is gone. */
+export const GEN_BEAT_STALE_MS = 9_000;
 
 /** Stored `updatedAt` of the main state, or null when there is none / it is unreadable. */
 export function storedStamp(raw: string | null): number | null {
@@ -54,25 +59,86 @@ export function mergeCompleted(ours: readonly CompletedEpisode[], theirs: readon
   return merged.map((e, i) => (e.episodeNumber === i + 1 ? e : { ...e, episodeNumber: i + 1 }));
 }
 
+/** A section's change time. Data saved before stamps existed falls back to a whole-state time. */
+function stampOf(state: PersistedState, section: Section, fallback: number): number {
+  return state.stamps ? (state.stamps[section] ?? 0) : fallback;
+}
+
+/** For the same run in two tabs, the copy that got further wins (finished > more steps). */
+function furtherRun(a: Run, b: Run, preferA: boolean): Run {
+  const score = (r: Run) => (r.finishedAt !== null ? 1000 : 0) + r.steps.length * 10 + (r.phase === 'choice' ? 1 : 0);
+  const sa = score(a);
+  const sb = score(b);
+  if (sa !== sb) return sa > sb ? a : b;
+  return preferA ? a : b;
+}
+
+/** For the same draw in two tabs: an envelope never goes from written back to "writing", and opened stays opened. */
+function mergeDraw(preferred: Draw, other: Draw): Draw {
+  const envelopes = preferred.envelopes.map((env) => {
+    const twin = other.envelopes.find((e) => e.slot === env.slot);
+    if (!twin) return env;
+    const base: DrawEnvelope = env.status === 'writing' && twin.status !== 'writing' ? twin : env;
+    return base.opened || !twin.opened || base.adventure?.id !== twin.adventure?.id ? base : { ...base, opened: true };
+  });
+  return { ...preferred, envelopes, shownIds: Array.from(new Set([...preferred.shownIds, ...other.shownIds])) };
+}
+
 /**
  * Merges this tab's unsaved state with a newer copy written by another tab.
- * `oursChangedAt` is when this tab last changed something; the stored copy's
- * `updatedAt` is when the other tab wrote. Completed episodes are a union (an
- * episode is never lost); every other section comes from whichever side changed
- * last. A run that the other side already finished is dropped.
+ * Each section comes from whichever side changed it last (per-section stamps;
+ * for data saved before stamps existed, this tab's last change time
+ * `oursChangedAt` against the other tab's write time). Completed episodes are a
+ * union — an episode is never lost — except across a "Reset all" (`resetAt`).
+ * The same run or draw in both tabs never moves backwards.
  */
-export function mergeStates(ours: PersistedState, theirs: PersistedState, oursChangedAt: number): PersistedState {
-  const oursNewer = oursChangedAt >= theirs.updatedAt;
-  const base = oursNewer ? ours : theirs;
-  const completed = mergeCompleted(ours.completed, theirs.completed, oursNewer);
+export function mergeStates(ours: PersistedState, theirs: PersistedState, oursChangedAt = 0): PersistedState {
+  const newer = (section: Section) => stampOf(ours, section, oursChangedAt) >= stampOf(theirs, section, theirs.updatedAt);
+  const resetAt = Math.max(ours.resetAt ?? 0, theirs.resetAt ?? 0);
+
+  const completed = mergeCompleted(ours.completed, theirs.completed, newer('completed')).filter((c) => c.completedAt >= resetAt);
   const finishedIds = new Set(completed.map((c) => c.id));
-  const run = base.run && finishedIds.has(base.run.id) ? null : base.run;
-  return {
-    ...base,
-    completed,
+
+  let run = newer('run') ? ours.run : theirs.run;
+  if (ours.run && theirs.run && ours.run.id === theirs.run.id) run = furtherRun(ours.run, theirs.run, newer('run'));
+  if (run && (finishedIds.has(run.id) || run.startedAt < resetAt)) run = null;
+
+  let draw = newer('draw') ? ours.draw : theirs.draw;
+  if (draw && ours.draw && theirs.draw && ours.draw.id === theirs.draw.id) draw = mergeDraw(draw, draw === ours.draw ? theirs.draw : ours.draw);
+  if (draw && draw.createdAt < resetAt) draw = null;
+
+  const stamps: SectionStamps = {};
+  for (const section of SECTIONS) {
+    const t = Math.max(ours.stamps?.[section] ?? 0, theirs.stamps?.[section] ?? 0);
+    if (t) stamps[section] = t;
+  }
+
+  const merged: PersistedState = {
+    ...ours,
+    prefs: newer('prefs') ? ours.prefs : theirs.prefs,
+    draw,
     run,
+    completed,
+    series: newer('series') ? ours.series : theirs.series,
+    settings: newer('settings') ? ours.settings : theirs.settings,
     updatedAt: Math.max(ours.updatedAt, theirs.updatedAt),
+    stamps,
   };
+  if (resetAt) merged.resetAt = resetAt;
+  else delete merged.resetAt;
+  return merged;
+}
+
+/** Section stamps after a local change: every section whose object changed gets `now`. */
+export function restamp(prev: PersistedState, next: PersistedState, now: number): PersistedState {
+  let stamps: SectionStamps | null = null;
+  for (const section of SECTIONS) {
+    if (next[section] !== prev[section]) {
+      stamps ??= { ...(prev.stamps ?? {}) };
+      stamps[section] = now;
+    }
+  }
+  return stamps ? { ...next, stamps } : next;
 }
 
 // ── last seen (absence detection for the active run) ─────────────────
@@ -95,4 +161,49 @@ export function writeSeen(storage: StorageLike | null, runId: string, at: number
   } catch {
     // Best effort: the run's own lastSeenAt is the fallback.
   }
+}
+
+// ── who is writing the AI envelope ───────────────────────────────────
+
+export interface GenBeat {
+  drawId: string;
+  slot: number;
+  owner: string;
+  at: number;
+}
+
+export function readGenBeat(storage: StorageLike | null): GenBeat | null {
+  const raw = readRaw(storage, GEN_KEY);
+  if (!raw) return null;
+  try {
+    const b = JSON.parse(raw) as Partial<GenBeat>;
+    return typeof b.drawId === 'string' && typeof b.slot === 'number' && typeof b.owner === 'string' && typeof b.at === 'number' && Number.isFinite(b.at)
+      ? { drawId: b.drawId, slot: b.slot, owner: b.owner, at: b.at }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeGenBeat(storage: StorageLike | null, beat: GenBeat): void {
+  if (!storage) return;
+  try {
+    storage.setItem(GEN_KEY, JSON.stringify(beat));
+  } catch {
+    // Best effort.
+  }
+}
+
+export function clearGenBeat(storage: StorageLike | null, owner: string): void {
+  if (!storage) return;
+  try {
+    if (readGenBeat(storage)?.owner === owner) storage.removeItem(GEN_KEY);
+  } catch {
+    // Best effort.
+  }
+}
+
+/** True when another, still-alive tab is writing this envelope. */
+export function ownedElsewhere(beat: GenBeat | null, drawId: string, slot: number, self: string, now: number): boolean {
+  return Boolean(beat && beat.owner !== self && beat.drawId === drawId && beat.slot === slot && now - beat.at < GEN_BEAT_STALE_MS);
 }

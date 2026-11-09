@@ -155,6 +155,23 @@ function SeriesNamer({ episode, onDone }: { episode: CompletedEpisode; onDone: (
   );
 }
 
+/**
+ * Leaves the screen when its episode is missing: a stale deep link (silently), or an
+ * episode removed in another tab while this one shows it (with a short note).
+ */
+export function useEpisodeGone(present: boolean, toast: (message: string) => void) {
+  const wasPresent = useRef(present);
+  useEffect(() => {
+    if (present) {
+      wasPresent.current = true;
+      return;
+    }
+    if (wasPresent.current) toast('This episode was removed in another tab.');
+    navigate({ name: 'series' }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [present]);
+}
+
 /** The stamp already says "Plot twist" — don't print it twice. */
 export function twistBody(twist: string): string {
   const body = twist.replace(/^\s*plot twist\s*[:!.\u2014\u2013-]*\s*/i, '');
@@ -211,11 +228,7 @@ export function Finale({ episodeId }: { episodeId: string }) {
   const episode = state.p.completed.find((c) => c.id === episodeId);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const earnedRef = useRef<HTMLHeadingElement>(null);
-
-  useEffect(() => {
-    if (!episode) navigate({ name: 'series' }, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEpisodeGone(Boolean(episode), toast);
   useEffect(() => {
     titleRef.current?.focus();
   }, []);

@@ -7,7 +7,7 @@ import { chooseOption, completeEpisode, completeStage, setNote, startRun } from 
 import type { CompletedEpisode, Run } from '../src/engine/types.ts';
 import { dealCurated } from '../src/state/deal.ts';
 import { defaultState } from '../src/state/persistence.ts';
-import { mergeCompleted, mergeStates, readSeen, SEEN_KEY, storedStamp, writeSeen } from '../src/state/sync.ts';
+import { GEN_BEAT_STALE_MS, mergeCompleted, mergeStates, ownedElsewhere, readSeen, restamp, SEEN_KEY, storedStamp, writeSeen } from '../src/state/sync.ts';
 import type { Draw, PersistedState, StorageLike } from '../src/state/types.ts';
 
 const MIN = 60_000;
@@ -99,6 +99,73 @@ describe('mergeStates', () => {
     const merged = mergeStates(ours, theirs, T0 + 11 * MIN);
     expect(merged.run).toBeNull();
     expect(merged.completed).toHaveLength(1);
+  });
+});
+
+describe('mergeStates with section stamps', () => {
+  it('keeps the newest edit of each section, even when the two tabs touched different sections', () => {
+    // Tab A changed Motion at t+1s; tab B changed the time chip at t+1.1s (and wrote first).
+    const theirs = state({ prefs: { ...PREFS, minutes: 120 }, stamps: { prefs: T0 + 1_100 }, updatedAt: T0 + 1_250 });
+    const ours = state({ settings: { motion: 'reduce' }, stamps: { settings: T0 + 1_000 }, updatedAt: T0 });
+    const merged = mergeStates(ours, theirs);
+    expect(merged.prefs.minutes).toBe(120);
+    expect(merged.settings.motion).toBe('reduce');
+    expect(merged.stamps).toEqual({ prefs: T0 + 1_100, settings: T0 + 1_000 });
+  });
+
+  it('never moves the same run backwards (the copy that got further wins)', () => {
+    const start = startRun(exemplar, PREFS, 1, T0, 'run-a');
+    const further = completeStage(start, T0 + 5 * MIN);
+    const theirs = state({ run: further, stamps: { run: T0 + 5 * MIN }, updatedAt: T0 + 5 * MIN });
+    // This tab touched the run later (e.g. toggled the alternative) but on the older copy.
+    const ours = state({ run: { ...start, usingAlternative: true }, stamps: { run: T0 + 6 * MIN }, updatedAt: T0 });
+    expect(mergeStates(ours, theirs).run?.steps).toHaveLength(1);
+  });
+
+  it('never turns a written envelope back into "writing" for the same draw', () => {
+    const base = {
+      id: 'draw-1',
+      createdAt: T0,
+      prefs: PREFS,
+      seed: 1,
+      shownIds: [],
+    };
+    const writing: Draw = { ...base, envelopes: [{ slot: 0, status: 'writing', source: 'ai', adventure: null, opened: false }] };
+    const written: Draw = { ...base, envelopes: [{ slot: 0, status: 'ready', source: 'ai', adventure: exemplar, opened: false }] };
+    const ours = state({ draw: writing, stamps: { draw: T0 + 2_000 }, updatedAt: T0 });
+    const theirs = state({ draw: written, stamps: { draw: T0 + 1_000 }, updatedAt: T0 + 1_000 });
+    expect(mergeStates(ours, theirs).draw?.envelopes[0].status).toBe('ready');
+  });
+
+  it('a reset in one tab is not undone by a stale tab’s edit', () => {
+    const old = episode('run-a', 1, T0 + 1 * MIN);
+    const stale = state({ completed: [old], prefs: { ...PREFS, minutes: 60 }, stamps: { prefs: T0 + 10 * MIN, completed: T0 + 1 * MIN }, updatedAt: T0 + 1 * MIN });
+    const reset = state({ completed: [], resetAt: T0 + 9 * MIN, stamps: { completed: T0 + 9 * MIN }, updatedAt: T0 + 9 * MIN });
+    const merged = mergeStates(stale, reset);
+    expect(merged.completed).toEqual([]);
+    expect(merged.resetAt).toBe(T0 + 9 * MIN);
+    expect(merged.prefs.minutes).toBe(60);
+    // Episodes finished after the reset are kept.
+    const fresh = episode('run-b', 1, T0 + 12 * MIN);
+    expect(mergeStates(state({ completed: [fresh] }), reset).completed.map((c) => c.id)).toEqual(['run-b']);
+  });
+
+  it('restamp marks exactly the sections whose objects changed', () => {
+    const prev = state({ stamps: { run: 5 } });
+    const next = restamp(prev, { ...prev, prefs: { ...prev.prefs, minutes: 15 } }, 99);
+    expect(next.stamps).toEqual({ run: 5, prefs: 99 });
+    expect(restamp(prev, prev, 99)).toBe(prev);
+  });
+});
+
+describe('AI envelope ownership beat', () => {
+  it('tells a new tab to wait while another tab is still writing the same envelope', () => {
+    const beat = { drawId: 'd1', slot: 2, owner: 'tab-a', at: T0 };
+    expect(ownedElsewhere(beat, 'd1', 2, 'tab-b', T0 + 2_000)).toBe(true);
+    expect(ownedElsewhere(beat, 'd1', 2, 'tab-a', T0 + 2_000)).toBe(false);
+    expect(ownedElsewhere(beat, 'd2', 2, 'tab-b', T0 + 2_000)).toBe(false);
+    expect(ownedElsewhere(beat, 'd1', 2, 'tab-b', T0 + GEN_BEAT_STALE_MS + 1)).toBe(false);
+    expect(ownedElsewhere(null, 'd1', 2, 'tab-b', T0)).toBe(false);
   });
 });
 

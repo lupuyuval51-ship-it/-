@@ -22,6 +22,7 @@ import { validateAdventure } from '../../shared/validate.ts';
 import { emptyTraits } from '../engine/progression.ts';
 import { hashSeed } from '../engine/random.ts';
 import type { Award, AwardLine, CompletedEpisode, PathStepSummary, Run, StepRecord } from '../engine/types.ts';
+import { SECTIONS } from './types.ts';
 import type {
   Draw,
   DrawEnvelope,
@@ -30,6 +31,7 @@ import type {
   MotionPreference,
   PersistedState,
   SaveResult,
+  SectionStamps,
   StorageLike,
 } from './types.ts';
 
@@ -38,6 +40,7 @@ export const STORAGE_KEY = 'plot-twist:v1';
 export const CORRUPT_BACKUP_KEY = 'plot-twist:corrupt';
 
 const MAX_SERIES_NAME_LENGTH = 120;
+const MAX_DETAIL_LENGTH = 140;
 /** Same shape as capture keys; also keeps keys like "__proto__" out of note maps. */
 const NOTE_KEY = /^[a-z0-9][a-z0-9-]{0,31}$/;
 
@@ -242,7 +245,7 @@ function sanitizeDraw(raw: unknown, fallbackPrefs: Prefs, now: number, r: Repair
   const shownIds = Array.isArray(raw.shownIds)
     ? raw.shownIds.filter((id): id is string => (typeof id === 'string' ? true : fixed(r, false)))
     : fixed(r, []);
-  return {
+  const draw: Draw = {
     id: raw.id,
     createdAt: isFiniteNumber(raw.createdAt) ? raw.createdAt : fixed(r, now),
     prefs: sanitizePrefs(raw.prefs, fallbackPrefs, r),
@@ -250,6 +253,12 @@ function sanitizeDraw(raw: unknown, fallbackPrefs: Prefs, now: number, r: Repair
     envelopes,
     shownIds,
   };
+  if (typeof raw.detail === 'string') {
+    const detail = raw.detail.slice(0, MAX_DETAIL_LENGTH);
+    if (detail !== raw.detail) r.repaired = true;
+    if (detail.trim()) draw.detail = detail;
+  } else if (raw.detail !== undefined) r.repaired = true;
+  return draw;
 }
 
 // run
@@ -456,6 +465,18 @@ function sanitizeSeries(raw: unknown, r: Repairs): PersistedState['series'] {
 
 const MOTION_PREFERENCES: readonly MotionPreference[] = ['system', 'reduce', 'full'];
 
+function sanitizeStamps(raw: unknown, r: Repairs): SectionStamps | undefined {
+  if (raw === undefined) return undefined;
+  if (!isObj(raw)) return fixed(r, undefined);
+  const stamps: SectionStamps = {};
+  for (const key of SECTIONS) {
+    const value = raw[key];
+    if (isFiniteNumber(value) && value >= 0) stamps[key] = value;
+    else if (value !== undefined) r.repaired = true;
+  }
+  return stamps;
+}
+
 function sanitizeSettings(raw: unknown, r: Repairs): PersistedState['settings'] {
   if (!isObj(raw)) return fixed(r, { motion: 'system' });
   return { motion: isOneOf(raw.motion, MOTION_PREFERENCES) ? raw.motion : fixed(r, 'system') };
@@ -481,6 +502,10 @@ export function sanitizeState(raw: unknown, now: number = Date.now()): { state: 
       settings: attempt(r, { motion: 'system' as const }, () => sanitizeSettings(raw.settings, r)),
       updatedAt: isFiniteNumber(raw.updatedAt) ? raw.updatedAt : fixed(r, now),
     };
+    const stamps = attempt(r, undefined, () => sanitizeStamps(raw.stamps, r));
+    if (stamps) state.stamps = stamps;
+    if (isFiniteNumber(raw.resetAt) && raw.resetAt > 0) state.resetAt = raw.resetAt;
+    else if (raw.resetAt !== undefined) r.repaired = true;
     return { state, repaired: r.repaired };
   } catch {
     return { state: defaultState(now), repaired: true };

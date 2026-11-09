@@ -170,12 +170,15 @@ export function Envelopes() {
   const writing = draw.envelopes.some((e) => e.status === 'writing');
   const conflict = curatedCount === 0 && !writing && ready.length === 0 ? describeConflict(LIBRARY, draw.prefs) : null;
   const validCount = filterValid(LIBRARY, draw.prefs).length;
-  // Everything that fits is already on the table → say so, and offer the one-step relaxations.
+  const dealt = draw.envelopes.length;
+  // An AI envelope that is being written (or came back) counts as dealt. Relaxations are only
+  // offered when the archive really runs out: everything that fits is already on the table,
+  // or fewer envelopes than usual could be dealt at all.
   const allShown = !conflict && validCount <= curatedCount;
-  const relaxations = conflict ? conflict.relaxations : allShown || ready.length < 3 ? suggestRelaxations(LIBRARY, draw.prefs) : [];
+  const short = !conflict && !writing && dealt < 3;
+  const relaxations = conflict ? conflict.relaxations : allShown || short ? suggestRelaxations(LIBRARY, draw.prefs) : [];
   const openEnv = openSlot === null ? null : draw.envelopes.find((e) => e.slot === openSlot) ?? null;
   const openAdventure = openEnv ? envelopeAdventure(openEnv) : null;
-  const dealt = draw.envelopes.length;
 
   const relax = (r: Relaxation) => {
     drawEnvelopes(applyRelaxation(draw.prefs, r));
@@ -184,7 +187,8 @@ export function Envelopes() {
   };
 
   const showLetter = (slot: number) => {
-    window.history.pushState({ sheet: LETTER_STATE }, '');
+    // One history entry per open letter, however many taps it took to open it.
+    if (!letterOnTop()) window.history.pushState({ sheet: LETTER_STATE }, '');
     setOpening(null);
     setOpenSlot(slot);
   };
@@ -192,6 +196,10 @@ export function Envelopes() {
   const open = (slot: number, alreadyOpened: boolean) => {
     openEnvelope(slot);
     if (alreadyOpened || reduced) {
+      if (openTimer.current !== null) {
+        window.clearTimeout(openTimer.current);
+        openTimer.current = null;
+      }
       showLetter(slot);
       return;
     }
@@ -253,9 +261,7 @@ export function Envelopes() {
         <div className="mt-4">
           {!conflict && (
             <p className="text-[0.8438rem] text-ivory-dim">
-              {allShown
-                ? `${validCount === 1 ? 'This is the only archive episode' : `These are the only ${validCount} archive episodes`} that fit everything. Loosen one thing for more:`
-                : `Only ${ready.length} episode${ready.length === 1 ? '' : 's'} fit everything. Loosen one thing for more:`}
+              {`${validCount === 1 ? 'This is the only archive episode' : `These are the only ${validCount} archive episodes`} that fit everything. Loosen one thing for more:`}
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">

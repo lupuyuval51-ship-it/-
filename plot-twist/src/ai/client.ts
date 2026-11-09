@@ -40,9 +40,33 @@ export const NO_SERVER_STATUS: DirectorStatus = {
   checkedAt: null,
 };
 
+/** A status check that hangs must not leave the app "Checking…" forever. */
+const STATUS_TIMEOUT_MS = 8_000;
+
+function withTimeout(signal: AbortSignal | undefined, ms: number): { signal: AbortSignal; timedOut: () => boolean; done: () => void } {
+  const ctl = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    ctl.abort();
+  }, ms);
+  const onAbort = () => ctl.abort();
+  if (signal?.aborted) ctl.abort();
+  else signal?.addEventListener('abort', onAbort, { once: true });
+  return {
+    signal: ctl.signal,
+    timedOut: () => timedOut,
+    done: () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+    },
+  };
+}
+
 export async function fetchDirectorStatus(signal?: AbortSignal, refresh = false): Promise<DirectorStatus> {
+  const t = withTimeout(signal, STATUS_TIMEOUT_MS);
   try {
-    const res = await fetch(`/api/status${refresh ? '?refresh=1' : ''}`, { signal, headers: { accept: 'application/json' } });
+    const res = await fetch(`/api/status${refresh ? '?refresh=1' : ''}`, { signal: t.signal, headers: { accept: 'application/json' } });
     if (!res.ok) return { ...NO_SERVER_STATUS, checkedAt: Date.now() };
     const body = (await res.json()) as Partial<DirectorStatus>;
     if (typeof body.state !== 'string') return { ...NO_SERVER_STATUS, checkedAt: Date.now() };
@@ -56,8 +80,11 @@ export async function fetchDirectorStatus(signal?: AbortSignal, refresh = false)
       checkedAt: typeof body.checkedAt === 'number' ? body.checkedAt : Date.now(),
     };
   } catch (err) {
-    if ((err as Error).name === 'AbortError') throw err;
+    if ((err as Error).name === 'AbortError' && !t.timedOut()) throw err;
+    if (t.timedOut()) return { ...NO_SERVER_STATUS, detail: 'The PLOT TWIST server did not answer in time, so episodes come from the curated archive for now.', checkedAt: Date.now() };
     return { ...NO_SERVER_STATUS, checkedAt: Date.now() };
+  } finally {
+    t.done();
   }
 }
 

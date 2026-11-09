@@ -24,9 +24,17 @@ export interface Draw {
   envelopes: DrawEnvelope[];
   /** Curated adventure ids shown so far in this session of reshuffles (avoid re-showing). */
   shownIds: string[];
+  /** The optional detail the AI envelope was asked to use (kept for retries after a reload). */
+  detail?: string;
 }
 
 export type MotionPreference = 'system' | 'reduce' | 'full';
+
+/** Persisted sections that tabs merge one by one (completed episodes are a union). */
+export const SECTIONS = ['prefs', 'draw', 'run', 'completed', 'series', 'settings'] as const;
+export type Section = (typeof SECTIONS)[number];
+/** When each section last changed in the tab that wrote it (ms since epoch). */
+export type SectionStamps = Partial<Record<Section, number>>;
 
 export interface PersistedState {
   version: 1;
@@ -43,6 +51,10 @@ export interface PersistedState {
     motion: MotionPreference;
   };
   updatedAt: number;
+  /** Per-section change times, so concurrent edits in two tabs merge section by section. */
+  stamps?: SectionStamps;
+  /** Set by "Reset all": episodes and runs from before it never come back through a merge. */
+  resetAt?: number;
 }
 
 export type LoadStatus = 'fresh' | 'loaded' | 'repaired' | 'reset-corrupt' | 'unavailable';
