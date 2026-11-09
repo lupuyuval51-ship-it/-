@@ -114,11 +114,13 @@ Rules:
   never counted.
 - If the run is paused when `completeStage`/`chooseOption` is called, resume
   implicitly (doing the task means you're playing).
-- `recoverRun` (called after a reload): if running and `now - lastSeenAt`
-  exceeds `maxAwayMs` (default `max(45 min, 2 × adventure.minutes)`), credit
-  at most `maxAwayMs` of away time, then pause, and return `autoPaused: true`.
+- `recoverRun` (called after a reload, when the tab becomes visible again, and
+  on each visible heartbeat): if running and `now - lastSeenAt` exceeds
+  `maxAwayMs` (default `max(45 min, 2 × adventure.minutes)`), credit at most
+  `maxAwayMs` of away time, then pause, and return `autoPaused: true`.
   Otherwise just touch. Phones lock while people do the activity — normal
-  hidden time **does** count.
+  hidden time **does** count. The store passes `lastSeenAt = max(run.lastSeenAt,
+  seen key)` (see *Tabs and time away* below).
 - `completeEpisode` requires a finished run; renders twist/closingLine with
   `renderTemplate(text, run.notes)`; builds `steps` via `pathSummary`; computes
   `award` with `computeAward`; `posterSeed = hashSeed(run.id, adventure.id, endingId)`.
@@ -128,7 +130,7 @@ Rules:
 export const STORAGE_KEY = 'plot-twist:v1';
 export function defaultState(now?: number): PersistedState;
 export function loadState(storage?: StorageLike | null, now?: number): LoadResult;
-export function saveState(state: PersistedState, storage?: StorageLike | null): SaveResult;
+export function saveState(state: PersistedState, storage?: StorageLike | null, now?: number): SaveResult;
 export function sanitizeState(raw: unknown, now?: number): { state: PersistedState; repaired: boolean };
 export function clearState(storage?: StorageLike | null): void;
 export function getBrowserStorage(): StorageLike | null;   // window.localStorage, or null if unavailable/throws
@@ -142,7 +144,25 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
   when anything was dropped/fixed.
 - Corrupt JSON → back up the raw string under `plot-twist:corrupt` (best
   effort), return defaults with status `reset-corrupt` and a calm message.
-- `saveState` sets `updatedAt` and maps quota errors to `reason: 'quota'`.
+- `saveState` sets `updatedAt` (optionally to a given `now`) and maps quota
+  errors to `reason: 'quota'`.
+
+### Tabs and time away (`src/state/sync.ts`, `src/state/store.tsx`)
+- A tab writes only when it has its **own** unsaved changes (a dirty flag set
+  by `update()`); hiding, closing or idling never writes a stale snapshot.
+- Other tabs' writes are adopted immediately (`storage` event) and re-read when
+  a tab becomes visible again or is restored from the back/forward cache.
+- Before writing, the store compares the stored `updatedAt` with the one it last
+  read or wrote. If someone else wrote in between, `mergeStates` combines both:
+  completed episodes are a **union by id** (never lost); every other section
+  comes from whichever side changed last; a run the other side finished is
+  dropped.
+- "Last seen" for the running episode is a separate key (`plot-twist:v1:seen`)
+  that only moves while the page is visible (15 s heartbeat, on hide, and on
+  unload only if visible). Absence is checked on load, when the tab becomes
+  visible, and on every heartbeat (a frozen timer after sleep shows up as a gap).
+- Unsaved input (field notes, journal) registers with `registerDraft` and is
+  committed right before the page-hide save.
 
 ## Poster (`src/poster/`) — contract in `src/poster/types.ts`
 ```ts
