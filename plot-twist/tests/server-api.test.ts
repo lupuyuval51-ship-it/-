@@ -609,11 +609,11 @@ describe('the hold after a provider failure (QA round 2)', () => {
     let releaseVerify: () => void = () => {};
     const backend: Backend = {
       provider: 'anthropic',
-      model: 'claude-opus-5-5',
+      model: 'mock-model',
       async stream(): Promise<StreamResult> {
         streams++;
         const text = JSON.stringify(mockAiEpisode(30));
-        return { text, stopReason: 'end_turn', model: 'claude-opus-5-5' };
+        return { text, stopReason: 'end_turn', model: 'mock-model' };
       },
       async verify() {
         verifies++;

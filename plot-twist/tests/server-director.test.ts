@@ -409,14 +409,14 @@ type Script = { text: string } | { streamEveryMs: number; silentAfterMs?: number
 function scriptedBackend(scripts: Script[]): Backend & { calls: number } {
   const backend = {
     provider: 'anthropic' as const,
-    model: 'claude-opus-5-5',
+    model: 'mock-model',
     calls: 0,
     stream(_req: StreamRequest, hooks: StreamHooks, signal: AbortSignal): Promise<StreamResult> {
       const script = scripts[Math.min(backend.calls++, scripts.length - 1)];
       if ('text' in script) {
         hooks.onActivity?.('headers');
         hooks.onText?.(script.text, script.text);
-        return Promise.resolve({ text: script.text, stopReason: 'end_turn', model: 'claude-opus-5-5' });
+        return Promise.resolve({ text: script.text, stopReason: 'end_turn', model: 'mock-model' });
       }
       return new Promise<StreamResult>((_resolve, reject) => {
         let timer: ReturnType<typeof setInterval> | undefined;
@@ -520,7 +520,7 @@ describe('timeout attribution (QA round 2)', () => {
     let clock = 1_000_000;
     const backend: Backend = {
       provider: 'anthropic',
-      model: 'claude-opus-5-5',
+      model: 'mock-model',
       async stream() {
         clock += 200_000; // past the 150 s budget on the test clock
         throw Anthropic.APIError.generate(529, { type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }, undefined, new Headers());
@@ -540,11 +540,11 @@ describe('timeout attribution (QA round 2)', () => {
       let calls = 0;
       const backend: Backend = {
         provider: 'anthropic',
-        model: 'claude-opus-5-5',
+        model: 'mock-model',
         async stream() {
           calls++;
           clock += ms;
-          return { text: calls === 1 ? invalidDraft() : JSON.stringify(mockAiEpisode(30)), stopReason: 'end_turn', model: 'claude-opus-5-5' };
+          return { text: calls === 1 ? invalidDraft() : JSON.stringify(mockAiEpisode(30)), stopReason: 'end_turn', model: 'mock-model' };
         },
         async verify() {},
       };

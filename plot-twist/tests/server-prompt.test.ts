@@ -56,12 +56,12 @@ describe('the repair brief (QA round 2)', () => {
     const drafts = [echoingDraft(), JSON.stringify(mockAiEpisode(30))];
     const backend: Backend = {
       provider: 'anthropic',
-      model: 'claude-opus-5-5',
+      model: 'mock-model',
       async stream(req: StreamRequest, hooks: StreamHooks): Promise<StreamResult> {
         calls.push(req);
         const text = drafts[Math.min(calls.length - 1, drafts.length - 1)];
         hooks.onText?.(text, text);
-        return { text, stopReason: 'end_turn', model: 'claude-opus-5-5' };
+        return { text, stopReason: 'end_turn', model: 'mock-model' };
       },
       async verify() {},
     };
