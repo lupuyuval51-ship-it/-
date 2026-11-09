@@ -257,5 +257,6 @@ export function completeEpisode(run: Run, now: number, journal = ''): CompletedE
     posterSeed: hashSeed(run.id, adv.id, ending.id),
   };
   if (adv.narrator) episode.narrator = adv.narrator;
+  if (adv.stageLabel) episode.stageLabel = adv.stageLabel;
   return episode;
 }

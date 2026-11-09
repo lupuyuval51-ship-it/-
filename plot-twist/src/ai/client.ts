@@ -77,10 +77,13 @@ export type DirectorEvent =
 export class DirectorError extends Error {
   code: string;
   retryable: boolean;
-  constructor(code: string, message: string, retryable: boolean) {
+  /** Set for rate limits: how long the server asked us to wait. */
+  retryAfterMs?: number;
+  constructor(code: string, message: string, retryable: boolean, retryAfterMs?: number) {
     super(message);
     this.code = code;
     this.retryable = retryable;
+    if (retryAfterMs !== undefined) this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -104,19 +107,27 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
   }
   if (!res.ok || !res.body) {
     let code = `http_${res.status}`;
+    let retryAfterMs: number | undefined;
     try {
-      const body = (await res.json()) as { error?: string };
+      const body = (await res.json()) as { error?: string; retryAfterMs?: unknown };
       if (body.error) code = body.error;
+      if (typeof body.retryAfterMs === 'number' && Number.isFinite(body.retryAfterMs)) retryAfterMs = Math.max(0, body.retryAfterMs);
     } catch {
       /* not JSON */
     }
+    if (retryAfterMs === undefined) {
+      const header = Number(res.headers.get('retry-after'));
+      if (Number.isFinite(header) && header > 0) retryAfterMs = header * 1000;
+    }
     const message =
       code === 'rate_limited'
-        ? 'The AI Director needs a short break — too many episodes in a row.'
-        : code === 'not_configured' || code === 'unavailable'
-          ? 'The AI Director is not available right now.'
-          : 'The AI Director could not take this request.';
-    throw new DirectorError(code, message, code === 'rate_limited' || code === 'busy');
+        ? 'The AI Director is taking a short break — back in a few minutes.'
+        : code === 'busy'
+          ? 'The AI Director is busy with other episodes right now.'
+          : code === 'not_configured' || code === 'unavailable'
+            ? 'The AI Director is not available right now.'
+            : 'The AI Director could not take this request.';
+    throw new DirectorError(code, message, code === 'rate_limited' || code === 'busy', retryAfterMs);
   }
 
   const reader = res.body.getReader();
@@ -152,7 +163,15 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
   };
 
   for (;;) {
-    const { done, value } = await reader.read();
+    let chunk: ReadableStreamReadResult<Uint8Array>;
+    try {
+      chunk = await reader.read();
+    } catch (err) {
+      // A dropped connection (page unloading, network switch) is not the AI failing.
+      if (opts.signal?.aborted || (err as Error).name === 'AbortError') throw err;
+      throw new DirectorError('interrupted', 'The connection to the AI Director dropped.', true);
+    }
+    const { done, value } = chunk;
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     let idx: number;

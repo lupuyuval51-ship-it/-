@@ -158,6 +158,8 @@ export interface CompletedEpisode {
   motif: Motif;
   weirdness: Weirdness;
   narrator?: string;
+  /** The episode's own word for a stage ("Postcard", "Take"…), when it has one. */
+  stageLabel?: string;
   /** Estimated minutes from the adventure. */
   minutesEstimate: number;
   prefs: Prefs;

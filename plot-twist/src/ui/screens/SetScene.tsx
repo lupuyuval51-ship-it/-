@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   BUDGET_LABEL,
   BUDGET_OPTIONS,
@@ -18,19 +18,20 @@ import { useStore } from '../../state/store.tsx';
 import { ChipGroup, WeirdnessDial } from '../components/Controls.tsx';
 import { Sheet } from '../components/Sheet.tsx';
 import { formatClock, pad2, useNow } from '../hooks.ts';
-import { IconArrowRight, IconEnvelope, IconGroup, IconHome, IconOutside, IconSolo } from '../icons.tsx';
+import { IconArrowRight, IconEnvelope, IconGroup, IconHome, IconOutside, IconPause, IconPlay, IconSolo } from '../icons.tsx';
 import { navigate } from '../router.ts';
 
 /** A slow festival-style marquee of episode titles — a hint of what's in the envelopes. */
 function NowShowing() {
   const titles = LIBRARY.map((a) => a.title);
+  const [paused, setPaused] = useState(false);
   if (titles.length === 0) return null;
   const row = (hidden: boolean) => (
     <div className="flex shrink-0 items-center" aria-hidden={hidden || undefined}>
       {titles.map((t) => (
         <span key={t} className="flex items-center whitespace-nowrap">
-          <span className="t-serif-italic px-3 text-[15px] text-ivory-dim">{t}</span>
-          <span className="text-[11px] text-[color:var(--accent)]" aria-hidden="true">
+          <span className="t-serif-italic px-3 text-[0.9375rem] text-ivory-dim">{t}</span>
+          <span className="text-[0.6875rem] text-[color:var(--accent)]" aria-hidden="true">
             ✶
           </span>
         </span>
@@ -38,19 +39,27 @@ function NowShowing() {
     </div>
   );
   return (
-    <div className="marquee mt-6 -mx-5 overflow-hidden border-y border-ivory/10 py-2.5">
+    <div className="marquee relative mt-6 -mx-5 overflow-hidden border-y border-ivory/10 py-2.5" data-paused={paused}>
       <p className="sr-only">Now showing: {titles.join(', ')}</p>
+      <button
+        type="button"
+        onClick={() => setPaused((p) => !p)}
+        className="absolute inset-y-0 right-0 z-10 grid w-11 place-items-center bg-gradient-to-l from-ink-950 from-60% to-transparent text-ivory-dim hover:text-ivory"
+        aria-label={paused ? 'Play the title marquee' : 'Pause the title marquee'}
+      >
+        {paused ? <IconPlay size={14} /> : <IconPause size={14} />}
+      </button>
       <div className="marquee-track" aria-hidden="true">
-        <span className="t-kicker flex items-center whitespace-nowrap pl-5 pr-2 text-[10px] text-[color:var(--accent)]">Now showing</span>
+        <span className="t-kicker flex items-center whitespace-nowrap pl-5 pr-2 text-[0.625rem] text-[color:var(--accent)]">Now showing</span>
         {row(true)}
-        <span className="t-kicker flex items-center whitespace-nowrap pl-5 pr-2 text-[10px] text-[color:var(--accent)]">Now showing</span>
+        <span className="t-kicker flex items-center whitespace-nowrap pl-5 pr-2 text-[0.625rem] text-[color:var(--accent)]">Now showing</span>
         {row(true)}
       </div>
     </div>
   );
 }
 
-function ResumeCard() {
+function ResumeCard({ onDiscarded }: { onDiscarded: () => void }) {
   const { state, abandonRun } = useStore();
   const run = state.p.run;
   const now = useNow(1000, Boolean(run));
@@ -65,23 +74,21 @@ function ResumeCard() {
         <p className="t-kicker">
           Episode {pad2(run.episodeNumber)} · {paused ? 'paused' : 'in progress'} · {formatClock(elapsedMs(run, now))}
         </p>
-        <p className="t-display mt-1.5 text-[24px]">{run.adventure.title}</p>
+        <p className="t-display mt-1.5 text-[1.5rem]">{run.adventure.title}</p>
         {node && (
-          <p className="mt-1 text-[14px] text-ivory-dim">
+          <p className="mt-1 text-[0.875rem] text-ivory-dim">
             {run.adventure.stageLabel ?? 'Stage'} {node.stage} of 3 — {node.title}
           </p>
         )}
-        <div className="mt-4 flex gap-2">
-          <button type="button" className="btn btn-primary flex-1" onClick={() => navigate({ name: 'play' })}>
-            Resume episode
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={() => setConfirm(true)}>
-            Discard
+        {/* The primary "Resume" lives in the bottom dock; the card only offers discarding. */}
+        <div className="mt-3 flex">
+          <button type="button" className="btn btn-ghost -ml-3 text-[0.875rem]" onClick={() => setConfirm(true)}>
+            Discard this episode
           </button>
         </div>
       </div>
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="Discard this episode?">
-        <p className="t-display mt-3 text-[26px]">Cut Episode {pad2(run.episodeNumber)} from the series?</p>
+        <p className="t-display mt-3 text-[1.625rem]">Cut Episode {pad2(run.episodeNumber)} from the series?</p>
         <p className="mt-2 text-ivory-dim">Your progress in “{run.adventure.title}” will be lost. Completed episodes are not affected.</p>
         <div className="mt-5 grid gap-2">
           <button
@@ -90,6 +97,7 @@ function ResumeCard() {
             onClick={() => {
               abandonRun();
               setConfirm(false);
+              onDiscarded();
             }}
           >
             Yes, discard it
@@ -103,12 +111,16 @@ function ResumeCard() {
   );
 }
 
+/** Compact labels so Time fits one segmented row even at 320px. */
+const MINUTES_SHORT: Record<(typeof MINUTES_OPTIONS)[number], string> = { 15: '15 min', 30: '30 min', 60: '1 hr', 120: '2 hrs' };
+
 export function SetScene() {
-  const { state, setPrefs, setDetail, drawEnvelopes, abandonRun } = useStore();
+  const { state, setPrefs, setDetail, drawEnvelopes, abandonRun, resume, toast } = useStore();
+  const ctaRef = useRef<HTMLButtonElement>(null);
   const prefs = state.p.prefs;
   const set = <K extends keyof Prefs>(key: K, value: Prefs[K]) => setPrefs({ ...prefs, [key]: value });
   const [confirmNew, setConfirmNew] = useState(false);
-  const next = state.p.completed.length + 1;
+  const next = state.p.completed.reduce((max, c) => Math.max(max, c.episodeNumber), 0) + 1;
   const aiOn = state.director.canGenerate;
   const activeRun = state.p.run;
 
@@ -131,11 +143,16 @@ export function SetScene() {
         <h1 className="t-display mt-3 text-[clamp(44px,13vw,60px)]">
           What’s your <span className="t-serif-italic font-normal text-[color:var(--accent)]">plot</span> today?
         </h1>
-        <p className="t-serif mt-3 max-w-[30ch] text-[18px] text-ivory-dim">Give us some free time. We’ll give you a story.</p>
+        <p className="t-serif mt-3 max-w-[30ch] text-[1.125rem] text-ivory-dim">Give us some free time. We’ll give you a story.</p>
         <NowShowing />
       </section>
 
-      <ResumeCard />
+      <ResumeCard
+        onDiscarded={() => {
+          toast('Episode discarded.');
+          window.requestAnimationFrame(() => ctaRef.current?.focus());
+        }}
+      />
 
       <form
         className="mt-8 space-y-7"
@@ -145,14 +162,17 @@ export function SetScene() {
         }}
         aria-label="Set the scene"
       >
+        {/* The dial sets the whole look (chill / cinematic / playful), so it comes first. */}
+        <WeirdnessDial value={prefs.weirdness} onChange={(w) => set('weirdness', w)} />
         <ChipGroup
           legend="Time"
           name="minutes"
+          columns={4}
           value={prefs.minutes}
           onChange={(v) => set('minutes', v)}
-          options={MINUTES_OPTIONS.map((m) => ({ value: m, label: MINUTES_LABEL[m] }))}
+          options={MINUTES_OPTIONS.map((m) => ({ value: m, label: MINUTES_SHORT[m] ?? MINUTES_LABEL[m] }))}
         />
-        <ChipGroup legend="Budget" name="budget" value={prefs.budget} onChange={(v) => set('budget', v)} options={BUDGET_OPTIONS.map((b) => ({ value: b, label: BUDGET_LABEL[b] }))} />
+        <ChipGroup legend="Budget" name="budget" columns={3} value={prefs.budget} onChange={(v) => set('budget', v)} options={BUDGET_OPTIONS.map((b) => ({ value: b, label: BUDGET_LABEL[b] }))} />
         <div className="grid grid-cols-1 gap-7 min-[400px]:grid-cols-2 min-[400px]:gap-4">
           <ChipGroup
             legend="Setting"
@@ -170,7 +190,6 @@ export function SetScene() {
           />
         </div>
         <ChipGroup legend="Mood" name="mood" grid value={prefs.mood} onChange={(v) => set('mood', v)} options={MOOD_OPTIONS.map((m) => ({ value: m, label: MOOD_LABEL[m] }))} />
-        <WeirdnessDial value={prefs.weirdness} onChange={(w) => set('weirdness', w)} />
 
         {aiOn && (
           <div className="anim-fade-up">
@@ -188,24 +207,46 @@ export function SetScene() {
               autoComplete="off"
               enterKeyHint="go"
             />
-            <p className="mt-1.5 text-[12.5px] text-ivory-mute">Used only to personalize your written-for-you envelope.</p>
+            <p className="mt-1.5 text-[0.7812rem] text-ivory-mute">Used only to personalize your written-for-you envelope.</p>
           </div>
         )}
 
         <div className="dock safe-bottom fixed inset-x-0 bottom-0 z-30 px-5 pt-10">
           <div className="mx-auto max-w-[480px]">
-            <button type="submit" className="btn btn-primary btn-xl w-full">
-              <IconEnvelope size={22} /> Give me a plot twist
-            </button>
-            <p className="mt-2 text-center text-[12.5px] text-ivory-mute" aria-live="polite">
-              {aiOn ? 'Two archive envelopes + one written for you' : 'Three envelopes from the curated archive'}
-            </p>
+            {activeRun ? (
+              <>
+                {/* One clear primary action while an episode is in progress. */}
+                <button
+                  ref={ctaRef}
+                  type="button"
+                  className="btn btn-primary btn-xl w-full"
+                  onClick={() => {
+                    if (activeRun.runningSince === null) resume();
+                    navigate({ name: 'play' });
+                  }}
+                >
+                  <IconPlay size={20} /> Resume Episode {pad2(activeRun.episodeNumber)}
+                </button>
+                <button type="submit" className="btn btn-ghost mt-1 w-full text-[0.875rem]">
+                  New envelopes instead
+                </button>
+              </>
+            ) : (
+              <>
+                <button ref={ctaRef} type="submit" className="btn btn-primary btn-xl w-full">
+                  <IconEnvelope size={22} /> Give me a plot twist
+                </button>
+                <p className="mt-2 text-center text-[0.7812rem] text-ivory-mute" aria-live="polite">
+                  {aiOn ? 'Two archive envelopes + one written for you' : 'Three envelopes from the curated archive'}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </form>
 
       <Sheet open={confirmNew} onClose={() => setConfirmNew(false)} title="Episode in progress">
-        <p className="t-display mt-3 text-[26px]">Episode {activeRun ? pad2(activeRun.episodeNumber) : ''} is still running.</p>
+        <p className="t-display mt-3 text-[1.625rem]">Episode {activeRun ? pad2(activeRun.episodeNumber) : ''} is still running.</p>
         <p className="mt-2 text-ivory-dim">Pick up where you left off, or start fresh with new envelopes (the current episode will be discarded).</p>
         <div className="mt-5 grid gap-2">
           <button
@@ -214,6 +255,7 @@ export function SetScene() {
             data-autofocus
             onClick={() => {
               setConfirmNew(false);
+              if (activeRun && activeRun.runningSince === null) resume();
               navigate({ name: 'play' });
             }}
           >

@@ -3,6 +3,26 @@ import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../hooks.ts';
 import { IconClose } from '../icons.tsx';
 
+let inertCount = 0;
+
+/**
+ * While any dialog is open, the app behind it is inert: not focusable, not clickable and
+ * hidden from assistive tech (swipe / browse mode can't wander out of the dialog).
+ * Dialogs and toasts are portaled to <body>, outside #root, so they stay live.
+ */
+function useInertApp(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    const root = document.getElementById('root');
+    inertCount += 1;
+    root?.setAttribute('inert', '');
+    return () => {
+      inertCount = Math.max(0, inertCount - 1);
+      if (inertCount === 0) root?.removeAttribute('inert');
+    };
+  }, [active]);
+}
+
 /**
  * Accessible modal: bottom sheet on phones, centered card on wide screens.
  * Focus is trapped while open and restored on close; Escape and the backdrop close it.
@@ -27,6 +47,8 @@ export function Sheet({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // Declared before the focus trap: the app must stop being inert *before* focus is restored to it.
+  useInertApp(open);
   useFocusTrap(ref, open, onClose);
 
   useEffect(() => {
@@ -54,7 +76,7 @@ export function Sheet({
           <button
             type="button"
             onClick={onClose}
-            className={`icon-btn -mr-2 -mt-1 shrink-0 ${variant === 'paper' ? 'text-paper-ink/70 hover:bg-paper-ink/10 hover:text-paper-ink' : ''}`}
+            className={`icon-btn -mr-2 -mt-1 ml-auto shrink-0 ${variant === 'paper' ? 'text-paper-ink/70 hover:bg-paper-ink/10 hover:text-paper-ink' : ''}`}
             aria-label={closeLabel}
           >
             <IconClose />

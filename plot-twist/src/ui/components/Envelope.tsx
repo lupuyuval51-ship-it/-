@@ -67,18 +67,18 @@ function PostageStamp({ adventure }: { adventure: Adventure }) {
     >
       <div className="flex h-[62px] w-[52px] flex-col items-center justify-center gap-1 rounded-[2px] border-2 border-[color:var(--color-paper)] text-center" style={{ background: palette.bg, color: palette.accent }}>
         <KindGlyph kind={adventure.kind} size={20} />
-        <span className="t-num text-[10px] font-bold leading-none" style={{ color: palette.ink }}>
+        <span className="t-num text-[0.625rem] font-bold leading-none" style={{ color: palette.ink }}>
           {adventure.minutes}′
         </span>
       </div>
       <div className="postmark absolute -bottom-4 -left-7 z-10 grid h-12 w-12 place-items-center rotate-[-14deg] bg-[color:var(--color-paper)]/40">
-        <span className="t-num text-center text-[8.5px] font-bold uppercase leading-[1.05] tracking-wider text-paper-ink/80">{formatCost(adventure.cost)}</span>
+        <span className="t-num text-center text-[0.5312rem] font-bold uppercase leading-[1.05] tracking-wider text-paper-ink/80">{formatCost(adventure.cost)}</span>
       </div>
     </div>
   );
 }
 
-const PHASE_COPY: Record<Generation['phase'], string> = {
+export const PHASE_COPY: Record<Generation['phase'], string> = {
   plotting: 'Plotting your twist…',
   writing: 'Writing your episode…',
   checking: 'Checking it against the rules…',
@@ -94,6 +94,7 @@ export function Envelope({
   onRetry,
   canRetry,
   index,
+  opening = false,
 }: {
   envelope: DrawEnvelope;
   adventure: Adventure | null;
@@ -103,46 +104,52 @@ export function Envelope({
   onRetry: () => void;
   canRetry: boolean;
   index: number;
+  /** The seal is breaking and the flap opening, right before the letter rises. */
+  opening?: boolean;
 }) {
   const letter = LETTERS[envelope.slot] ?? '?';
   const tilt = [-1.1, 0.9, -0.5][index % 3];
-  const style = { '--env-tilt': `calc(${tilt}deg * (var(--motion-scale) * 1.4))`, animationDelay: `${index * 110}ms` } as React.CSSProperties;
+  // Tilt follows the vibe: flat for "Keep it chill", most askew for "Main character energy".
+  const style = { '--env-tilt': `calc(${tilt}deg * var(--tilt-mult, 1))`, animationDelay: `${index * 110}ms` } as React.CSSProperties;
   const code = `EP. ${String(episodeNumber).padStart(2, '0')} · ENVELOPE ${letter}`;
 
   if (envelope.status === 'writing' || !adventure) {
     const writing = envelope.status === 'writing';
     const progress = writing && generation ? generation.progress : 0;
     return (
-      <div className="envelope paper anim-deal" style={style} aria-busy={writing} aria-live="polite">
+      <div className="envelope paper anim-deal" style={style} data-writing={writing || undefined}>
         <div className="relative flex min-h-[188px] flex-col p-5">
-          <div className="flex items-center justify-between gap-3">
-            <span className="t-kicker text-paper-mute">{code}</span>
-            <span className="stamp text-[color:#b4380c]">
-              <IconSparkle size={13} /> Written for you
-            </span>
-          </div>
+          <span className="t-kicker block whitespace-nowrap text-paper-mute">{code}</span>
+          <span className="stamp mt-3 self-start text-[color:#b4380c]">
+            <IconSparkle size={13} /> Written for you
+          </span>
           {writing ? (
             <>
-              <div className="mt-5 flex items-end gap-3">
-                <h3 className="t-display min-h-[32px] flex-1 text-[27px] text-paper-ink">
-                  {generation?.title ?? <span className="block h-7 w-3/4 rounded bg-paper-ink/10 shimmer" aria-hidden="true" />}
-                </h3>
-                <span className="anim-quill pb-1 text-[22px]" aria-hidden="true">
+              <div className="mt-4 flex items-end gap-3">
+                <h2 className="t-display min-h-[32px] flex-1 text-[1.6875rem] text-paper-ink">
+                  {generation?.title ?? (
+                    <>
+                      <span className="sr-only">Envelope {letter}: the AI Director is writing your episode</span>
+                      <span className="block h-7 w-3/4 rounded bg-paper-ink/10 shimmer" aria-hidden="true" />
+                    </>
+                  )}
+                </h2>
+                <span className="anim-quill pb-1 text-[1.375rem]" aria-hidden="true">
                   ✒︎
                 </span>
               </div>
-              <p className="t-serif-italic mt-2 text-[15px] text-paper-mute">{generation ? PHASE_COPY[generation.phase] : 'Waiting for the AI Director…'}</p>
+              <p className="t-serif-italic mt-2 text-[0.9375rem] text-paper-mute">{generation ? PHASE_COPY[generation.phase] : 'Waiting for the AI Director…'}</p>
               <div className="mt-auto pt-4">
                 <div className="h-1.5 overflow-hidden rounded-full bg-paper-ink/12" role="progressbar" aria-label="Writing progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
                   <div className="h-full rounded-full bg-paper-ink/70 transition-[width] duration-700" style={{ width: `${Math.max(4, progress * 100)}%` }} />
                 </div>
-                <p className="t-kicker mt-2 text-paper-mute">Personalized by the AI Director · usually under a minute</p>
+                <p className="t-kicker mt-2 text-paper-mute">Usually under a minute</p>
               </div>
             </>
           ) : (
             <>
-              <h3 className="t-display mt-5 text-[25px] text-paper-ink">This envelope came back empty.</h3>
-              <p className="mt-2 text-[14.5px] text-paper-mute">{envelope.note ?? 'The AI Director could not finish this one.'}</p>
+              <h2 className="t-display mt-4 text-[1.5625rem] text-paper-ink">This envelope came back empty.</h2>
+              <p className="mt-2 text-[0.9062rem] text-paper-mute">{envelope.note ?? 'The AI Director could not finish this one.'}</p>
               {canRetry && (
                 <button type="button" onClick={onRetry} className="btn btn-paper mt-4 self-start">
                   Ask the AI Director again
@@ -158,15 +165,19 @@ export function Envelope({
   const palette = PALETTES[adventure.palette];
   const isAi = envelope.source === 'ai';
   const sealSeed = Array.from(adventure.id).reduce((a, c) => a + c.charCodeAt(0), 0);
+  const cost = formatCost(adventure.cost);
+  const label = [
+    `Envelope ${letter}${isAi ? ', written for you' : ''}: ${adventure.title}.`,
+    adventure.tagline,
+    `About ${adventure.minutes} minutes, ${cost === 'Free' ? 'free' : cost}.`,
+    !isAi && envelope.note ? envelope.note : '',
+    envelope.opened ? 'Opened — open to read again.' : 'Open to break the seal.',
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="envelope paper anim-deal group"
-      style={style}
-      data-opened={envelope.opened}
-      aria-label={`Envelope ${letter}: ${adventure.title}. ${adventure.tagline} ${envelope.opened ? 'Opened — tap to read again.' : 'Tap to open.'}`}
-    >
+    <button type="button" onClick={onOpen} className="envelope paper anim-deal group" style={style} data-opened={envelope.opened || opening} aria-label={label}>
+      <div className="envelope-flap" aria-hidden="true" />
       {/* faint V of the flap */}
       <svg className="pointer-events-none absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100" aria-hidden="true">
         <path d="M0 0 L50 46 L100 0" fill="none" stroke="rgba(43,34,25,0.13)" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
@@ -174,23 +185,26 @@ export function Envelope({
       {envelope.opened && <div aria-hidden="true" className="absolute inset-x-6 -top-1 h-3 rounded-b-sm bg-[#fbf6ea] shadow-[0_2px_4px_rgba(0,0,0,0.12)]" />}
       <div className="relative flex min-h-[188px] flex-col p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+          {/* pr leaves room for the postmark, which overlaps this column */}
+          <div className="min-w-0 pr-5">
             <span className="t-kicker block text-paper-mute">{code}</span>
             {isAi ? (
               <span className="stamp mt-3 text-[color:#b4380c]">
                 <IconSparkle size={13} /> Written for you
               </span>
             ) : envelope.note ? (
-              <span className="mt-3 block max-w-[30ch] text-[12.5px] leading-snug text-paper-mute">{envelope.note}</span>
+              <span className="mt-3 block max-w-[30ch] text-[0.7812rem] leading-snug text-paper-mute">{envelope.note}</span>
             ) : null}
           </div>
           <PostageStamp adventure={adventure} />
         </div>
-        <h3 className="t-display mt-auto pt-4 text-[clamp(25px,7.4vw,30px)] text-paper-ink">{typographic(adventure.title)}</h3>
-        <p className="t-serif-italic mt-1.5 max-w-[34ch] text-[15.5px] text-paper-mute">{typographic(adventure.tagline)}</p>
+        <h2 className="t-display mt-auto pt-4 text-[clamp(25px,7.4vw,30px)] text-paper-ink">{typographic(adventure.title)}</h2>
+        <p className="t-serif-italic mt-1.5 max-w-[34ch] text-[0.9688rem] text-paper-mute">{typographic(adventure.tagline)}</p>
         <div className="mt-4 flex items-end justify-between">
           <span className="t-kicker text-paper-ink/80">{envelope.opened ? 'Opened · tap to reread' : 'Tap to break the seal'}</span>
-          <WaxSeal kind={adventure.kind} color={isAi ? '#c2410c' : palette.accent === '#E8E2D0' ? '#8c1c30' : palette.accent} seed={sealSeed} broken={envelope.opened} />
+          <span className={opening ? 'anim-seal-break' : undefined}>
+            <WaxSeal kind={adventure.kind} color={isAi ? '#c2410c' : palette.accent === '#E8E2D0' ? '#8c1c30' : palette.accent} seed={sealSeed} broken={envelope.opened || opening} />
+          </span>
         </div>
       </div>
     </button>

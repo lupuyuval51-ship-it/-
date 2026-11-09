@@ -28,12 +28,16 @@ export function ProgressRail({ stage, phase, finished, label }: { stage: 1 | 2 |
         ))}
       </div>
       <div className="mt-2 grid grid-cols-3 gap-1.5" aria-hidden="true">
-        {[1, 2, 3].map((seg) => (
-          <span key={seg} className={`t-kicker flex items-center gap-1 ${seg === stage && !finished ? 'text-ivory' : ''}`}>
-            {(finished || seg < stage) && <IconCheck size={12} />}
-            {label} {seg}
-          </span>
-        ))}
+        {[1, 2, 3].map((seg) => {
+          const current = seg === stage && !finished;
+          return (
+            <span key={seg} className={`t-kicker flex min-w-0 items-center gap-1 ${current ? 'text-ivory' : ''}`}>
+              {(finished || seg < stage) && <IconCheck size={12} className="shrink-0" />}
+              {/* Only the current segment spells out the label, so long labels never collide. */}
+              <span className="truncate">{current ? `${label} ${seg}` : seg}</span>
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -47,7 +51,7 @@ export function TraitMeter({ level, gained = 0, compact = false }: { level: Trai
     <div className="min-w-0">
       <div className="flex items-baseline justify-between gap-2">
         <span className="font-semibold text-ivory">{TRAIT_LABEL[level.trait]}</span>
-        <span className="t-kicker text-[10px]">
+        <span className="t-kicker text-[0.625rem]">
           Lv {level.level} · {level.title}
         </span>
       </div>
@@ -55,7 +59,7 @@ export function TraitMeter({ level, gained = 0, compact = false }: { level: Trai
         <div className="h-full rounded-full transition-[width] duration-1000" style={{ width: `${Math.max(3, level.progress * 100)}%`, background: color }} />
       </div>
       {!compact && (
-        <div className="mt-1 flex justify-between text-[12px] text-ivory-mute">
+        <div className="mt-1 flex justify-between text-[0.75rem] text-ivory-mute">
           <span>{TRAIT_BLURB[level.trait]}</span>
           <span className="t-num shrink-0 pl-2">
             {gained > 0 && <span style={{ color }}>+{gained} </span>}
@@ -74,7 +78,7 @@ export function Fact({ icon, label, value }: { icon: ReactNode; label: string; v
         {icon}
       </span>
       <div className="min-w-0">
-        <div className="t-kicker text-[10px] text-paper-mute">{label}</div>
+        <div className="t-kicker text-[0.625rem] text-paper-mute">{label}</div>
         <div className="font-semibold leading-snug text-paper-ink">{value}</div>
       </div>
     </div>
@@ -85,7 +89,7 @@ export function SectionTitle({ kicker, title, children }: { kicker?: string; tit
   return (
     <div>
       {kicker && <p className="t-kicker">{kicker}</p>}
-      <h2 className="t-display mt-1.5 text-[30px]">{title}</h2>
+      <h2 className="t-display mt-1.5 text-[1.875rem]">{title}</h2>
       {children && <div className="mt-2 text-ivory-dim">{children}</div>}
     </div>
   );

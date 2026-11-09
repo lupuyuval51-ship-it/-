@@ -12,6 +12,7 @@
  *   3. ai-fallback (mock returns invalid drafts → curated fallback)
  *   4. layout  (no horizontal scroll at 320px on every screen; keyboard + reduced motion)
  *   5. conflict (dev server, `?library=none` → explanation + one-tap relaxations)
+ *   6. resilience (two tabs, double taps, long absences, drafts, Back on the letter)
  */
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -130,7 +131,7 @@ async function journeySuite(browser, base) {
   await page.reload({ waitUntil: 'networkidle' });
 
   // Status pill reports the real (unconfigured) state.
-  await page.waitForFunction(() => /AI Director: Not configured/.test(document.querySelector('header button[aria-label^="AI Director"]')?.getAttribute('aria-label') || ''), null, { timeout: 8000 });
+  await page.waitForFunction(() => /AI Director: Not configured/.test(document.querySelector('header button[aria-label*="AI Director:"]')?.getAttribute('aria-label') || ''), null, { timeout: 8000 });
   check('AI status shows "Not configured" without a key', true);
   check('curated-only copy under the CTA', await page.getByText('Three envelopes from the curated archive').isVisible());
 
@@ -172,7 +173,14 @@ async function journeySuite(browser, base) {
   const facts = await dialog.innerText();
   check('reveal shows intro, duration, items, cost and Start', /Duration/i.test(facts) && /You’ll need/i.test(facts) && /Expected cost/i.test(facts) && (await dialog.getByRole('button', { name: /start episode/i }).isVisible()));
   await page.screenshot({ path: join(ART, 'j03-letter.png') });
-  await dialog.getByRole('button', { name: /look at another envelope/i }).click();
+  const letterFocus = await page.evaluate(() => document.activeElement?.tagName);
+  check('the letter opens with focus on its title, not on Start', letterFocus === 'H3', letterFocus ?? '');
+  await page.goBack();
+  await sleep(300);
+  check('Back closes the letter and stays on the envelopes', (await page.getByRole('dialog').count()) === 0 && page.url().includes('#/envelopes'));
+  await page.locator('button.envelope').nth(0).click();
+  await page.getByRole('dialog').waitFor();
+  await page.getByRole('dialog').getByRole('button', { name: /look at another envelope/i }).click();
   await sleep(250);
   await page.locator('button.envelope').nth(1).click();
   await page.getByRole('dialog').waitFor();
@@ -189,7 +197,11 @@ async function journeySuite(browser, base) {
   const note1 = 'a door painted the wrong blue';
   const noteInput = page.locator('input[id^=note-]');
   if (await noteInput.count()) await noteInput.fill(note1);
-  await page.getByRole('button', { name: /done — i did it/i }).click();
+  // A double tap: the second tap must not land on (and pick) an option of the fork.
+  await page.getByRole('button', { name: /done — i did it/i }).dblclick();
+  await sleep(150);
+  const afterDouble = await storageWhen(page, (s) => s.run && s.run.steps.length >= 1);
+  check('a double tap on Done does not make a blind choice', afterDouble.run.phase === 'choice' && afterDouble.run.steps.length === 1 && !afterDouble.run.steps[0].optionId, `${afterDouble.run.phase} / ${afterDouble.run.steps.length} steps`);
 
   // 5. Branching choice
   const options = page.locator('section[aria-labelledby=choice-title] button');
@@ -227,8 +239,9 @@ async function journeySuite(browser, base) {
   const after = await storage(page);
   check('refresh keeps the episode, stage and choice', after.run && after.run.nodeId === before.run.nodeId && after.run.steps[0].optionId === before.run.steps[0].optionId);
   check('refresh keeps field notes', JSON.stringify(after.run.notes) === JSON.stringify(before.run.notes));
-  const timerText = await page.locator('button[aria-label*="elapsed"]').getAttribute('aria-label');
-  check('timer survives refresh', /elapsed/.test(timerText ?? ''), timerText ?? '');
+  const timer = page.locator('header, main').locator('button[aria-label="Pause timer"], button[aria-label="Resume timer"]').first();
+  const timerDesc = await timer.evaluate((el) => document.getElementById(el.getAttribute('aria-describedby') ?? '')?.textContent ?? '');
+  check('timer survives refresh', /played of about/.test(timerDesc), timerDesc);
   await page.screenshot({ path: join(ART, 'j04-play-after-refresh.png'), fullPage: true });
 
   // Save & exit → home shows resume card → resume
@@ -238,9 +251,7 @@ async function journeySuite(browser, base) {
   check('home offers to resume the paused episode', await page.getByRole('button', { name: /resume episode/i }).isVisible());
   await page.getByRole('button', { name: /resume episode/i }).click();
   await page.waitForURL(/#\/play/);
-  // Resume the clock from the paused overlay
-  const resumeBtn = page.getByRole('button', { name: /resume episode/i });
-  if (await resumeBtn.count()) await resumeBtn.click();
+  check('home "Resume" resumes the clock (no second resume needed)', (await storageWhen(page, (s) => s.run && s.run.runningSince !== null)).run.runningSince !== null);
 
   // 8. Finish (use an alternative challenge on the next stage)
   const finished = await playToEnd(page, { notes: ['', 'the oldest mailbox', 'This street keeps its secrets upstairs.'], useAlternativeAt: 0 });
@@ -253,10 +264,14 @@ async function journeySuite(browser, base) {
   check('alternative challenge recorded', done.steps.some((s) => s.usedAlternative));
   check('paused time excluded from the episode duration', done.elapsedMs < Date.now() - done.startedAt, `${Math.round(done.elapsedMs / 1000)}s played`);
 
-  // Journal entry
+  // Journal entry — saved even when the page reloads right away, without leaving the field
   await page.locator('textarea[id^=journal-]').fill('Today my street got a second floor.');
-  await page.locator('textarea[id^=journal-]').blur();
-  await sleep(300);
+  await page.reload({ waitUntil: 'networkidle' });
+  const journalSaved = await storageWhen(page, (s) => s.completed[0]?.journal === 'Today my street got a second floor.').then(
+    () => true,
+    () => false,
+  );
+  check('journal survives an immediate reload (no blur needed)', journalSaved);
 
   // Poster renders
   await page.locator('img[alt^="Poster for Episode"]').first().waitFor({ timeout: 15_000 });
@@ -325,24 +340,24 @@ async function journeySuite(browser, base) {
 async function aiSuite(browser, base, { expectFallback = false } = {}) {
   console.log(`\n▶ ${expectFallback ? 'ai-fallback (mock returns invalid drafts)' : 'ai (AI Director online via mock provider)'}`);
   const { validateAdventure, fitsPrefs } = await import('../shared/validate.ts');
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(base, { waitUntil: 'networkidle' });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForFunction(() => /AI Director: Online/.test(document.querySelector('header button[aria-label^="AI Director"]')?.getAttribute('aria-label') || ''), null, { timeout: 10_000 });
+  await page.waitForFunction(() => /AI Director: Online/.test(document.querySelector('header button[aria-label*="AI Director:"]')?.getAttribute('aria-label') || ''), null, { timeout: 10_000 });
   check('status pill shows AI Director online', true);
   check('optional AI detail field appears when online', await page.locator('#ai-detail').isVisible());
   await page.locator('#ai-detail').fill('near a big park');
   await page.getByRole('button', { name: /give me a plot twist/i }).click();
   await page.waitForURL(/#\/envelopes/);
   await page.locator('button.envelope').first().waitFor();
-  const writing = page.locator('[aria-busy="true"]');
+  const writing = page.locator('[data-writing="true"]');
   check('third envelope shows the writing state', (await writing.count()) === 1);
   await page.screenshot({ path: join(ART, `${expectFallback ? 'f' : 'a'}01-writing.png`) });
-  await page.waitForFunction(() => document.querySelectorAll('[aria-busy="true"]').length === 0, null, { timeout: 30_000 });
+  await page.waitForFunction(() => document.querySelectorAll('[data-writing="true"]').length === 0, null, { timeout: 30_000 });
   const s = await storageWhen(page, (st) => st.draw && st.draw.envelopes.every((e) => e.status !== 'writing'));
   const aiEnv = s.draw.envelopes[s.draw.envelopes.length - 1];
   if (!expectFallback) {
@@ -355,8 +370,14 @@ async function aiSuite(browser, base, { expectFallback = false } = {}) {
     await page.waitForURL(/#\/play/);
     const ok = await playToEnd(page, { pick: (_i, n) => n - 1, notes: ['a bench with a plaque', 'pigeon treaty', 'a leaf from the treaty'] });
     check('AI episode plays through to its finale', ok);
+    // Measured while the stamp animation runs: the finale must never widen the mobile layout viewport.
+    const width = await page.evaluate(() => [window.innerWidth, document.documentElement.scrollWidth]);
+    check('finale keeps the phone layout width (no sideways pan)', width[0] === 390 && width[1] <= 390, width.join(' / '));
     const ep = (await storageWhen(page, (st) => st.completed.length === 1)).completed[0];
     check('AI episode is saved to the series', ep && ep.source === 'ai');
+    await page.getByRole('button', { name: /see my series/i }).click();
+    await page.waitForURL(/#\/series$/);
+    check('finale buttons respond to taps on a phone', true);
   } else {
     check('invalid AI output falls back to a curated episode', aiEnv.source === 'curated' && validateAdventure(aiEnv.adventure).ok, aiEnv.note ?? '');
     check('fallback explains what happened', /archive pick instead/i.test(aiEnv.note ?? ''));
@@ -364,6 +385,18 @@ async function aiSuite(browser, base, { expectFallback = false } = {}) {
   }
   check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   await ctx.close();
+
+  if (!expectFallback) {
+    // The header must fit at 320px with the longest live status labels too.
+    const small = await browser.newContext({ viewport: { width: 320, height: 640 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+    const p2 = await small.newPage();
+    await p2.goto(base, { waitUntil: 'networkidle' });
+    await p2.waitForFunction(() => /AI Director: Online/.test(document.querySelector('header button[aria-label*="AI Director:"]')?.getAttribute('aria-label') || ''), null, { timeout: 10_000 });
+    const w = await p2.evaluate(() => [window.innerWidth, document.documentElement.scrollWidth]);
+    check('320px header fits with the AI Director online', w[0] === 320 && w[1] <= 320, w.join(' / '));
+    await p2.screenshot({ path: join(ART, 'a03-header-320-online.png') });
+    await small.close();
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -384,6 +417,9 @@ async function layoutSuite(browser, base) {
   await page.keyboard.press('Tab'); // skip link
   let focusedSkip = await page.evaluate(() => document.activeElement?.textContent?.trim());
   check('skip link is the first tab stop', focusedSkip === 'Skip to content', focusedSkip);
+  await page.keyboard.press('Enter');
+  const skipped = await page.evaluate(() => [location.hash || '#/', Boolean(document.activeElement?.closest('main'))]);
+  check('skip link keeps the screen and moves focus into the content', skipped[0] === '#/' && skipped[1] === true, String(skipped));
   await page.locator('input[name=minutes]').first().focus();
   await page.keyboard.press('ArrowRight');
   const minutes = await page.evaluate(() => document.querySelector('input[name=minutes]:checked')?.value);
@@ -458,6 +494,111 @@ async function conflictSuite(browser, devBase) {
   await ctx.close();
 }
 
+
+// ─────────────────────────────────────────────────────────────────────
+/** Draws, opens the first envelope and starts it. */
+async function startFirstEpisode(page) {
+  await page.getByRole('button', { name: /give me a plot twist/i }).click();
+  await page.waitForURL(/#\/envelopes/);
+  await page.locator('button.envelope').first().click();
+  await page.getByRole('dialog').waitFor();
+  await page.getByRole('button', { name: /start episode/i }).click();
+  await page.waitForURL(/#\/play/);
+  await page.getByRole('button', { name: /done — i did it/i }).waitFor();
+}
+
+/** Pretends the tab went to the background / came back (headless pages are always "visible"). */
+async function setVisibility(page, state) {
+  await page.evaluate((st) => {
+    Object.defineProperty(document, 'visibilityState', { value: st, configurable: true });
+    Object.defineProperty(document, 'hidden', { value: st === 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  }, state);
+}
+
+async function resilienceSuite(browser, base) {
+  console.log('\n▶ resilience (two tabs, double taps, long absences, drafts)');
+
+  // A. Two tabs: a stale idle tab must never erase an episode finished in another tab.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const a = await ctx.newPage();
+    await a.goto(base, { waitUntil: 'networkidle' });
+    await a.evaluate(() => localStorage.clear());
+    await a.reload({ waitUntil: 'networkidle' });
+    const b = await ctx.newPage();
+    await b.goto(base, { waitUntil: 'networkidle' });
+    await startFirstEpisode(b);
+    check('two tabs: the second tab plays to the finale', await playToEnd(b));
+    await storageWhen(b, (s) => s.completed.length === 1);
+    await b.close();
+    // The stale tab hides, comes back, and the user taps a chip.
+    await setVisibility(a, 'hidden');
+    await setVisibility(a, 'visible');
+    await a.getByText('1 hr', { exact: true }).click();
+    await sleep(600);
+    const st = await storage(a);
+    check('two tabs: the stale tab adopts the other tab’s episode', st.completed.length === 1 && st.prefs.minutes === 60, `${st.completed.length} episode(s)`);
+    const headerCount = await a.locator('header button[aria-label^="My Series"]').getAttribute('aria-label');
+    check('two tabs: the stale tab’s header updates live', /1 episode/.test(headerCount ?? ''), headerCount ?? '');
+    await a.close();
+    const c = await ctx.newPage();
+    await c.goto(`${base}#/series`, { waitUntil: 'networkidle' });
+    await sleep(400);
+    check('two tabs: My Series still has the episode after the stale tab closed', (await c.locator('a[href^="#/series/"]').count()) === 1);
+    await ctx.close();
+  }
+
+  // B. Double tap on stage 2's Done must not skip stage 3; notes typed right before a reload survive.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true });
+    const page = await ctx.newPage();
+    await page.goto(base, { waitUntil: 'networkidle' });
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: 'networkidle' });
+    await startFirstEpisode(page);
+    await page.getByRole('button', { name: /done — i did it/i }).click();
+    await page.locator('section[aria-labelledby=choice-title] button').first().click();
+    await page.getByRole('button', { name: /done — i did it/i }).waitFor();
+    const noteInput = page.locator('input[id^=note-]');
+    if (await noteInput.count()) {
+      await noteInput.fill('typed then refreshed');
+      await page.reload({ waitUntil: 'networkidle' });
+      const st = await storageWhen(page, (s) => s.run);
+      check('a field note typed right before a refresh is kept', Object.values(st.run.notes).includes('typed then refreshed'), JSON.stringify(st.run.notes));
+    }
+    await page.getByRole('button', { name: /done — i did it/i }).dblclick();
+    await sleep(700);
+    const st2 = await storage(page);
+    check('a double tap on Done does not skip the next stage', st2.run && st2.run.steps.length === 2 && st2.completed.length === 0, st2.run ? `${st2.run.steps.length} steps` : 'finished');
+    await ctx.close();
+  }
+
+  // C. A tab kept open in the background for 3 hours: the clock pauses, time is capped.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    await page.clock.install({ time: new Date('2026-11-08T10:00:00') });
+    await page.goto(base, { waitUntil: 'networkidle' });
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: 'networkidle' });
+    await startFirstEpisode(page);
+    await page.clock.fastForward(5_000);
+    await setVisibility(page, 'hidden');
+    await page.clock.fastForward('03:00:00');
+    await setVisibility(page, 'visible');
+    await page.getByText(/welcome back — we paused the clock/i).waitFor({ timeout: 5000 }).then(
+      () => check('back after 3 h in the background: "welcome back" and the clock is paused', true),
+      () => check('back after 3 h in the background: "welcome back" and the clock is paused', false),
+    );
+    const st = await storageWhen(page, (s) => s.run && s.run.runningSince === null);
+    const minutes = st.run.elapsedMs / 60_000;
+    check('time away is capped, not credited in full', minutes <= 61 && minutes >= 1, `${minutes.toFixed(1)} min credited`);
+    await page.screenshot({ path: join(ART, 'r01-welcome-back.png') });
+    await ctx.close();
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────
 async function main() {
   // Build into an isolated directory so E2E never disturbs a dist/ someone else is serving.
@@ -484,6 +625,7 @@ async function main() {
       'ai-fallback': () => aiSuite(browser, 'http://127.0.0.1:8792/', { expectFallback: true }),
       layout: () => layoutSuite(browser, 'http://127.0.0.1:8790/'),
       conflict: () => conflictSuite(browser, 'http://127.0.0.1:5197'),
+      resilience: () => resilienceSuite(browser, 'http://127.0.0.1:8790/'),
     };
     for (const [name, run] of Object.entries(suites)) {
       if (only && only !== name) continue;

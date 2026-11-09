@@ -125,11 +125,11 @@ export function loadState(storage: StorageLike | null = getBrowserStorage(), now
   return repaired ? { state, status: 'repaired', message: MESSAGES.repaired } : { state, status: 'loaded' };
 }
 
-export function saveState(state: PersistedState, storage: StorageLike | null = getBrowserStorage()): SaveResult {
+export function saveState(state: PersistedState, storage: StorageLike | null = getBrowserStorage(), now: number = Date.now()): SaveResult {
   if (!storage) return { ok: false, reason: 'unavailable' };
   let text: string;
   try {
-    text = JSON.stringify({ ...state, updatedAt: Date.now() });
+    text = JSON.stringify({ ...state, updatedAt: now });
   } catch {
     return { ok: false, reason: 'unknown' };
   }
@@ -418,6 +418,8 @@ function parseCompleted(raw: unknown, fallbackPrefs: Prefs, r: Repairs): Complet
   };
   if (typeof raw.narrator === 'string') episode.narrator = raw.narrator;
   else if (raw.narrator !== undefined) r.repaired = true;
+  if (typeof raw.stageLabel === 'string' && raw.stageLabel.trim()) episode.stageLabel = raw.stageLabel.slice(0, 24);
+  else if (raw.stageLabel !== undefined) r.repaired = true;
   return episode;
 }
 
