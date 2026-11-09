@@ -2,11 +2,15 @@
  * Static hosting for the built app (dist/), with an SPA fallback, gzip and
  * security headers on every response. Kept apart from server/index.ts so the
  * path handling can be tested without starting the production server.
+ *
+ * Only GET and HEAD are answered. Hidden files (".env", ".git/…") are never
+ * served, and a file is only served if its real path (symlinks resolved) is
+ * inside dist/: Vite copies public/ symlinks as they are.
  */
-import { readdirSync, statSync, type Stats } from 'node:fs';
-import { readFile, stat } from 'node:fs/promises';
+import { existsSync, readdirSync, statSync, type Stats } from 'node:fs';
+import { readFile, realpath, stat } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { dirname, extname, join, resolve, sep } from 'node:path';
+import { dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const TYPES: Record<string, string> = {
@@ -35,13 +39,29 @@ export const SECURITY_HEADERS: Record<string, string> = {
 };
 
 /** A small plain-text response that carries the same security headers as the app. */
-export function sendText(res: ServerResponse, status: number, body: string): void {
+export function sendText(res: ServerResponse, status: number, body: string, extra: Record<string, string> = {}): void {
   if (res.headersSent) {
     if (!res.writableEnded) res.end();
     return;
   }
-  res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', ...SECURITY_HEADERS });
+  res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', ...SECURITY_HEADERS, ...extra });
   res.end(body);
+}
+
+/** A path segment that names a hidden file or folder (".env", ".git"); ".well-known" is the one public exception. Exported for tests. */
+export function hasHiddenSegment(pathname: string): boolean {
+  return pathname.split('/').some((segment) => segment.startsWith('.') && segment !== '.well-known');
+}
+
+/** `path` is `root` or inside it. */
+const isInside = (root: string, path: string) => path === root || path.startsWith(root.endsWith(sep) ? root : root + sep);
+
+async function realpathOrNull(path: string): Promise<string | null> {
+  try {
+    return await realpath(path);
+  } catch {
+    return null;
+  }
 }
 
 export type StaticPath = { ok: true; pathname: string; filePath: string } | { ok: false };
@@ -85,8 +105,12 @@ export function createStaticHandler(dist: string): (req: IncomingMessage, res: S
   const gzipCache = new Map<string, Buffer>();
 
   return async (req, res) => {
+    const method = req.method ?? 'GET';
+    if (method !== 'GET' && method !== 'HEAD') return sendText(res, 405, 'Method not allowed', { allow: 'GET, HEAD' });
     const resolved = resolveStaticPath(root, req.url ?? '/');
     if (!resolved.ok) return sendText(res, 400, 'Bad request');
+    // Never a dotfile, and never the SPA shell in its place: "/.env" is not an app route.
+    if (hasHiddenSegment(resolved.pathname)) return sendText(res, 404, 'Not found');
 
     let target = resolved.filePath;
     let s = await statOrNull(target);
@@ -100,9 +124,14 @@ export function createStaticHandler(dist: string): (req: IncomingMessage, res: S
     }
     if (!s?.isFile()) return sendText(res, 404, 'Not found');
 
+    // The text check in resolveStaticPath cannot see where a symlink points: the file's real
+    // path must be inside the real dist/ (which may itself be a symlink, e.g. a release folder).
+    const [realRoot, realTarget] = await Promise.all([realpathOrNull(root), realpathOrNull(target)]);
+    if (!realRoot || !realTarget || !isInside(realRoot, realTarget)) return sendText(res, 404, 'Not found');
+
     let body: Buffer;
     try {
-      body = await readFile(target);
+      body = await readFile(realTarget);
     } catch {
       return sendText(res, 404, 'Not found');
     }
@@ -159,32 +188,47 @@ function hasFileNewerThan(dir: string, mtimeMs: number): boolean {
   return false;
 }
 
+/** The nearest folder above `dir` (not `dir` itself) that has a package.json, or null. */
+function projectRootAbove(dir: string): string | null {
+  let current = dirname(dir);
+  for (;;) {
+    if (existsSync(join(current, 'package.json'))) return current;
+    const parent = dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
+}
+
+const isDirectory = (path: string) => {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
+  }
+};
+
 /**
- * The startup warning when the build being served is older than the source next
- * to it (src/ or shared/ beside dist/), or null. A dist/ shipped on its own, with
- * no sources beside it, is never flagged.
+ * The startup warning when the build being served is older than its project's
+ * source (src/ or shared/), or null. The project is the nearest folder above the
+ * build with a package.json, so a nested build such as e2e/.dist is checked too;
+ * without one, the folder beside the build. A dist/ shipped on its own, with no
+ * sources, is never flagged.
  */
 export function staleDistWarning(dist: string): string | null {
   const root = resolve(dist);
-  try {
-    if (!statSync(root).isDirectory()) return null;
-  } catch {
-    return null;
-  }
-  const parent = dirname(root);
-  const sources = ['src', 'shared'].map((d) => join(parent, d)).filter((d) => {
-    try {
-      return statSync(d).isDirectory();
-    } catch {
-      return false;
-    }
-  });
+  if (!isDirectory(root)) return null;
+  const project = projectRootAbove(root) ?? dirname(root);
+  const sources = ['src', 'shared'].map((d) => join(project, d)).filter(isDirectory);
   if (sources.length === 0) return null;
   let builtAt = 0;
   try {
     builtAt = statSync(join(root, 'index.html')).mtimeMs;
   } catch {
-    builtAt = 0; // a dist/ without index.html is as stale as it gets
+    builtAt = 0; // a build without index.html is as stale as it gets
   }
-  return sources.some((d) => hasFileNewerThan(d, builtAt)) ? 'dist/ is older than the source — run npm run build' : null;
+  if (!sources.some((d) => hasFileNewerThan(d, builtAt))) return null;
+  const label = relative(project, root).split(sep).join('/');
+  return label === 'dist'
+    ? 'dist/ is older than the source — run npm run build'
+    : `${label}/ is older than the source — rebuild it (npx vite build --outDir ${label})`;
 }
