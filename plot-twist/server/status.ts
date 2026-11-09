@@ -75,7 +75,12 @@ const DETAIL = {
   stalled: 'The AI provider stopped responding while writing an episode. Curated episodes only for a moment; we will retry.',
 };
 
-/** Failures that say something about the provider (shared by everyone), as opposed to one request. */
+/**
+ * Failures that say something about the provider (shared by everyone), as opposed to one request.
+ * The Director records 'timeout' only for a provider that went quiet (no headers, event or ping
+ * for its idle limit) or never answered: a long but active generation that runs out of time is
+ * about that one request and is only logged.
+ */
 const PROVIDER_FAILURES: ReadonlySet<FailureKind> = new Set([
   'auth',
   'forbidden',

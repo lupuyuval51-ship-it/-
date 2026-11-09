@@ -66,10 +66,20 @@ const LIST_WORDS: ReadonlySet<string> = new Set([
   'crew', 'friends', 'friend', 'team', 'teams', 'group', 'groups', 'partner', 'partners', 'players', 'others',
 ]);
 
+const GLOBAL = new Map<RegExp, RegExp>();
+function globalOf(re: RegExp): RegExp {
+  let g = GLOBAL.get(re);
+  if (!g) {
+    g = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`);
+    GLOBAL.set(re, g);
+  }
+  return g;
+}
+
 /** The first cue in `text` that is an instruction (not negated, not skipped), or null. */
 function findCue(text: string, cues: readonly Cue[], negations: ReadonlySet<string> = NEGATIONS): string | null {
   for (const cue of cues) {
-    for (const m of text.matchAll(new RegExp(cue.re.source, `${cue.re.flags}g`))) {
+    for (const m of text.matchAll(globalOf(cue.re))) {
       if (negatedAt(text, m.index, negations, LIST_WORDS)) continue;
       if (cue.skip?.(text, m.index, m[0])) continue;
       return m[0];
