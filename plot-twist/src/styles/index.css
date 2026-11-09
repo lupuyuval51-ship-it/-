@@ -99,9 +99,11 @@
 @layer base {
   html {
     color-scheme: dark;
-    /* Keeps focused / scrolled-to elements clear of the sticky play bar and the fixed CTA dock. */
+    /* Keeps focused / scrolled-to elements clear of the sticky play bar, and of the fixed CTA dock
+       and the fade above it (Resume + "New envelopes instead": 8.5rem of dock, 2.5rem of fade),
+       a phone's home-indicator inset included. */
     scroll-padding-top: 4.75rem;
-    scroll-padding-bottom: 10rem;
+    scroll-padding-bottom: calc(11.5rem + env(safe-area-inset-bottom));
     /* No fixed dock in short viewports, and 10rem would leave almost no room to scroll focus into. */
     @variant short {
       scroll-padding-bottom: 1rem;
@@ -636,6 +638,12 @@
   .safe-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
+  /* The header's right-hand group sits at the end — but if it ever overflows (very large text),
+     it overflows past the end, where the page can scroll to it, never past the start edge. */
+  .header-end {
+    justify-content: flex-end;
+    justify-content: safe flex-end;
+  }
   /* The home screen's call to action: fixed in the thumb zone on phones. In short viewports it
      would cover most of the screen (56–66% at 320×256), so there it simply ends the form. */
   .dock {
@@ -645,22 +653,26 @@
     z-index: 30;
     /* The top padding keeps a focus ring on the button over the opaque part, not the fade. */
     padding: 0.5rem 1.25rem max(1rem, env(safe-area-inset-bottom));
-    /* Opaque, edge to edge: a tap anywhere on it lands on the dock, never on a control hidden behind it. */
+    /* Opaque, edge to edge: a tap anywhere on it lands on the dock, never on a control hidden behind it.
+       The hairline marks where that begins. */
     background: var(--color-ink-950);
+    border-top: 1px solid rgba(243, 235, 221, 0.08);
     @variant short {
       position: static;
       padding: 1.75rem 0 0;
       background: none;
+      border-top: 0;
     }
   }
-  /* The fade above the dock is see-through, so taps go through it to whatever shows there. */
+  /* The fade above the dock is see-through, so taps go through it to whatever shows there — and it
+     only dims (to half): text that sits there stays readable (at least 3:1, even ivory-dim). */
   .dock::before {
     content: '';
     position: absolute;
     inset-inline: 0;
-    bottom: 100%;
+    bottom: calc(100% + 1px);
     height: 2.5rem;
-    background: linear-gradient(180deg, transparent, var(--color-ink-950));
+    background: linear-gradient(180deg, transparent, rgba(11, 10, 9, 0.5));
     pointer-events: none;
     @variant short {
       display: none;

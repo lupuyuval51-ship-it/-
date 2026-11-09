@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DirectorError, fetchDirectorStatus, requestEpisode, type DirectorEvent } from '../src/ai/client.ts';
+import { DEFAULT_STREAM_DEADLINE_MS, DirectorError, STREAM_DEADLINE_MARGIN_MS, STREAM_IDLE_MS, fetchDirectorStatus, requestEpisode, type DirectorEvent } from '../src/ai/client.ts';
 import { aiEpisodeToAdventure } from '../shared/aiEpisode.ts';
 import type { Prefs } from '../shared/types.ts';
 import { mockAiEpisode } from './fixtures/aiEpisode.ts';
@@ -92,5 +92,126 @@ describe('fetchDirectorStatus', () => {
     vi.stubGlobal('fetch', vi.fn(async () => Response.json({ configured: true, state: 'online', model: 'claude-opus-5-5', label: 'Online', detail: '…', canGenerate: true, checkedAt: 1 })));
     const s = await fetchDirectorStatus();
     expect(s).toMatchObject({ state: 'online', canGenerate: true, configured: true });
+  });
+});
+
+describe('requestEpisode on a connection that stalls', () => {
+  const enc = (s: string) => new TextEncoder().encode(s);
+  const abortError = () => new DOMException('The operation was aborted.', 'AbortError');
+
+  /** A fetch that never answers (until it is aborted), like a request stuck on a sleeping radio. */
+  const hangingFetch = () =>
+    vi.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(abortError()));
+        }),
+    );
+
+  /** Headers, then `: ping` every `pingMs` (none if 0), until aborted; the episode after `finishMs` if given. */
+  const streamingFetch = (opts: { pingMs: number; finishMs?: number; headers?: Record<string, string> }) =>
+    vi.fn(async (_url: string, init?: RequestInit) => {
+      let ctl!: ReadableStreamDefaultController<Uint8Array>;
+      let ping: ReturnType<typeof setInterval> | undefined;
+      let finish: ReturnType<typeof setTimeout> | undefined;
+      const stop = () => {
+        clearInterval(ping);
+        clearTimeout(finish);
+      };
+      const body = new ReadableStream<Uint8Array>({
+        start(c) {
+          ctl = c;
+          c.enqueue(enc(': plot twist incoming\n\n'));
+        },
+      });
+      init?.signal?.addEventListener('abort', () => {
+        stop();
+        ctl.error(abortError());
+      });
+      if (opts.pingMs) ping = setInterval(() => ctl.enqueue(enc(': ping\n\n')), opts.pingMs);
+      if (opts.finishMs !== undefined)
+        finish = setTimeout(() => {
+          stop();
+          ctl.enqueue(enc(`event: episode\ndata: ${JSON.stringify({ type: 'episode', adventure, model: 'x', repaired: false })}\n\n`));
+          ctl.close();
+        }, opts.finishMs);
+      return new Response(body, { status: 200, headers: { 'content-type': 'text/event-stream', ...(opts.headers ?? {}) } });
+    });
+
+  const settle = (p: Promise<unknown>) => {
+    const out: { value?: unknown; error?: unknown; done: boolean } = { done: false };
+    p.then(
+      (value) => Object.assign(out, { value, done: true }),
+      (error) => Object.assign(out, { error, done: true }),
+    );
+    return out;
+  };
+
+  afterEach(() => vi.useRealTimers());
+
+  it('gives up on a request that is never answered (STREAM_IDLE_MS), as a stalled connection', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', hangingFetch());
+    const out = settle(requestEpisode({ prefs }));
+    await vi.advanceTimersByTimeAsync(STREAM_IDLE_MS - 1_000);
+    expect(out.done).toBe(false);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(out.done).toBe(true);
+    expect(out.error).toBeInstanceOf(DirectorError);
+    expect(out.error).toMatchObject({ code: 'stalled', message: 'The connection to the AI Director stalled.' });
+  });
+
+  it('gives up on a stream that goes silent after its headers', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', streamingFetch({ pingMs: 0 }));
+    const out = settle(requestEpisode({ prefs }));
+    await vi.advanceTimersByTimeAsync(STREAM_IDLE_MS + 1_000);
+    expect(out.error).toMatchObject({ code: 'stalled' });
+  });
+
+  it('keeps waiting while the server pings, and gets the episode', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', streamingFetch({ pingMs: 15_000, finishMs: 140_000, headers: { 'x-plot-twist-deadline-ms': '150000' } }));
+    const out = settle(requestEpisode({ prefs }));
+    await vi.advanceTimersByTimeAsync(141_000);
+    expect(out.error).toBeUndefined();
+    expect((out.value as { title?: string } | undefined)?.title).toBe('The Borrowed Postcard');
+  });
+
+  it("gives up past the server's own deadline (plus a margin), even while pings keep coming", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', streamingFetch({ pingMs: 15_000, headers: { 'x-plot-twist-deadline-ms': '60000' } }));
+    const out = settle(requestEpisode({ prefs }));
+    await vi.advanceTimersByTimeAsync(60_000 + STREAM_DEADLINE_MARGIN_MS - 1_000);
+    expect(out.done).toBe(false);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(out.error).toMatchObject({ code: 'stalled' });
+  });
+
+  it('uses a default deadline when the server does not say', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', streamingFetch({ pingMs: 15_000 }));
+    const out = settle(requestEpisode({ prefs }));
+    await vi.advanceTimersByTimeAsync(DEFAULT_STREAM_DEADLINE_MS - 1_000);
+    expect(out.done).toBe(false);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(out.error).toMatchObject({ code: 'stalled' });
+  });
+
+  it("leaves the caller's own abort an AbortError (a re-deal, a reload), never a stall", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', streamingFetch({ pingMs: 0 }));
+    const ctl = new AbortController();
+    const out = settle(requestEpisode({ prefs }, { signal: ctl.signal }));
+    await vi.advanceTimersByTimeAsync(5_000);
+    ctl.abort();
+    await vi.advanceTimersByTimeAsync(STREAM_IDLE_MS + 1_000);
+    expect((out.error as Error).name).toBe('AbortError');
+    vi.stubGlobal('fetch', hangingFetch());
+    const ctl2 = new AbortController();
+    const out2 = settle(requestEpisode({ prefs }, { signal: ctl2.signal }));
+    ctl2.abort();
+    await vi.advanceTimersByTimeAsync(1);
+    expect((out2.error as Error).name).toBe('AbortError');
   });
 });

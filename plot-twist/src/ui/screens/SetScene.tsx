@@ -19,7 +19,7 @@ import { ChipGroup, WeirdnessDial } from '../components/Controls.tsx';
 import { Sheet } from '../components/Sheet.tsx';
 import { formatClock, pad2, useNow } from '../hooks.ts';
 import { IconArrowRight, IconEnvelope, IconGroup, IconHome, IconOutside, IconPause, IconPlay, IconSolo } from '../icons.tsx';
-import { goBackTo, navigate } from '../router.ts';
+import { navigate } from '../router.ts';
 
 /** A slow festival-style marquee of episode titles — a hint of what's in the envelopes. */
 function NowShowing() {
@@ -64,7 +64,15 @@ function ResumeCard({ onResume, onDiscarded }: { onResume: () => void; onDiscard
   const { state, abandonRun } = useStore();
   const run = state.p.run;
   const now = useNow(1000, Boolean(run));
-  const [confirm, setConfirm] = useState(false);
+  // The question is about one episode: if another tab ends it (and maybe starts another), it is
+  // gone for good, and never comes back on its own about a different episode.
+  const [confirmFor, setConfirmFor] = useState<string | null>(null);
+  const runId = run?.id ?? null;
+  useEffect(() => {
+    if (confirmFor !== null && confirmFor !== runId) setConfirmFor(null);
+  }, [confirmFor, runId]);
+  const confirm = confirmFor !== null && confirmFor === runId;
+  const setConfirm = (open: boolean) => setConfirmFor(open ? runId : null);
   if (!run) return null;
   const node = currentNode(run);
   const paused = isPaused(run);
@@ -124,14 +132,18 @@ export function SetScene() {
   const ctaRef = useRef<HTMLButtonElement>(null);
   const prefs = state.p.prefs;
   const set = <K extends keyof Prefs>(key: K, value: Prefs[K]) => setPrefs({ ...prefs, [key]: value });
-  const [confirmNew, setConfirmNew] = useState(false);
   const next = state.p.completed.reduce((max, c) => Math.max(max, c.episodeNumber), 0) + 1;
   const aiOn = state.director.canGenerate;
   const activeRun = state.p.run;
-  // The "Episode in progress" question goes with the episode (another tab may end it meanwhile).
+  // The "Episode in progress" question goes with the episode it was asked about (another tab may
+  // end it meanwhile, and start another).
+  const [confirmNewFor, setConfirmNewFor] = useState<string | null>(null);
+  const activeId = activeRun?.id ?? null;
   useEffect(() => {
-    if (!activeRun) setConfirmNew(false);
-  }, [activeRun]);
+    if (confirmNewFor !== null && confirmNewFor !== activeId) setConfirmNewFor(null);
+  }, [confirmNewFor, activeId]);
+  const confirmNew = confirmNewFor !== null && confirmNewFor === activeId;
+  const setConfirmNew = (open: boolean) => setConfirmNewFor(open ? activeId : null);
 
   const go = () => {
     if (activeRun) {
@@ -143,9 +155,9 @@ export function SetScene() {
   };
   const resumeRun = () => {
     if (activeRun && activeRun.runningSince === null) resume();
-    // Back onto the episode's own entry when it is the one below (after Save & exit): Save & exit
-    // and Resume, over and over, never pile up history.
-    goBackTo({ name: 'play' });
+    // Always on top of Home, so Back from the episode comes back here. (Save & exit steps back
+    // down to Home, or takes the episode's place: Save & exit and Resume never pile up history.)
+    navigate({ name: 'play' });
   };
 
   // There are two Resume buttons, one per layout (the dock; the card in short viewports).
@@ -299,7 +311,7 @@ export function SetScene() {
       </form>
 
       {/* Closes by itself if another tab ends the episode meanwhile (nothing left to resume). */}
-      <Sheet open={confirmNew && Boolean(activeRun)} onClose={() => setConfirmNew(false)} title="Episode in progress" historyKey="plot-twist-in-progress">
+      <Sheet open={confirmNew} onClose={() => setConfirmNew(false)} title="Episode in progress" historyKey="plot-twist-in-progress">
         <p className="t-display mt-3 text-[1.625rem]">Episode {activeRun ? pad2(activeRun.episodeNumber) : ''} is still running.</p>
         <p className="mt-2 text-ivory-dim">Pick up where you left off, or start fresh with new envelopes (the current episode will be discarded).</p>
         <div className="mt-5 grid gap-2">

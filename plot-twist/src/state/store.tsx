@@ -318,7 +318,8 @@ function bootState(): Boot {
       generation: null,
       toasts: [],
       match: null,
-      detail: '',
+      // The field shows the ask of the envelopes on the table, if any (after a reload, or in a new tab).
+      detail: p.draw?.detail ?? '',
       aiBlockedUntil: block?.until ?? 0,
       aiBlockReason: block?.reason ?? null,
     },
@@ -384,6 +385,9 @@ function writingFor(draw: Draw | null, g: { key: string; drawId: string; slot: n
 
 /** How long a takeover claim must stand before this tab writes the envelope. */
 const CLAIM_SETTLE_MS = 450;
+
+/** Just past the server's hold on a passing provider trouble (server/status.ts ERROR_TTL_MS). */
+const SERVER_HOLD_RECHECK_MS = 31_000;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const boot = useRef<Boot | null>(null);
@@ -572,7 +576,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && typeof e.newValue === 'string') receive(e.newValue);
+      if (e.key === STORAGE_KEY) {
+        // What is stored now, not the event's value: two tabs that write at the same moment each
+        // hear about the other's write, but only one of the two writes is the one that stayed.
+        // Both take that one (and only the losing tab's work stops).
+        const raw = readRaw(getBrowserStorage()) ?? e.newValue;
+        if (typeof raw === 'string') receive(raw);
+      }
       if (e.key === AI_BLOCK_KEY) {
         // Another tab was asked to pause AI envelopes: so is this one.
         const block = parseAiBlock(e.newValue, Date.now());
@@ -660,6 +670,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const id = window.setTimeout(() => refreshDirectorRef.current(false), wait + 500);
     return () => window.clearTimeout(id);
   }, [state.aiBlockedUntil]);
+
+  // The server holds a passing provider trouble (Busy, Unstable, unreachable) for a short while
+  // (ERROR_TTL_MS, 30 s): look again as soon as that hold is over, not on the next minute's poll.
+  const serverState = state.serverDirector.state;
+  useEffect(() => {
+    if (serverState !== 'rate_limited' && serverState !== 'degraded' && serverState !== 'unreachable') return;
+    const id = window.setTimeout(() => {
+      if (document.visibilityState === 'visible') refreshDirectorRef.current(false);
+    }, SERVER_HOLD_RECHECK_MS);
+    return () => window.clearTimeout(id);
+  }, [serverState, state.serverDirector.checkedAt]);
 
   // ── AI Director status ──
   const refreshDirector = useCallback((force = false) => {
@@ -836,7 +857,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (prefs: Prefs, previous: Draw | null) => {
       const s = stateRef.current;
       const aiOn = s.director.canGenerate && Date.now() >= aiBlockedUntil.current;
-      const detail = s.detail.trim().slice(0, MAX_AI_DETAIL);
+      // "Draw again" asks for the same thing as the envelopes on the table: their scene and their
+      // detail (this tab's field may be empty — another tab or a reload).
+      const detail = (previous ? (previous.detail ?? '') : s.detail).trim().slice(0, MAX_AI_DETAIL);
       const current = latest.current.draw;
       // A personalized envelope survives a re-deal with the same prefs and detail: one still
       // being written, in this tab or in another open one (no second paid request), or one

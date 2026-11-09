@@ -20,7 +20,7 @@ import { Sheet } from '../components/Sheet.tsx';
 import { dialogOpen, formatCost, pad2, pushSheetEntry, sheetOnTop, useCloseOnBack, useReducedMotion } from '../hooks.ts';
 import { typographic } from '../../../shared/template.ts';
 import { IconArrowLeft, IconClock, IconCoin, IconGroup, IconHome, IconNote, IconOutside, IconRefresh, IconSolo, IconSparkle } from '../icons.tsx';
-import { entryState, goBackTo, leaveFor, navigate } from '../router.ts';
+import { entryState, goBackTo, leaveFor, navigate, useHistoryLanding } from '../router.ts';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const COUNT_WORDS = ['No envelopes', 'One envelope', 'Two envelopes', 'Three envelopes'];
@@ -151,13 +151,16 @@ export function Envelopes() {
 
   // Opened without a draw (deep link, reload, or Back / Forward over the episode these envelopes
   // started) → the scene, without leaving a dead entry: Back steps back once more onto the scene
-  // below, Forward carries on to the episode beyond. Mount-only on purpose: starting an episode
-  // clears the draw and navigates to play itself.
-  const mountedWithDraw = useRef(Boolean(draw));
+  // below, Forward carries on to the episode beyond. Asked again each time history lands here (a
+  // step that met a closed sheet's entry comes back to this one). Not once envelopes were shown:
+  // then their going away shows "These envelopes are gone" (starting an episode clears the draw
+  // and navigates to play itself).
+  const shownDraw = useRef(Boolean(draw));
+  if (draw) shownDraw.current = true;
+  const landing = useHistoryLanding();
   useEffect(() => {
-    if (!draw) leaveFor({ name: 'scene' }, { arrived: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!latestDraw.current && !shownDraw.current) leaveFor({ name: 'scene' }, { arrived: true });
+  }, [landing]);
 
   // Any history move during the seal animation cancels the letter. (Back while the letter is
   // open closes it through its own entry: useCloseOnBack below.)
@@ -189,7 +192,7 @@ export function Envelopes() {
   useCloseOnBack(openSlot !== null, LETTER_STATE, () => setOpenSlot(null));
 
   // Nothing to show while the redirect above happens (no flash of the "gone" notice).
-  if (!draw && !mountedWithDraw.current) return null;
+  if (!draw && !shownDraw.current) return null;
   if (!draw) {
     return (
       <div className="px-5 pb-32 pt-8">

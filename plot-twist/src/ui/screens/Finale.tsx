@@ -8,7 +8,7 @@ import { TRAIT_COLOR, TraitMeter } from '../components/Bits.tsx';
 import { PosterActions, PosterImage } from '../components/Poster.tsx';
 import { formatClock, pad2 } from '../hooks.ts';
 import { IconArrowRight, IconFilm, IconSparkle } from '../icons.tsx';
-import { leaveFor, navigate } from '../router.ts';
+import { leaveFor, navigate, useHistoryLanding } from '../router.ts';
 import { typographic } from '../../../shared/template.ts';
 import { uiAccent } from '../color.ts';
 
@@ -180,17 +180,24 @@ function SeriesNamer({ episode, onDone }: { episode: CompletedEpisode; onDone: (
  */
 export function useEpisodeGone(present: boolean, toast: (message: string) => void) {
   const wasPresent = useRef(present);
+  const told = useRef(false);
+  // Asked again each time history lands here: a step that met a sheet's entry comes back to this one.
+  const landing = useHistoryLanding();
   useEffect(() => {
     if (present) {
       wasPresent.current = true;
+      told.current = false;
       return;
     }
-    if (wasPresent.current) toast('This episode was removed in another tab.');
+    if (wasPresent.current && !told.current) {
+      told.current = true;
+      toast('This episode was removed in another tab.');
+    }
     // Onto My Series below it when it is there (no second copy of it), forward past it when the
     // user was going forward, else in its place.
     leaveFor({ name: 'series' }, { arrived: !wasPresent.current });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [present]);
+  }, [present, landing]);
 }
 
 /** The stamp already says "Plot twist" — don't print it twice. */

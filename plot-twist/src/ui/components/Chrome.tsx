@@ -54,17 +54,20 @@ export function StatusPill({ status, onClick }: { status: DirectorStatus; onClic
     <button
       type="button"
       onClick={onClick}
-      className="group inline-flex min-h-11 shrink-0 items-center"
+      // It can shrink, so its words wrap inside it, only when it is alone on a row and still too
+      // wide (very large text): never cut off at the screen's edge.
+      className="group inline-flex min-h-11 min-w-0 max-w-full items-center text-left"
       // The accessible name starts with the visible text, so "click AI Online" works for voice users.
       aria-label={`AI ${short}. AI Director: ${status.label}. Show details`}
     >
       {/* Below 360px everything in the header gives up a few pixels, so even "AI Checking" fits one row. */}
-      <span className="inline-flex min-h-9 items-center gap-2 whitespace-nowrap rounded-full border border-ivory/14 bg-ivory/[0.04] py-1 pl-2.5 pr-3 text-[0.7812rem] max-[359px]:gap-1.5 max-[359px]:pl-2 max-[359px]:pr-2.5 font-semibold text-ivory-dim transition-colors group-hover:border-ivory/30 group-hover:text-ivory">
+      <span className="inline-flex min-h-9 min-w-0 items-center gap-2 rounded-full border border-ivory/14 bg-ivory/[0.04] py-1 pl-2.5 pr-3 text-[0.7812rem] max-[359px]:gap-1.5 max-[359px]:pl-2 max-[359px]:pr-2.5 font-semibold text-ivory-dim transition-colors group-hover:border-ivory/30 group-hover:text-ivory">
         <span className={`h-2 w-2 shrink-0 rounded-full ${DOT[status.state] ?? 'bg-ivory-mute'}`} aria-hidden="true" />
         {/* Never truncated, and always says what it is about ("Off" alone reads like the app is
-            off): on narrow screens only the "·" goes, and the header wraps before anything is cut. */}
-        <span aria-hidden="true">
-          AI <span className="text-ivory-mute max-[419px]:hidden">· </span>
+            off): on narrow screens only the "·" goes, and the header wraps before anything is cut.
+            (424px: room for a 3-digit episode count beside it.) */}
+        <span aria-hidden="true" className="min-w-0">
+          AI <span className="text-ivory-mute max-[423px]:hidden">· </span>
           <span className="text-ivory">{short}</span>
         </span>
       </span>
@@ -148,7 +151,7 @@ export function TopBar({ onStatus }: { onStatus: () => void }) {
       >
         <Wordmark />
       </a>
-      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1">
+      <div className="header-end ml-auto flex min-w-0 flex-wrap items-center gap-1">
         <StatusPill status={state.director} onClick={onStatus} />
         <button
           type="button"
@@ -157,7 +160,7 @@ export function TopBar({ onStatus }: { onStatus: () => void }) {
           aria-label={`My Series, ${count} episode${count === 1 ? '' : 's'}`}
         >
           <IconFilm size={20} />
-          <span className="hidden min-[420px]:inline">Series</span>
+          <span className="hidden min-[424px]:inline">Series</span>
           <span className="t-num grid h-5 min-w-5 place-items-center rounded-full bg-ivory/12 px-1 text-[0.6875rem] text-ivory" aria-hidden="true">
             {count}
           </span>

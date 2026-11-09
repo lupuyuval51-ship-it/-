@@ -10,7 +10,7 @@ import { useStore } from '../../state/store.tsx';
 import { ProgressRail } from '../components/Bits.tsx';
 import { formatClock, pad2, useFocusTrap, useInertApp, useNow, useScrollLock } from '../hooks.ts';
 import { IconBolt, IconCheck, IconClose, IconGroup, IconPause, IconPlay, IconSwap } from '../icons.tsx';
-import { cameFrom, goBackTo, leaveFor, navigate } from '../router.ts';
+import { cameFrom, leaveFor, navigate, useHistoryLanding } from '../router.ts';
 import { uiAccent } from '../color.ts';
 
 /**
@@ -347,20 +347,26 @@ export function Play() {
   if (run) lastRunId.current = run.id;
   const firstNodeKey = useRef<string | null>(run ? `${run.nodeId}:${run.phase}` : null);
   const hadRun = useRef(Boolean(run));
+  const told = useRef(false);
+  const landing = useHistoryLanding();
 
   // No run: a deep link, Back / Forward onto an episode that is over, or another tab finished or
   // discarded it. (Finishing here navigates to the finale itself, to the same place.) Gone for
   // good, it leaves no dead entry: the envelopes below it were used up by this episode (unless
-  // another tab dealt new ones), so a step back carries on past them to the scene.
+  // another tab dealt new ones), so a step back carries on past them to the scene. Asked again
+  // each time history lands here (a step that met a sheet's entry comes back to this one).
   useEffect(() => {
     if (run) return;
     const id = lastRunId.current;
     const done = id ? state.p.completed.find((c) => c.id === id) : undefined;
-    if (!done && hadRun.current) toast('This episode was discarded in another tab.');
+    if (!done && hadRun.current && !told.current) {
+      told.current = true;
+      toast('This episode was discarded in another tab.');
+    }
     if (done) navigate({ name: 'finale', episodeId: done.id }, { replace: true });
     else leaveFor({ name: 'scene' }, { arrived: !hadRun.current, stepBack: cameFrom({ name: 'envelopes' }) && !state.p.draw });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [run, state.p.completed]);
+  }, [run, state.p.completed, landing]);
 
   // Coming back from a pause re-arms the stage, so the second tap of a double tap on
   // "Resume episode" can't land on the option or button underneath it.
@@ -387,8 +393,10 @@ export function Play() {
     saveAndExit();
     // Back down to the scene when it is the entry below, or past the envelopes this episode used
     // up (they step back to the scene themselves): Save & exit and Resume never pile up history.
-    if (cameFrom({ name: 'envelopes' }) && !state.p.draw) window.history.back();
-    else goBackTo({ name: 'scene' });
+    // Anything else below (the episode was opened from a bookmark): the scene takes the episode's
+    // place, so Home is never above the episode and Resume puts the episode back on top of it.
+    if ((cameFrom({ name: 'envelopes' }) && !state.p.draw) || cameFrom({ name: 'scene' })) window.history.back();
+    else navigate({ name: 'scene' }, { replace: true });
   };
   const resumeAndFocus = () => {
     resume();

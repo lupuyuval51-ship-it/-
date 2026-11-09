@@ -3,7 +3,7 @@ import type { Weirdness } from '../../shared/types.ts';
 import { isFinished } from '../engine/run.ts';
 import { PAUSED_WHILE_BROWSING, StoreProvider, useStore } from '../state/store.tsx';
 import { DirectorSheet, StorageBanner, Toasts, TopBar } from './components/Chrome.tsx';
-import { dialogOpen, dropSheetEntry, pushSheetEntry, useCloseOnBack } from './hooks.ts';
+import { dialogOpen, dropSheetEntry, focusScreenHeading, pushSheetEntry, useCloseOnBack, useFocusRescue } from './hooks.ts';
 import { entryState, useRoute, type Route } from './router.ts';
 import { Envelopes } from './screens/Envelopes.tsx';
 import { Finale } from './screens/Finale.tsx';
@@ -94,17 +94,11 @@ function Shell() {
       toast(PAUSED_WHILE_BROWSING);
     }
     // Move focus to the new screen's heading so keyboard and screen-reader users land on it.
-    if (!SELF_FOCUSING.has(route.name)) {
-      window.requestAnimationFrame(() => {
-        const heading = mainRef.current?.querySelector<HTMLElement>('h1');
-        if (!heading) return;
-        if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
-        heading.classList.add('outline-none');
-        heading.focus({ preventScroll: true });
-      });
-    }
+    if (!SELF_FOCUSING.has(route.name)) window.requestAnimationFrame(focusScreenHeading);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeKey]);
+  // Within a screen, focus on something another tab took away goes to the heading, not <body>.
+  useFocusRescue();
 
   useEffect(() => {
     const episodeTitle =

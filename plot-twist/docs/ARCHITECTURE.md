@@ -162,7 +162,10 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
 - A tab writes only when it has its **own** unsaved changes (a dirty flag set
   by `update()`); hiding, closing or idling never writes a stale snapshot.
 - Other tabs' writes are adopted immediately (`storage` event) and re-read when
-  a tab becomes visible again or is restored from the back/forward cache.
+  a tab becomes visible again or is restored from the back/forward cache. On a
+  `storage` event a tab takes what is stored *now*, not the event's value: two
+  tabs that write at the same moment each hear about the other's write, but only
+  one of the two writes stayed, and both tabs take that one.
 - Every local change stamps the sections it touched (`stamps.prefs`, `.draw`,
   `.run`, `.completed`, `.series`, `.settings`) with the **change** time.
 - Before writing, the store compares the stored `updatedAt` with the one it last
@@ -190,7 +193,15 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
     no tab ever sees "writing" without a beat while the answer is on its way.
   - A writing envelope has a `genKey`. A re-deal with the same scene, in this tab
     or any other, carries it into the new draw, and the writing tab follows it
-    there instead of starting over: no second paid request.
+    there instead of starting over: no second paid request. "Draw again" asks for
+    exactly what the envelopes on the table asked for — their scene and their
+    detail for the AI (the detail field, which is per tab, may be empty in another
+    tab or after a reload; on load it shows the current draw's detail).
+  - A request whose connection goes silent is given up by the browser
+    (`src/ai/client.ts`): nothing at all for 45 s (the server sends an event or a
+    `: ping` at least every 15 s), or 20 s past the server's own deadline (sent
+    in `X-Plot-Twist-Deadline-Ms`). The envelope gets an archive pick that says
+    the connection stalled, so it never stays "writing" for good.
 - A pause our server asks for (its rate limit, a full server, stream caps) is
   stored too (`plot-twist:v1:ai-block`: until when, and why, for up to the
   server's longest window of 24 hours), so every tab of the browser deals
@@ -211,14 +222,27 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
 - Each entry records the URL it was pushed from (`history.state.from`) and its
   place in the tab's history (`history.state.idx`, numbered by
   `installHistoryIndex` before anything else listens to `popstate`), so a
-  history move is known to be Back or Forward.
-- In-app back arrows, Save & exit and Resume step back when their screen is the
-  entry below (`goBackTo`): going back and forth never piles up history.
+  history move is known to be Back or Forward. An entry the browser makes itself
+  (a poster tile's link, a typed address) is numbered and given its `from` the
+  same way, on the `popstate` that announces it.
+- In-app back arrows step back when their screen is the entry below
+  (`goBackTo`): going back and forth never piles up history. Save & exit steps
+  back down to Home (or past the envelopes the episode used up); with anything
+  else below (an episode opened from a bookmark), Home takes the episode's
+  place. Resume always puts the episode on top of Home, so Back from it comes
+  back Home.
 - A screen whose data is gone (envelopes already played, an episode that is
   over, an episode removed in another tab) leaves with `leaveFor`, never
-  leaving a dead entry: reached by Forward it carries on forward; with its
-  target below, it steps back onto it (Play steps back past the envelopes it
-  used up); otherwise it becomes its target.
+  leaving a dead entry: reached by Forward or Back it carries on the same way
+  (as if it weren't there — but a step back that only bounced off a closed
+  sheet's entry, with nothing alive beyond it, is not the user going back);
+  with its target below, it steps back onto it (Play steps back past the
+  envelopes it used up); otherwise it becomes its target. Such a screen asks again every
+  time history lands on it (`useHistoryLanding`): a step that met a sheet's
+  entry with the same URL comes back to the same screen without remounting it.
+  On a sheet's entry, the screen's own entry is the one to leave from: a closed
+  sheet's entry is stepped over by the sheet guard, and an open sheet (the AI
+  status over a finale another tab removed) goes with its screen.
 
 ### Dialogs and announcements (`src/ui/hooks.ts`, `Sheet.tsx`, `Chrome.tsx`)
 - Sheets and the paused screen are portaled to `<body>`. While any is open,
@@ -239,7 +263,12 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
   dialog, and the letter is drawn (and the page made inert) together with its
   entry, so nothing can open on top of it in between.
 - A dialog that closes because what opened it is gone (another tab ended the
-  episode) hands focus to the screen's heading, not `<body>`.
+  episode) hands focus to the screen's heading, not `<body>`. So does a control
+  another tab takes away while it has focus (the envelopes it would open are
+  used up, the episode it would discard is gone): `useFocusRescue` watches for
+  the focused element leaving the page within a screen.
+- A confirm sheet belongs to the episode it asks about (by id): if another tab
+  ends that episode, it closes, and never reopens by itself about another one.
 - Toasts are a visual stack; screen readers hear them from one separate live
   region that holds only the newest message — each one once: a toast that goes
   away never makes an older one be read again. Live regions that must keep talking

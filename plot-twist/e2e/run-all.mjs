@@ -19,6 +19,9 @@
  *      AI pause across tabs, taking over an orphaned AI envelope)
  *  10. round5 (dock strip taps, header widths, focus ring, Forward and gone screens, history size,
  *      announcer, letter vs status on a slow phone, text size, provider limits, AI requests across tabs)
+ *  11. round6 (Forward onto emptied screens, bookmarked episodes, the discard question, focus when
+ *      another tab takes a control, poster tiles, AI detail on Draw again, stalled AI connections,
+ *      simultaneous draws, the dock's fade, the header at very large text and with 100 episodes)
  */
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -27,6 +30,7 @@ import { dirname, join } from 'node:path';
 import { a11yRound3Suite } from './a11ySuite.mjs';
 import { round4Suite } from './round4Suite.mjs';
 import { round5Suite } from './round5Suite.mjs';
+import { round6Suite } from './round6Suite.mjs';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
@@ -814,6 +818,8 @@ async function main() {
   start('node', ['e2e/mockAnthropic.ts'], { MOCK_PORT: String(MOCK + 1), MOCK_MODE: 'always-invalid', MOCK_DELAY_MS: '10' }, 'mock-bad');
   // Writes an envelope in about 10 s, so tabs can act while it is being written.
   start('node', ['e2e/mockAnthropic.ts'], { MOCK_PORT: String(MOCK - 2), MOCK_MODE: 'ok', MOCK_DELAY_MS: '600' }, 'mock-slow');
+  // The AI provider itself is rate limited (the Messages API answers 429; the Models API is fine).
+  start('node', ['e2e/mockAnthropic.ts'], { MOCK_PORT: String(MOCK - 3), MOCK_MODE: 'rate-limited', MOCK_DELAY_MS: '60' }, 'mock-limited');
   const noKey = { ANTHROPIC_API_KEY: '', PLOT_TWIST_ANTHROPIC_API_KEY: '' };
   start('node', ['server/index.ts'], { ...noKey, PORT: '8790', PLOT_TWIST_DIST: DIST }, 'curated');
   start('node', ['server/index.ts'], { PORT: '8791', PLOT_TWIST_DIST: DIST, ANTHROPIC_API_KEY: 'e2e-test-key', PLOT_TWIST_ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK}` }, 'ai');
@@ -824,12 +830,19 @@ async function main() {
     { PORT: '8793', PLOT_TWIST_DIST: DIST, ANTHROPIC_API_KEY: 'e2e-test-key', PLOT_TWIST_ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK - 2}`, PLOT_TWIST_RATE_LIMIT: '1000' },
     'ai-slow',
   );
+  start(
+    'node',
+    ['server/index.ts'],
+    { PORT: '8794', PLOT_TWIST_DIST: DIST, ANTHROPIC_API_KEY: 'e2e-test-key', PLOT_TWIST_ANTHROPIC_BASE_URL: `http://127.0.0.1:${MOCK - 3}`, PLOT_TWIST_RATE_LIMIT: '1000' },
+    'ai-limited',
+  );
   start('npx', ['vite', '--port', '5197', '--strictPort'], noKey, 'dev');
   await Promise.all([
     waitFor('http://127.0.0.1:8790/api/health'),
     waitFor('http://127.0.0.1:8791/api/health'),
     waitFor('http://127.0.0.1:8792/api/health'),
     waitFor('http://127.0.0.1:8793/api/health'),
+    waitFor('http://127.0.0.1:8794/api/health'),
     waitFor('http://127.0.0.1:5197/'),
   ]);
 
@@ -846,6 +859,8 @@ async function main() {
       'a11y-round3': () => a11yRound3Suite(browser, 'http://127.0.0.1:8790/', check),
       round4: () => round4Suite(browser, 'http://127.0.0.1:8790/', 'http://127.0.0.1:8791/', check),
       round5: () => round5Suite(browser, { base: 'http://127.0.0.1:8790/', aiBase: 'http://127.0.0.1:8791/', slowAiBase: 'http://127.0.0.1:8793/' }, check),
+      round6: () =>
+        round6Suite(browser, { base: 'http://127.0.0.1:8790/', aiBase: 'http://127.0.0.1:8791/', slowAiBase: 'http://127.0.0.1:8793/', limitedAiBase: 'http://127.0.0.1:8794/' }, check),
     };
     for (const [name, run] of Object.entries(suites)) {
       if (only && only !== name) continue;

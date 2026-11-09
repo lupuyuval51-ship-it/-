@@ -363,6 +363,8 @@ export function createApiHandler(opts: ApiOptions = {}): ApiHandler {
         connection: 'keep-alive',
         'x-accel-buffering': 'no',
         'x-content-type-options': 'nosniff',
+        // The browser gives up on a stream that outlives this (plus a margin): see src/ai/client.ts.
+        'x-plot-twist-deadline-ms': String(config.deadlineMs),
       });
       res.flushHeaders?.();
       const send = (event: GenerateEvent) => {

@@ -135,23 +135,81 @@ export function inAbout(ms: number): string {
 }
 
 /**
+ * The server sends something at least every 15 s while it writes (an event or a `: ping`), from
+ * the moment it accepts the request. Nothing at all for this long means the connection stalled
+ * somewhere on the way (a sleeping radio, a proxy that holds the stream): the request is given up.
+ */
+export const STREAM_IDLE_MS = 45_000;
+/** Past the server's own deadline (sent in a header) by this much, the request is given up too. */
+export const STREAM_DEADLINE_MARGIN_MS = 20_000;
+/** Used when the server does not say its deadline: its default (150 s) plus the margin. */
+export const DEFAULT_STREAM_DEADLINE_MS = 170_000;
+
+const STALLED_MESSAGE = 'The connection to the AI Director stalled.';
+
+/**
  * Requests one personalized episode. Streams progress via `onEvent` and resolves
  * with an adventure that passed validation *and* the user's hard constraints —
  * the browser re-checks everything the server already checked.
  */
 export async function requestEpisode(req: GenerateRequest, opts: { signal?: AbortSignal; onEvent?: (e: DirectorEvent) => void } = {}): Promise<Adventure> {
+  // Our own abort, for a stalled stream; the caller's still aborts everything (and stays an AbortError).
+  const ctl = new AbortController();
+  const onCallerAbort = () => ctl.abort();
+  if (opts.signal?.aborted) ctl.abort();
+  else opts.signal?.addEventListener('abort', onCallerAbort, { once: true });
+  let stalled = false;
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
+  const giveUp = () => {
+    if (opts.signal?.aborted) return;
+    stalled = true;
+    ctl.abort();
+  };
+  const heard = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(giveUp, STREAM_IDLE_MS);
+  };
+  const stalledError = () => new DirectorError('stalled', STALLED_MESSAGE, true);
+  try {
+    heard();
+    return await streamEpisode(req, opts, ctl.signal, {
+      heard,
+      onHeaders: (res) => {
+        const said = Number(res.headers.get('x-plot-twist-deadline-ms'));
+        const limit = Number.isFinite(said) && said > 0 ? said + STREAM_DEADLINE_MARGIN_MS : DEFAULT_STREAM_DEADLINE_MS;
+        deadlineTimer = setTimeout(giveUp, limit);
+      },
+      stalled: () => (stalled ? stalledError() : null),
+    });
+  } finally {
+    clearTimeout(idleTimer);
+    clearTimeout(deadlineTimer);
+    opts.signal?.removeEventListener('abort', onCallerAbort);
+  }
+}
+
+async function streamEpisode(
+  req: GenerateRequest,
+  opts: { signal?: AbortSignal; onEvent?: (e: DirectorEvent) => void },
+  signal: AbortSignal,
+  watch: { heard: () => void; onHeaders: (res: Response) => void; stalled: () => DirectorError | null },
+): Promise<Adventure> {
   let res: Response;
   try {
     res = await fetch('/api/episodes/generate', {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
       body: JSON.stringify(req),
-      signal: opts.signal,
+      signal,
     });
   } catch (err) {
+    const stalled = watch.stalled();
+    if (stalled) throw stalled;
     if ((err as Error).name === 'AbortError') throw err;
     throw new DirectorError('network', 'The AI Director could not be reached.', true);
   }
+  watch.heard();
   if (!res.ok || !res.body) {
     let code = `http_${res.status}`;
     let retryAfterMs: number | undefined;
@@ -186,6 +244,7 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
     throw error;
   }
 
+  watch.onHeaders(res);
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -224,12 +283,15 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
     try {
       chunk = await reader.read();
     } catch (err) {
+      const stalled = watch.stalled();
+      if (stalled) throw stalled;
       // A dropped connection (page unloading, network switch) is not the AI failing.
       if (opts.signal?.aborted || (err as Error).name === 'AbortError') throw err;
       throw new DirectorError('interrupted', 'The connection to the AI Director dropped.', true);
     }
     const { done, value } = chunk;
     if (done) break;
+    watch.heard();
     buffer += decoder.decode(value, { stream: true });
     let idx: number;
     while ((idx = buffer.indexOf('\n\n')) >= 0) {

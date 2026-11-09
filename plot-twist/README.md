@@ -82,7 +82,8 @@ the visitor: that envelope comes from the archive, and the pill shows the
 server's own word for it. The status is shared by every visitor, so only provider
 problems change it: after the provider is busy, unreachable or stalls while
 writing, that state holds for 30 seconds even if the Models API still answers,
-and then the next status request or generation request checks again. One
+and then the next status request or generation request checks again (an open
+page asks again as soon as those 30 seconds are over). One
 visitor's refused or rejected draft is only logged. `GET /api/status?refresh=1`
 re-checks the provider at most every 15 seconds.
 
@@ -92,7 +93,11 @@ event, not even a keep-alive ping) for 30 seconds, or for half of
 `Unreachable`. A generation that is still streaming when it runs out of time
 (the attempt cap, or the deadline cutting a repair round) fails only that
 request: it falls back to a curated episode, is logged, and leaves the status
-alone.
+alone. The browser watches its own side of the connection too: if nothing at
+all arrives for 45 seconds (the server pings every 15), or the stream outlives
+the server's deadline (`PLOT_TWIST_DEADLINE_MS`, sent with the stream) by 20
+seconds, it gives up and deals an archive episode that says the connection
+stalled — an envelope never stays "writing" for good.
 
 ### Behind a reverse proxy
 

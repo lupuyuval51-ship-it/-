@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { entryState, historyMove, pushEntry } from './router.ts';
+import { entryState, historyMove, isSheetOpen, pushEntry, sheetClosed, sheetOpened } from './router.ts';
 
 /** Re-renders every `intervalMs` while enabled; returns the current time. */
 export function useNow(intervalMs = 1000, enabled = true): number {
@@ -111,25 +111,20 @@ export function dropSheetEntry(key: string): void {
   if (sheetOnTop(key)) window.history.back();
 }
 
-/** Sheets that are open right now, by history key (counted). */
-const openSheets = new Map<string, number>();
-
-/** Closes the sheet when Back pops its entry. */
+/** Closes the sheet when Back pops its entry. (It also registers the sheet as open: see router.ts.) */
 export function useCloseOnBack(open: boolean, key: string, onClose: () => void): void {
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
-    openSheets.set(key, (openSheets.get(key) ?? 0) + 1);
+    sheetOpened(key);
     const onPop = () => {
       if (!sheetOnTop(key)) closeRef.current();
     };
     window.addEventListener('popstate', onPop);
     return () => {
       window.removeEventListener('popstate', onPop);
-      const left = (openSheets.get(key) ?? 1) - 1;
-      if (left > 0) openSheets.set(key, left);
-      else openSheets.delete(key);
+      sheetClosed(key);
     };
   }, [open, key]);
 }
@@ -174,7 +169,7 @@ export function useSheetHistory(open: boolean, key: string | undefined, onClose:
 export function installSheetHistoryGuard(): () => void {
   const stale = () => {
     const key = entryState()?.sheet;
-    return key && !openSheets.has(key) ? key : null;
+    return key && !isSheetOpen(key) ? key : null;
   };
   const skip = (onPop: boolean) => {
     const key = stale();
@@ -244,14 +239,72 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
       // (On the next frame: a dialog under this one may still be releasing the page.)
       window.requestAnimationFrame(() => {
         if (document.activeElement && document.activeElement !== document.body) return;
-        const heading = document.querySelector<HTMLElement>('#root main h1') ?? document.querySelector<HTMLElement>('#root h1');
-        if (!heading) return;
-        if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
-        heading.classList.add('outline-none');
-        heading.focus({ preventScroll: true });
+        focusScreenHeading();
       });
     };
   }, [active, ref]);
+}
+
+/** Focuses the current screen's heading (made focusable, without a visible ring for it). */
+export function focusScreenHeading(): void {
+  const heading = document.querySelector<HTMLElement>('#root main h1') ?? document.querySelector<HTMLElement>('#root h1');
+  if (!heading) return;
+  if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+  heading.classList.add('outline-none');
+  heading.focus({ preventScroll: true });
+}
+
+/** Long enough for a screen that moves focus itself after a change (a new stage's heading) to do so first. */
+const RESCUE_DELAY_MS = 120;
+
+/**
+ * Another tab can take away the control that has focus — the envelopes it would open are used up,
+ * the episode it would discard is gone — and focus would drop to <body>, leaving a keyboard or
+ * screen-reader user nowhere. Focus goes to the screen's heading instead. Only for content swapped
+ * within a screen (a new screen focuses its own heading), and never while a dialog is open (its
+ * focus trap puts focus back when it closes).
+ */
+export function useFocusRescue(): void {
+  useEffect(() => {
+    const root = document.getElementById('root');
+    if (!root) return;
+    /** The element in the app that has focus, and the screen it is on. */
+    let held: { el: Element; screen: Element | null } | null = null;
+    let timer = 0;
+    const onFocusIn = (e: FocusEvent) => {
+      const el = e.target;
+      held = el instanceof Element && root.contains(el) ? { el, screen: el.closest('main') } : null;
+    };
+    // Focus sent elsewhere on purpose (a tap on the page) — not the element going away.
+    const onFocusOut = (e: FocusEvent) => {
+      const el = e.target;
+      queueMicrotask(() => {
+        if (held?.el === el && el instanceof Element && el.isConnected && document.activeElement !== el) held = null;
+      });
+    };
+    const rescue = () => {
+      timer = 0;
+      const was = held;
+      if (!was || was.el.isConnected) return;
+      held = null;
+      if (was.screen && !was.screen.isConnected) return;
+      const active = document.activeElement;
+      if ((active && active !== document.body) || dialogOpen()) return;
+      focusScreenHeading();
+    };
+    const observer = new MutationObserver(() => {
+      if (held && !held.el.isConnected && !timer) timer = window.setTimeout(rescue, RESCUE_DELAY_MS);
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+    };
+  }, []);
 }
 
 /** Formats milliseconds as m:ss or h:mm:ss. */

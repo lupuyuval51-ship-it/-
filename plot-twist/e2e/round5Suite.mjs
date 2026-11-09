@@ -186,15 +186,19 @@ export async function round5Suite(browser, { base, aiBase, slowAiBase }, check) 
       await sleep(4000);
       return route.continue().catch(() => {});
     });
+    // Added once the document has a <head> (an init script runs before it exists, and the parser
+    // would drop a node added that early), then checked to really be in force.
     await page.addInitScript(() => {
-      const style = document.createElement('style');
-      style.textContent = 'html{font-size:200% !important}';
-      document.documentElement.appendChild(style);
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = 'html{font-size:200% !important}';
+        document.head.appendChild(style);
+      });
     });
     await page.goto(base);
     await waitH1(page, /plot/i);
-    const wide = await page.evaluate(() => document.documentElement.scrollWidth);
-    check('at 200% text, "AI Checking" never scrolls a 360px page sideways', wide <= 360, `scrollWidth=${wide}`);
+    const m = await page.evaluate(() => ({ root: getComputedStyle(document.documentElement).fontSize, wide: document.documentElement.scrollWidth, header: Math.round(document.querySelector('header').getBoundingClientRect().height) }));
+    check('at 200% text (in force: a 32px root), "AI Checking" never scrolls a 360px page sideways', m.root === '32px' && m.wide <= 360, JSON.stringify(m));
     await ctx.close();
   });
 
