@@ -144,17 +144,36 @@ export function SetScene() {
 
   // There are two Resume buttons, one per layout (the dock; the card in short viewports).
   // Rotating or zooming across the breakpoint hides the focused one: focus moves to its twin
-  // instead of dropping to <body>.
+  // instead of dropping to <body>. The browser may drop focus before or after the media query
+  // reports the change, so the twin that had focus is remembered rather than read back then.
   useEffect(() => {
+    let focusedTwin: HTMLElement | null = null;
+    const isTwin = (el: EventTarget | null): el is HTMLElement => el instanceof HTMLElement && el.hasAttribute('data-resume-twin');
+    const onFocusIn = (e: FocusEvent) => {
+      focusedTwin = isTwin(e.target) ? e.target : null;
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      // Focus sent nowhere while the button is still shown (a tap on the page, the window losing
+      // focus): the user moved on. Hidden by the new layout: that is the case handled below.
+      const twin = focusedTwin;
+      if (twin && e.target === twin && e.relatedTarget === null && twin.getClientRects().length > 0) focusedTwin = null;
+    };
     const mq = window.matchMedia('(max-height: 32em)');
     const onChange = () => {
+      const was = focusedTwin;
       const active = document.activeElement;
-      if (!(active instanceof HTMLElement) || !active.hasAttribute('data-resume-twin')) return;
-      const twin = Array.from(document.querySelectorAll<HTMLElement>('[data-resume-twin]')).find((el) => el !== active && el.getClientRects().length > 0);
-      twin?.focus();
+      if (!was || (active !== was && active !== document.body && active !== null)) return;
+      const shown = Array.from(document.querySelectorAll<HTMLElement>('[data-resume-twin]')).find((el) => el.getClientRects().length > 0);
+      if (shown && shown !== was) shown.focus();
     };
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
     mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+    return () => {
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
+      mq.removeEventListener('change', onChange);
+    };
   }, []);
 
   return (

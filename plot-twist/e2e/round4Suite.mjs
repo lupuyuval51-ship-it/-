@@ -226,12 +226,21 @@ export async function round4Suite(browser, base, aiBase, check) {
 
     await page.getByRole('button', { name: /Save & exit/ }).click();
     await waitH1(page, /plot/i);
+    // Both ways, a few times: the browser may drop focus before or after the media query reports.
+    const focusNow = () => page.evaluate(() => ({ twin: document.activeElement?.hasAttribute('data-resume-twin') ?? false, dock: Boolean(document.activeElement?.closest('.dock')) }));
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('.dock [data-resume-twin]').focus();
-    await page.setViewportSize({ width: 844, height: 390 });
-    await sleep(300);
-    const landscape = await page.evaluate(() => ({ twin: document.activeElement?.hasAttribute('data-resume-twin'), dock: Boolean(document.activeElement?.closest('.dock')) }));
-    check('rotating across the short breakpoint moves focus to the Resume that is shown', landscape.twin && !landscape.dock, JSON.stringify(landscape));
+    const turns = [];
+    for (let i = 0; i < 3; i++) {
+      await page.locator('.dock [data-resume-twin]').focus();
+      await page.setViewportSize({ width: 844, height: 390 });
+      await sleep(250);
+      const landscape = await focusNow();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await sleep(250);
+      const portrait = await focusNow();
+      turns.push(landscape.twin && !landscape.dock && portrait.twin && portrait.dock ? 'ok' : JSON.stringify({ landscape, portrait }));
+    }
+    check('rotating across the short breakpoint keeps focus on the Resume that is shown', turns.every((t) => t === 'ok'), turns.join(' '));
     await ctx.close();
   });
 
