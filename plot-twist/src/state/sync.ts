@@ -21,6 +21,8 @@ export const SEEN_KEY = `${STORAGE_KEY}:seen`;
 export const GEN_KEY = `${STORAGE_KEY}:gen`;
 /** A generation beat older than this means its tab is gone. */
 export const GEN_BEAT_STALE_MS = 9_000;
+/** A pause the AI Director asked this browser for (rate limit, busy), shared by its tabs. */
+export const AI_BLOCK_KEY = `${STORAGE_KEY}:ai-block`;
 
 /** Stored `updatedAt` of the main state, or null when there is none / it is unreadable. */
 export function storedStamp(raw: string | null): number | null {
@@ -210,4 +212,48 @@ export function clearGenBeat(storage: StorageLike | null, owner: string): void {
 /** True when another, still-alive tab is writing this envelope. */
 export function ownedElsewhere(beat: GenBeat | null, drawId: string, slot: number, self: string, now: number): boolean {
   return Boolean(beat && beat.owner !== self && beat.drawId === drawId && beat.slot === slot && now - beat.at < GEN_BEAT_STALE_MS);
+}
+
+// ── AI pause shared by tabs ──────────────────────────────────────────
+
+/**
+ * Why the AI Director turned this browser away for a while:
+ * - `rate_limited`: many episodes were asked for from this connection in a short time;
+ * - `busy`: the server is writing for other people;
+ * - `connection`: other episodes are still being written from this connection;
+ * - `network`: too many episodes are being written from this network.
+ */
+export type AiBlockReason = 'rate_limited' | 'busy' | 'connection' | 'network';
+export interface AiBlock {
+  until: number;
+  reason: AiBlockReason;
+}
+const AI_BLOCK_REASONS: readonly AiBlockReason[] = ['rate_limited', 'busy', 'connection', 'network'];
+/** Longer than any pause the server asks for: a stored value beyond it is junk (or a clock jump). */
+const AI_BLOCK_MAX_MS = 60 * 60_000;
+
+/** A pause still in force at `now`, or null. */
+export function parseAiBlock(raw: string | null, now: number): AiBlock | null {
+  if (!raw) return null;
+  try {
+    const b = JSON.parse(raw) as Partial<AiBlock>;
+    if (typeof b.until !== 'number' || !Number.isFinite(b.until) || b.until <= now || b.until - now > AI_BLOCK_MAX_MS) return null;
+    if (typeof b.reason !== 'string' || !(AI_BLOCK_REASONS as readonly string[]).includes(b.reason)) return null;
+    return { until: b.until, reason: b.reason };
+  } catch {
+    return null;
+  }
+}
+
+export function readAiBlock(storage: StorageLike | null, now: number): AiBlock | null {
+  return parseAiBlock(readRaw(storage, AI_BLOCK_KEY), now);
+}
+
+export function writeAiBlock(storage: StorageLike | null, block: AiBlock): void {
+  if (!storage) return;
+  try {
+    storage.setItem(AI_BLOCK_KEY, JSON.stringify(block));
+  } catch {
+    // Best effort: this tab still knows.
+  }
 }

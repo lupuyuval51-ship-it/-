@@ -17,10 +17,10 @@ import { envelopeAdventure, useStore } from '../../state/store.tsx';
 import { Fact } from '../components/Bits.tsx';
 import { Envelope, PHASE_COPY, WaxSeal } from '../components/Envelope.tsx';
 import { Sheet } from '../components/Sheet.tsx';
-import { formatCost, pad2, useReducedMotion } from '../hooks.ts';
+import { dialogOpen, formatCost, pad2, sheetOnTop, useCloseOnBack, useReducedMotion } from '../hooks.ts';
 import { typographic } from '../../../shared/template.ts';
 import { IconArrowLeft, IconClock, IconCoin, IconGroup, IconHome, IconNote, IconOutside, IconRefresh, IconSolo, IconSparkle } from '../icons.tsx';
-import { navigate } from '../router.ts';
+import { cameFrom, navigate } from '../router.ts';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const COUNT_WORDS = ['No envelopes', 'One envelope', 'Two envelopes', 'Three envelopes'];
@@ -36,7 +36,13 @@ function applyRelaxation(p: Prefs, r: Relaxation): Prefs {
 }
 
 function letterOnTop(): boolean {
-  return (window.history.state as { sheet?: string } | null)?.sheet === LETTER_STATE;
+  return sheetOnTop(LETTER_STATE);
+}
+
+/** Back to the scene: a step back when the scene is the entry below (no duplicate entry). */
+function backToScene(): void {
+  if (cameFrom({ name: 'scene' })) window.history.back();
+  else navigate({ name: 'scene' });
 }
 
 function Letter({ adventure, source, episodeNumber, onStart, onBack }: { adventure: Adventure; source: 'ai' | 'curated'; episodeNumber: number; onStart: () => void; onBack: () => void }) {
@@ -144,10 +150,28 @@ export function Envelopes() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const episodeNumber = state.p.completed.reduce((max, c) => Math.max(max, c.episodeNumber), 0) + 1;
 
-  // Opened without a draw (deep link / stale tab) → back to the scene. Mount-only on purpose:
-  // starting an episode clears the draw and navigates to play itself.
+  // Opened without a draw (deep link, reload, or Back from the episode these envelopes started)
+  // → the scene. Back from an episode steps back once more, onto the scene below, so the next
+  // Back leaves instead of landing on a copy of it. Mount-only on purpose: starting an episode
+  // clears the draw and navigates to play itself.
+  const mountedWithDraw = useRef(Boolean(draw));
+  const steppedBack = useRef(false);
   useEffect(() => {
-    if (!draw) navigate({ name: 'scene' }, { replace: true });
+    if (draw) return;
+    if (!cameFrom({ name: 'scene' })) {
+      navigate({ name: 'scene' }, { replace: true });
+      return;
+    }
+    // Once, even when StrictMode replays this effect.
+    if (!steppedBack.current) {
+      steppedBack.current = true;
+      window.history.back();
+    }
+    // If there was nothing to step back to after all, replace this entry instead.
+    const id = window.setTimeout(() => {
+      if (window.location.hash === '#/envelopes') navigate({ name: 'scene' }, { replace: true });
+    }, 400);
+    return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -175,7 +199,11 @@ export function Envelopes() {
     setOpenSlot(null);
     if (letterOnTop()) window.history.back();
   }, [letterGone]);
+  // Registers the open letter's entry (the popstate handler above does the closing).
+  useCloseOnBack(openSlot !== null, LETTER_STATE, () => setOpenSlot(null));
 
+  // Nothing to show while the redirect above happens (no flash of the "gone" notice).
+  if (!draw && !mountedWithDraw.current) return null;
   if (!draw) {
     return (
       <div className="px-5 pb-32 pt-8">
@@ -214,6 +242,9 @@ export function Envelopes() {
     // The envelope changed underneath during the seal animation (another tab re-dealt): no letter.
     const env = latestDraw.current?.envelopes.find((e) => e.slot === slot);
     if (!env || (envelopeAdventure(env)?.id ?? null) !== id) return;
+    // Another dialog opened during the seal animation (the AI status): the letter doesn't stack
+    // on top of it. The envelope stays open; one more tap reads it.
+    if (dialogOpen()) return;
     // One history entry per open letter, however many taps it took to open it.
     if (!letterOnTop()) window.history.pushState({ sheet: LETTER_STATE }, '');
     openedId.current = id;
@@ -248,7 +279,7 @@ export function Envelopes() {
   return (
     <div className="px-5 pb-32">
       <div className="flex items-center gap-2 pt-2">
-        <button type="button" className="icon-btn -ml-2" onClick={() => navigate({ name: 'scene' })} aria-label="Back to set the scene">
+        <button type="button" className="icon-btn -ml-2" onClick={backToScene} aria-label="Back to set the scene">
           <IconArrowLeft />
         </button>
         <p className="t-kicker">Episode {pad2(episodeNumber)} · choose your envelope</p>
@@ -261,7 +292,7 @@ export function Envelopes() {
         <button
           type="button"
           className="-my-3 inline-flex min-h-11 items-center px-1 font-semibold text-ivory underline decoration-[color:var(--accent)] decoration-2 underline-offset-4"
-          onClick={() => navigate({ name: 'scene' })}
+          onClick={backToScene}
           aria-label="Edit the scene"
         >
           Edit
@@ -276,7 +307,7 @@ export function Envelopes() {
           ) : (
             <>
               <p className="mt-2 text-[0.875rem] text-ivory-dim">No single change fixes this one — loosen a couple of things and try again.</p>
-              <button type="button" className="btn btn-primary mt-4" onClick={() => navigate({ name: 'scene' })}>
+              <button type="button" className="btn btn-primary mt-4" onClick={backToScene}>
                 Edit the scene
               </button>
             </>
@@ -359,8 +390,9 @@ export function Envelopes() {
             onStart={() => {
               const run = startEpisode(openEnv.slot);
               setOpenSlot(null);
-              // Replace the letter's history entry, so Back from the episode skips the closed letter.
-              if (run) navigate({ name: 'play' }, { replace: letterOnTop() });
+              // The episode takes the letter's history entry (navigate replaces a sheet's entry),
+              // so Back from the episode skips the closed letter.
+              if (run) navigate({ name: 'play' });
               else if (letterOnTop()) window.history.back();
             }}
           />

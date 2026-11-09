@@ -33,7 +33,24 @@ import type { CompletedEpisode, MatchResult, Run } from '../engine/types.ts';
 import type { Adventure, Prefs } from '../../shared/types.ts';
 import { getBrowserStorage, loadState, sanitizeState, saveState, STORAGE_KEY } from './persistence.ts';
 import { dealCurated, samePrefs } from './deal.ts';
-import { clearGenBeat, mergeStates, ownedElsewhere, readGenBeat, readRaw, readSeen, restamp, storedStamp, writeGenBeat, writeSeen } from './sync.ts';
+import {
+  AI_BLOCK_KEY,
+  clearGenBeat,
+  GEN_BEAT_STALE_MS,
+  mergeStates,
+  ownedElsewhere,
+  parseAiBlock,
+  readAiBlock,
+  readGenBeat,
+  readRaw,
+  readSeen,
+  restamp,
+  storedStamp,
+  writeAiBlock,
+  writeGenBeat,
+  writeSeen,
+  type AiBlockReason,
+} from './sync.ts';
 import type { Draw, DrawEnvelope, LoadStatus, MotionPreference, PersistedState } from './types.ts';
 
 // ── ephemeral state ──────────────────────────────────────────────────
@@ -68,6 +85,9 @@ export const CHECKING_STATUS: DirectorStatus = {
 
 export type StorageIssue = null | 'quota' | 'unavailable';
 
+/** Why AI envelopes are paused for this browser; `tab` (another tab of it is writing) stays in this tab. */
+export type BlockReason = AiBlockReason | 'tab';
+
 interface State {
   p: PersistedState;
   loadStatus: LoadStatus;
@@ -75,15 +95,19 @@ interface State {
   storageWritable: boolean;
   /** Why the last save failed, if it did. */
   storageIssue: StorageIssue;
+  /** The status shown: the server's, limited by this browser's own AI pause. */
   director: DirectorStatus;
+  /** The server's status as last fetched. */
+  serverDirector: DirectorStatus;
   generation: Generation | null;
   toasts: Toast[];
   /** The latest match result for the current draw (conflict + relaxations). */
   match: MatchResult | null;
   /** Optional free-text detail for the AI Director (stored on the draw once used). */
   detail: string;
-  /** This browser has hit the AI Director's per-visitor limit: no AI envelopes until then. */
+  /** The AI Director turned this browser away (rate limit, busy): no AI envelopes until then. */
   aiBlockedUntil: number;
+  aiBlockReason: BlockReason | null;
 }
 
 type Action =
@@ -98,7 +122,8 @@ type Action =
   | { type: 'dismissToast'; id: string }
   | { type: 'storage'; writable: boolean; issue: StorageIssue }
   | { type: 'detail'; detail: string }
-  | { type: 'aiBlocked'; until: number };
+  | { type: 'aiBlocked'; until: number; reason: BlockReason }
+  | { type: 'dismissToasts'; messages: readonly string[] };
 
 function generationReducer(g: Generation, e: DirectorEvent): Generation {
   if (e.type === 'phase') {
@@ -116,18 +141,29 @@ function generationReducer(g: Generation, e: DirectorEvent): Generation {
   return g;
 }
 
+const BLOCK_DETAIL: Record<BlockReason, string> = {
+  rate_limited: 'Lots of episodes have been asked for from your connection in a short time.',
+  busy: 'The AI Director is busy writing for other people right now.',
+  connection: 'Other episodes are still being written from your connection.',
+  network: 'Too many episodes are being written from your network right now.',
+  tab: 'The AI Director is still writing an envelope in your other tab.',
+};
+
 /**
- * While this browser is over the AI Director's per-visitor limit, the pill and
- * the home copy must not promise an AI envelope, whatever the shared status says.
+ * While the AI Director has turned this browser away for a while (rate limit, busy server,
+ * stream caps), the pill and the home copy must not promise an AI envelope, whatever the
+ * shared status says — and the details say why, without blaming the visitor for a full server.
  */
-function withClientLimit(status: DirectorStatus, blockedUntil: number, now: number): DirectorStatus {
+export function withClientLimit(status: DirectorStatus, blockedUntil: number, reason: BlockReason | null, now: number): DirectorStatus {
   if (now >= blockedUntil || !status.canGenerate) return status;
-  const minutes = Math.max(1, Math.ceil((blockedUntil - now) / 60_000));
+  const wait = blockedUntil - now;
+  const minutes = Math.max(1, Math.ceil(wait / 60_000));
+  const when = wait < 60_000 ? 'in under a minute' : `in about ${minutes} minute${minutes === 1 ? '' : 's'}`;
   return {
     ...status,
     state: 'rate_limited',
     label: 'Busy',
-    detail: `You have asked the AI Director for a lot of episodes in a short time. It will write for you again in about ${minutes} minute${minutes === 1 ? '' : 's'}; until then all three envelopes come from the curated archive.`,
+    detail: `${BLOCK_DETAIL[reason ?? 'rate_limited']} It will write for you again ${when}; until then all three envelopes come from the curated archive.`,
     canGenerate: false,
   };
 }
@@ -137,9 +173,14 @@ function reducer(state: State, action: Action): State {
     case 'setPersisted':
       return state.p === action.p ? state : { ...state, p: action.p };
     case 'director':
-      return { ...state, director: withClientLimit(action.status, state.aiBlockedUntil, Date.now()) };
+      return { ...state, serverDirector: action.status, director: withClientLimit(action.status, state.aiBlockedUntil, state.aiBlockReason, Date.now()) };
     case 'aiBlocked':
-      return { ...state, aiBlockedUntil: action.until, director: withClientLimit(state.director, action.until, Date.now()) };
+      return {
+        ...state,
+        aiBlockedUntil: action.until,
+        aiBlockReason: action.reason,
+        director: withClientLimit(state.serverDirector, action.until, action.reason, Date.now()),
+      };
     case 'generation':
       return { ...state, generation: action.generation };
     case 'retargetGeneration':
@@ -160,6 +201,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, toasts: [...state.toasts.filter((t) => t.message !== action.toast.message), action.toast].slice(-3) };
     case 'dismissToast':
       return { ...state, toasts: state.toasts.filter((t) => t.id !== action.id) };
+    case 'dismissToasts': {
+      const toasts = state.toasts.filter((t) => !action.messages.includes(t.message));
+      return toasts.length === state.toasts.length ? state : { ...state, toasts };
+    }
     case 'storage':
       return state.storageWritable === action.writable && state.storageIssue === action.issue
         ? state
@@ -177,6 +222,11 @@ const TRANSITION_GUARD_MS = 350;
 const HEARTBEAT_MS = 15_000;
 
 const WELCOME_BACK = 'Welcome back — we paused the clock while you were away.';
+/** Shown when leaving a running episode for another screen (it pauses). */
+export const PAUSED_WHILE_BROWSING = 'Episode paused while you look around. Resume it from the home screen.';
+const SAVED_PAUSED = 'Saved. Your episode is paused right where you left it.';
+/** Notices that say the episode is paused: stale the moment it runs again. */
+const PAUSE_NOTICES = [WELCOME_BACK, PAUSED_WHILE_BROWSING, SAVED_PAUSED] as const;
 
 function historyOf(completed: readonly CompletedEpisode[]) {
   return completed.map((c) => ({ adventureId: c.adventureId, completedAt: c.completedAt }));
@@ -250,6 +300,8 @@ function bootState(): Boot {
   const stamp = loaded.status === 'loaded' || loaded.status === 'repaired' ? loaded.state.updatedAt : null;
   let p = loaded.state;
   let startupToast: string | null = null;
+  // A pause the AI Director asked for in another tab (or before a reload) still holds.
+  const block = readAiBlock(storage, Date.now());
   if (isRunning(p.run)) {
     const seen = Math.max(p.run.lastSeenAt, readSeen(storage, p.run.id) ?? 0);
     const { run, autoPaused } = recoverRun({ ...p.run, lastSeenAt: seen }, Date.now());
@@ -266,11 +318,13 @@ function bootState(): Boot {
       storageWritable: storage !== null && loaded.status !== 'unavailable',
       storageIssue: storage === null || loaded.status === 'unavailable' ? 'unavailable' : null,
       director: CHECKING_STATUS,
+      serverDirector: CHECKING_STATUS,
       generation: null,
       toasts: [],
       match: null,
       detail: '',
-      aiBlockedUntil: 0,
+      aiBlockedUntil: block?.until ?? 0,
+      aiBlockReason: block?.reason ?? null,
     },
     stamp,
     dirty: p !== loaded.state,
@@ -344,8 +398,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const lastSaveIssue = useRef<StorageIssue>(null);
   const drafts = useRef(new Set<() => void>());
   const gen = useRef<GenTarget | null>(null);
-  /** No AI envelopes until then (server rate limit / busy). */
-  const aiBlockedUntil = useRef(0);
+  /** No AI envelopes until then (server rate limit / busy), and why. */
+  const aiBlockedUntil = useRef(state.aiBlockedUntil);
+  const aiBlockReason = useRef<BlockReason | null>(state.aiBlockReason);
   /** In-memory "last seen" — the fallback when storage can't keep the seen key. */
   const memSeen = useRef(0);
   /** The page is unloading: in-flight generation errors are not real failures. */
@@ -353,6 +408,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const lastTransition = useRef(Number.NEGATIVE_INFINITY);
   /** Envelopes left "writing" by a previous page load wait for the first status check. */
   const pendingWriting = useRef(Boolean(state.p.draw?.envelopes.some((e) => e.status === 'writing')));
+  /** Bumped to run the writing check again (see below). */
+  const [writingCheck, setWritingCheck] = useState(0);
 
   const update = useCallback((fn: (p: PersistedState) => PersistedState) => {
     const prev = latest.current;
@@ -443,6 +500,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
       }
       adopt(next);
+      // An AI envelope that another tab is writing: if that tab goes away mid-stream, this one
+      // takes over. (The writing check waits for as long as the other tab's beat stays fresh.)
+      if (!gen.current && !pendingWriting.current && next.draw?.envelopes.some((e) => e.status === 'writing')) {
+        pendingWriting.current = true;
+        setWritingCheck((n) => n + 1);
+      }
     },
     [adopt],
   );
@@ -495,6 +558,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && typeof e.newValue === 'string') receive(e.newValue);
+      if (e.key === AI_BLOCK_KEY) {
+        // Another tab was asked to pause AI envelopes: so is this one.
+        const block = parseAiBlock(e.newValue, Date.now());
+        if (block && block.until > aiBlockedUntil.current) {
+          aiBlockedUntil.current = block.until;
+          aiBlockReason.current = block.reason;
+          dispatch({ type: 'aiBlocked', until: block.until, reason: block.reason });
+        }
+      }
     };
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {
@@ -621,6 +693,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // The detail travels with the draw, so a retry after a reload still uses it.
       const detail = (draw.detail ?? '').trim().slice(0, MAX_AI_DETAIL);
 
+      // Whether another tab of this browser is writing right now — read before this tab's own
+      // beat takes the key over. (If the server turns this request away over open streams, that
+      // tab is why.)
+      const before = readGenBeat(getBrowserStorage());
+      const otherTabWriting = Boolean(before && before.owner !== TAB_ID && Date.now() - before.at < GEN_BEAT_STALE_MS);
       // Tell other tabs this envelope is being written here, so they don't start a duplicate.
       const beat = () => writeGenBeat(getBrowserStorage(), { drawId: target.drawId, slot: target.slot, owner: TAB_ID, at: Date.now() });
       beat();
@@ -657,11 +734,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         })
         .catch((err: unknown) => {
           if ((err as Error).name === 'AbortError' || ctl.signal.aborted || unloading.current) return;
+          let reason = err instanceof DirectorError ? err.message : 'The AI Director could not finish.';
           if (err instanceof DirectorError && (err.code === 'rate_limited' || err.code === 'busy' || err.code === 'too_many_streams')) {
-            aiBlockedUntil.current = Date.now() + (err.retryAfterMs ?? (err.code === 'rate_limited' ? 60_000 : 20_000));
-            dispatch({ type: 'aiBlocked', until: aiBlockedUntil.current });
+            const now = Date.now();
+            const why: BlockReason =
+              err.code === 'rate_limited' ? 'rate_limited' : err.code === 'busy' ? 'busy' : err.networkWide ? 'network' : otherTabWriting ? 'tab' : 'connection';
+            const until = now + (err.retryAfterMs ?? (err.code === 'rate_limited' ? 60_000 : 20_000));
+            // A longer pause already in force keeps its own end and its own reason.
+            if (until >= aiBlockedUntil.current) {
+              aiBlockedUntil.current = until;
+              aiBlockReason.current = why;
+            }
+            // Every tab of this browser would be turned away too — except over a stream that
+            // one of them is writing, which ends with that stream.
+            const reasonNow = aiBlockReason.current ?? why;
+            if (reasonNow !== 'tab') writeAiBlock(getBrowserStorage(), { until: aiBlockedUntil.current, reason: reasonNow });
+            dispatch({ type: 'aiBlocked', until: aiBlockedUntil.current, reason: reasonNow });
+            if (why === 'tab') reason = BLOCK_DETAIL.tab;
           }
-          const reason = err instanceof DirectorError ? err.message : 'The AI Director could not finish.';
           const current = latest.current.draw;
           const fb = current && current.id === target.drawId ? fallbackFor(current, latest.current.completed) : null;
           setEnvelope(
@@ -685,9 +775,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => gen.current?.ctl.abort(), []);
 
-  // Envelopes a previous page load left "writing": ask again once we know the Director can
-  // write — unless another open tab is still writing that envelope (then wait for its result).
-  const [writingCheck, setWritingCheck] = useState(0);
+  // Envelopes left "writing" by a previous page load, or by another tab: ask again once we know
+  // the Director can write — unless another open tab is still writing that envelope (then wait
+  // for its result, and take over if its beat goes quiet).
   useEffect(() => {
     if (!pendingWriting.current || state.director.state === 'checking') return;
     const draw = latest.current.draw;
@@ -702,7 +792,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     pendingWriting.current = false;
     if (state.director.canGenerate) generate(draw, env.slot);
-    else update((p) => settleWriting(p, 'The AI Director is offline right now.'));
+    else update((p) => settleWriting(p, state.director.state === 'rate_limited' ? 'The AI Director is busy right now.' : 'The AI Director is offline right now.'));
   }, [state.director, generate, update, writingCheck]);
 
   // ── draws ──
@@ -735,6 +825,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (carry && g && carry.status === 'writing') {
         g.drawId = draw.id;
         g.slot = aiSlot;
+        // Other tabs see the new draw at once: the beat has to name it now, not at its next tick.
+        writeGenBeat(getBrowserStorage(), { drawId: draw.id, slot: aiSlot, owner: TAB_ID, at: Date.now() });
         dispatch({ type: 'retargetGeneration', drawId: draw.id, slot: aiSlot });
       } else if (g) {
         g.ctl.abort();
@@ -808,6 +900,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       resume: () => {
         lastTransition.current = monotonic();
         withRun((run, now) => resumeRun(run, now));
+        dispatch({ type: 'dismissToasts', messages: PAUSE_NOTICES });
       },
       toggleAlternative: () => withRun((run) => engineToggleAlt(run)),
       setNote: (key, value) => withRun((run) => engineSetNote(run, key, value)),
@@ -829,7 +922,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       saveAndExit: () => {
         withRun((run, now) => pauseRun(run, now));
-        toast('Saved. Your episode is paused right where you left it.', 'success');
+        toast(SAVED_PAUSED, 'success');
       },
       setJournal: (episodeId, journal) =>
         update((p) => {
@@ -850,7 +943,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'match', match: null });
       },
       // Settles even when the server answers from its short refresh throttle with the same snapshot.
-      refreshDirector: () => refreshDirector(true).done.then((status) => (status ? withClientLimit(status, aiBlockedUntil.current, Date.now()) : null)),
+      refreshDirector: () =>
+        refreshDirector(true).done.then((status) => (status ? withClientLimit(status, aiBlockedUntil.current, aiBlockReason.current, Date.now()) : null)),
       toast,
       dismissToast: (id) => dispatch({ type: 'dismissToast', id }),
       registerDraft,

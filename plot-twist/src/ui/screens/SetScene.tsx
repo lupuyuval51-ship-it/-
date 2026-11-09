@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   BUDGET_LABEL,
   BUDGET_OPTIONS,
@@ -83,7 +83,7 @@ function ResumeCard({ onResume, onDiscarded }: { onResume: () => void; onDiscard
         )}
         {/* The primary "Resume" lives in the bottom dock. In short viewports the dock ends the form
             instead, screens below, so there the card offers it (only one of the two is ever shown). */}
-        <button type="button" className="btn btn-primary mt-4 hidden w-full short:inline-flex" onClick={onResume}>
+        <button type="button" className="btn btn-primary mt-4 hidden w-full short:inline-flex" onClick={onResume} data-resume-twin>
           <IconPlay size={18} /> Resume Episode {pad2(run.episodeNumber)}
         </button>
         <div className="mt-3 flex">
@@ -92,7 +92,7 @@ function ResumeCard({ onResume, onDiscarded }: { onResume: () => void; onDiscard
           </button>
         </div>
       </div>
-      <Sheet open={confirm} onClose={() => setConfirm(false)} title="Discard this episode?">
+      <Sheet open={confirm} onClose={() => setConfirm(false)} title="Discard this episode?" historyKey="plot-twist-discard">
         <p className="t-display mt-3 text-[1.625rem]">Cut Episode {pad2(run.episodeNumber)} from the series?</p>
         <p className="mt-2 text-ivory-dim">Your progress in “{run.adventure.title}” will be lost. Completed episodes are not affected.</p>
         <div className="mt-5 grid gap-2">
@@ -141,6 +141,21 @@ export function SetScene() {
     if (activeRun && activeRun.runningSince === null) resume();
     navigate({ name: 'play' });
   };
+
+  // There are two Resume buttons, one per layout (the dock; the card in short viewports).
+  // Rotating or zooming across the breakpoint hides the focused one: focus moves to its twin
+  // instead of dropping to <body>.
+  useEffect(() => {
+    const mq = window.matchMedia('(max-height: 32em)');
+    const onChange = () => {
+      const active = document.activeElement;
+      if (!(active instanceof HTMLElement) || !active.hasAttribute('data-resume-twin')) return;
+      const twin = Array.from(document.querySelectorAll<HTMLElement>('[data-resume-twin]')).find((el) => el !== active && el.getClientRects().length > 0);
+      twin?.focus();
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   return (
     // The bottom padding keeps the end of the form clear of the fixed dock (which flows in short viewports).
@@ -227,7 +242,7 @@ export function SetScene() {
             {activeRun ? (
               <>
                 {/* One clear primary action while an episode is in progress (on the card in short viewports). */}
-                <button ref={ctaRef} type="button" className="btn btn-primary btn-xl w-full short:hidden" onClick={resumeRun}>
+                <button ref={ctaRef} type="button" className="btn btn-primary btn-xl w-full short:hidden" onClick={resumeRun} data-resume-twin>
                   <IconPlay size={20} /> Resume Episode {pad2(activeRun.episodeNumber)}
                 </button>
                 <button type="submit" className="btn btn-ghost mt-1 w-full text-[0.875rem]">
@@ -248,7 +263,7 @@ export function SetScene() {
         </div>
       </form>
 
-      <Sheet open={confirmNew} onClose={() => setConfirmNew(false)} title="Episode in progress">
+      <Sheet open={confirmNew} onClose={() => setConfirmNew(false)} title="Episode in progress" historyKey="plot-twist-in-progress">
         <p className="t-display mt-3 text-[1.625rem]">Episode {activeRun ? pad2(activeRun.episodeNumber) : ''} is still running.</p>
         <p className="mt-2 text-ivory-dim">Pick up where you left off, or start fresh with new envelopes (the current episode will be discarded).</p>
         <div className="mt-5 grid gap-2">

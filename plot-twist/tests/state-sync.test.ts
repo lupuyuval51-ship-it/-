@@ -7,7 +7,21 @@ import { chooseOption, completeEpisode, completeStage, setNote, startRun } from 
 import type { CompletedEpisode, Run } from '../src/engine/types.ts';
 import { dealCurated } from '../src/state/deal.ts';
 import { defaultState } from '../src/state/persistence.ts';
-import { GEN_BEAT_STALE_MS, mergeCompleted, mergeStates, ownedElsewhere, readSeen, restamp, SEEN_KEY, storedStamp, writeSeen } from '../src/state/sync.ts';
+import {
+  AI_BLOCK_KEY,
+  GEN_BEAT_STALE_MS,
+  mergeCompleted,
+  mergeStates,
+  ownedElsewhere,
+  parseAiBlock,
+  readAiBlock,
+  readSeen,
+  restamp,
+  SEEN_KEY,
+  storedStamp,
+  writeAiBlock,
+  writeSeen,
+} from '../src/state/sync.ts';
 import type { Draw, PersistedState, StorageLike } from '../src/state/types.ts';
 
 const MIN = 60_000;
@@ -254,6 +268,35 @@ describe('dealCurated (Draw again)', () => {
     for (const prefs of combos) {
       const fitting = LIBRARY.filter((a) => fitsPrefs(a, prefs)).length;
       for (const ids of draws(prefs, 3, 4)) expect(ids.length).toBe(Math.min(3, fitting));
+    }
+  });
+});
+
+describe('AI pause shared by tabs', () => {
+  it('round-trips a pause that is still in force', () => {
+    const storage = new MemoryStorage();
+    writeAiBlock(storage, { until: T0 + 5 * MIN, reason: 'rate_limited' });
+    expect(storage.data.has(AI_BLOCK_KEY)).toBe(true);
+    expect(readAiBlock(storage, T0)).toEqual({ until: T0 + 5 * MIN, reason: 'rate_limited' });
+  });
+
+  it('forgets a pause once it has ended', () => {
+    expect(parseAiBlock(JSON.stringify({ until: T0, reason: 'busy' }), T0)).toBeNull();
+    expect(parseAiBlock(JSON.stringify({ until: T0 - 1, reason: 'busy' }), T0)).toBeNull();
+  });
+
+  it('rejects junk: unknown reasons, absurd lengths, broken JSON', () => {
+    expect(parseAiBlock(JSON.stringify({ until: T0 + MIN, reason: 'tab' }), T0)).toBeNull();
+    expect(parseAiBlock(JSON.stringify({ until: T0 + MIN, reason: 'whatever' }), T0)).toBeNull();
+    expect(parseAiBlock(JSON.stringify({ until: T0 + 2 * 60 * MIN, reason: 'busy' }), T0)).toBeNull();
+    expect(parseAiBlock(JSON.stringify({ until: 'soon', reason: 'busy' }), T0)).toBeNull();
+    expect(parseAiBlock('{nope', T0)).toBeNull();
+    expect(parseAiBlock(null, T0)).toBeNull();
+  });
+
+  it('keeps every reason the server can give', () => {
+    for (const reason of ['rate_limited', 'busy', 'connection', 'network'] as const) {
+      expect(parseAiBlock(JSON.stringify({ until: T0 + MIN, reason }), T0)?.reason).toBe(reason);
     }
   });
 });

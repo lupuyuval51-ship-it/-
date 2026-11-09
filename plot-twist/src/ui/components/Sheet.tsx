@@ -1,11 +1,12 @@
 import { useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { useFocusTrap, useInertApp, useScrollLock } from '../hooks.ts';
+import { useFocusTrap, useInertApp, useScrollLock, useSheetHistory } from '../hooks.ts';
 import { IconClose } from '../icons.tsx';
 
 /**
  * Accessible modal: bottom sheet on phones, centered card on wide screens.
  * Focus is trapped while open and restored on close; Escape and the backdrop close it.
+ * With a `historyKey`, the sheet also gets its own history entry, so Back closes it.
  */
 export function Sheet({
   open,
@@ -15,6 +16,7 @@ export function Sheet({
   variant = 'ink',
   labelHidden = false,
   closeLabel = 'Close',
+  historyKey,
 }: {
   open: boolean;
   onClose: () => void;
@@ -24,6 +26,8 @@ export function Sheet({
   /** Visually hide the title (still announced). */
   labelHidden?: boolean;
   closeLabel?: string;
+  /** Gives the open sheet a history entry of its own (Back closes it). */
+  historyKey?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -31,6 +35,7 @@ export function Sheet({
   useInertApp(open);
   useFocusTrap(ref, open, onClose);
   useScrollLock(open);
+  useSheetHistory(open, historyKey, onClose);
 
   if (!open) return null;
   const surface = variant === 'paper' ? 'paper' : 'bg-ink-900 border border-ink-700 text-ivory';

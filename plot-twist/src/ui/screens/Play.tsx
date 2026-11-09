@@ -184,7 +184,9 @@ function StageCard({ run, node, scrollOnArrive, armKey }: { run: Run; node: Stag
   }, [registerDraft]);
 
   return (
-    <article className="anim-rise mt-7" aria-labelledby={`stage-${node.id}`}>
+    // Until armed, no tap lands anywhere on the stage (Done, Swap, the note, Feeling bold?): the
+    // second tap of a double tap on whatever was here before must not change the stage.
+    <article className={`anim-rise mt-7 ${armed ? '' : 'pointer-events-none'}`} aria-labelledby={`stage-${node.id}`} data-armed={armed}>
       <p className="t-kicker">
         {adventure.stageLabel ?? 'Stage'} {node.stage} of 3 · ~{node.minutes} min
       </p>

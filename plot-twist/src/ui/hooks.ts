@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
+import { entryState } from './router.ts';
 
 /** Re-renders every `intervalMs` while enabled; returns the current time. */
 export function useNow(intervalMs = 1000, enabled = true): number {
@@ -46,6 +47,11 @@ export function useReducedMotion(): boolean {
 
 let inertCount = 0;
 
+/** True while any modal (a sheet, the paused screen) is open. */
+export function dialogOpen(): boolean {
+  return inertCount > 0;
+}
+
 /**
  * While any dialog is open, the app behind it is inert: not focusable, not clickable and
  * hidden from assistive tech (swipe / browse mode can't wander out of the dialog).
@@ -92,7 +98,7 @@ export function useScrollLock(active: boolean) {
 // gesture closes the sheet instead of leaving the screen underneath it.
 
 export function sheetOnTop(key: string): boolean {
-  return (window.history.state as { sheet?: string } | null)?.sheet === key;
+  return entryState()?.sheet === key;
 }
 
 /** Call from the click that opens the sheet (not from an effect, which StrictMode replays). */
@@ -105,21 +111,78 @@ export function dropSheetEntry(key: string): void {
   if (sheetOnTop(key)) window.history.back();
 }
 
+/** Sheets that are open right now, by history key (counted). */
+const openSheets = new Map<string, number>();
+
 /** Closes the sheet when Back pops its entry. */
 export function useCloseOnBack(open: boolean, key: string, onClose: () => void): void {
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
+    openSheets.set(key, (openSheets.get(key) ?? 0) + 1);
     const onPop = () => {
       if (!sheetOnTop(key)) closeRef.current();
     };
     window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      const left = (openSheets.get(key) ?? 1) - 1;
+      if (left > 0) openSheets.set(key, left);
+      else openSheets.delete(key);
+    };
   }, [open, key]);
 }
 
+/**
+ * The same, for a sheet that opens from state rather than from a click: the entry is pushed
+ * when the sheet opens and dropped when it closes any other way, or goes away while open.
+ * StrictMode's replayed mount effects can't double it: the push is guarded, and only a sheet
+ * that really was open drops its entry.
+ */
+export function useSheetHistory(open: boolean, key: string | undefined, onClose: () => void): void {
+  const pushed = useRef(false);
+  useEffect(() => {
+    if (!key) return;
+    if (open) {
+      pushSheetEntry(key);
+      pushed.current = true;
+    } else if (pushed.current) {
+      pushed.current = false;
+      dropSheetEntry(key);
+    }
+  }, [open, key]);
+  useEffect(
+    () => () => {
+      if (!key || !pushed.current) return;
+      pushed.current = false;
+      dropSheetEntry(key);
+    },
+    [key],
+  );
+  useCloseOnBack(open && Boolean(key), key ?? '', onClose);
+}
+
+/**
+ * A sheet's entry can outlive its sheet: a reload with the sheet open (or a phone reloading a
+ * discarded tab), or Forward after it was closed. Nothing shows for it, so the next Back would
+ * seem to do nothing. Such an entry is stepped over, at startup and whenever history lands on one.
+ * Install once, before the app renders. Returns the uninstall function.
+ */
+export function installSheetHistoryGuard(): () => void {
+  const skipStale = () => {
+    const key = entryState()?.sheet;
+    if (key && !openSheets.has(key)) window.history.back();
+  };
+  skipStale();
+  window.addEventListener('popstate', skipStale);
+  return () => window.removeEventListener('popstate', skipStale);
+}
+
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/** Open focus traps, innermost last: only the top one handles Escape and Tab. */
+const trapStack: object[] = [];
 
 /** Traps Tab focus inside `ref` while active and restores focus on close. */
 export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean, onEscape?: () => void) {
@@ -127,11 +190,15 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
   escapeRef.current = onEscape;
   useEffect(() => {
     if (!active) return;
+    const token = {};
+    trapStack.push(token);
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const node = ref.current;
     const first = node?.querySelector<HTMLElement>('[data-autofocus]') ?? node?.querySelector<HTMLElement>(FOCUSABLE);
     window.setTimeout(() => (first ?? node)?.focus({ preventScroll: true }), 30);
     const onKey = (e: KeyboardEvent) => {
+      // A dialog under another one leaves the keys to the one on top (one Escape, one dialog).
+      if (trapStack[trapStack.length - 1] !== token) return;
       if (e.key === 'Escape' && escapeRef.current) {
         e.stopPropagation();
         escapeRef.current();
@@ -153,6 +220,8 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     document.addEventListener('keydown', onKey, true);
     return () => {
       document.removeEventListener('keydown', onKey, true);
+      const at = trapStack.lastIndexOf(token);
+      if (at >= 0) trapStack.splice(at, 1);
       previouslyFocused?.focus?.({ preventScroll: true });
     };
   }, [active, ref]);

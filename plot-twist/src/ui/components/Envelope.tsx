@@ -65,7 +65,7 @@ function PostageStamp({ adventure }: { adventure: Adventure }) {
       style={{ background: 'repeating-linear-gradient(90deg, transparent 0 3px, rgba(43,34,25,0.18) 3px 4px)', borderRadius: 3 }}
       aria-hidden="true"
     >
-      <div className="flex h-[62px] w-[52px] flex-col items-center justify-center gap-1 rounded-[2px] border-2 border-[color:var(--color-paper)] text-center" style={{ background: palette.bg, color: palette.accent }}>
+      <div className="flex h-[3.875rem] w-[3.25rem] flex-col items-center justify-center gap-1 rounded-[2px] border-2 border-[color:var(--color-paper)] text-center" style={{ background: palette.bg, color: palette.accent }}>
         <KindGlyph kind={adventure.kind} size={20} />
         <span className="t-num text-[0.625rem] font-bold leading-none" style={{ color: palette.ink }}>
           {adventure.minutes}′
@@ -127,7 +127,9 @@ export function Envelope({
           {writing ? (
             <>
               <div className="mt-4 flex items-end gap-3">
-                <h2 className="t-display min-h-[32px] flex-1 text-[1.6875rem] text-paper-ink">
+                {/* Sized like the ready card's title, so large text can't push it out of the card;
+                    a single very long word still wraps (min-w-0, overflow-wrap) instead of overflowing. */}
+                <h2 className="t-display min-h-[32px] min-w-0 flex-1 text-[clamp(25px,7.4vw,30px)] text-paper-ink [overflow-wrap:anywhere] hyphens-auto">
                   {generation?.title ?? (
                     <>
                       <span className="sr-only">Envelope {letter}: the AI Director is writing your episode</span>

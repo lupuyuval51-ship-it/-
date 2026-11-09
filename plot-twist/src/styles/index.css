@@ -265,6 +265,11 @@
   .btn-primary:hover:not(:disabled, [aria-disabled='true']) {
     filter: brightness(1.05);
   }
+  /* Main character energy: the CTA casts a hard sun shadow 5px down and right, and a ring at the
+     usual offset would cross it (pink on yellow, ~2:1). Here the ring clears the shadow. */
+  [data-vibe='main'] .btn-primary:focus-visible {
+    outline-offset: 8px;
+  }
   .btn-xl {
     min-height: 60px;
     font-size: 1.125rem;
@@ -377,6 +382,11 @@
     border-color: var(--accent);
     background: rgba(243, 235, 221, 0.08);
   }
+  /* The same ring as every other control: a 1px border changing colour is easy to miss. */
+  .field:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   .field-paper {
     background: rgba(43, 34, 25, 0.06);
     border-color: rgba(43, 34, 25, 0.58);
@@ -388,6 +398,9 @@
   .field-paper:focus {
     border-color: var(--color-paper-ink);
     background: rgba(43, 34, 25, 0.04);
+  }
+  .field-paper:focus-visible {
+    outline-color: var(--color-paper-ink);
   }
 
   /* Weirdness dial: a native range input, restyled. */
@@ -568,10 +581,11 @@
       letter-spacing: 0.08em;
     }
   }
-  /* Large text on a small phone: once the column (card minus the 58px postage stamp, the gap and
-     the padding) can't hold "WRITTEN" with its 13px icon, text would run under the postmark, so
-     the postage stamp moves above the text instead. The rem part scales with the text. */
-  @container (width < calc(6.5rem + 75px)) {
+  /* Large text on a small phone: once the column (card minus the postage stamp, the gap and the
+     padding) can't hold "WRITTEN" with its 13px icon, text would run under the postmark, so the
+     postage stamp moves above the text instead. The stamp (3.625rem with its perforated edge)
+     scales with the text like everything else here, so its postmark never covers its own minutes. */
+  @container (width < calc(10.125rem + 17px)) {
     .envelope-head {
       flex-direction: column-reverse;
       align-items: stretch;
@@ -630,11 +644,22 @@
     z-index: 30;
     padding: 2.5rem 1.25rem max(1rem, env(safe-area-inset-bottom));
     background: linear-gradient(180deg, transparent, var(--color-ink-950) 38%);
+    /* The fade at the top is see-through, so taps go through it too, to whatever shows there. */
+    pointer-events: none;
     @variant short {
       position: static;
       padding: 1.75rem 0 0;
       background: none;
     }
+  }
+  .dock > * {
+    pointer-events: auto;
+  }
+  /* The play bar's controls are always on screen. Focusing one must not scroll the page to clear
+     the scroll padding that keeps everything else out from under the bar (it would jump the
+     reader up by the bar's height every time they Shift+Tab back to the timer). */
+  [data-sticky-bar] :is(a, button) {
+    scroll-margin-top: -4.75rem;
   }
 
   /* Progress rail + timer */

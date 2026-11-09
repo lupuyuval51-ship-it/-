@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Weirdness } from '../../shared/types.ts';
 import { isFinished } from '../engine/run.ts';
-import { StoreProvider, useStore } from '../state/store.tsx';
+import { PAUSED_WHILE_BROWSING, StoreProvider, useStore } from '../state/store.tsx';
 import { DirectorSheet, StorageBanner, Toasts, TopBar } from './components/Chrome.tsx';
 import { dropSheetEntry, pushSheetEntry, useCloseOnBack } from './hooks.ts';
 import { useRoute, type Route } from './router.ts';
@@ -88,7 +88,7 @@ function Shell() {
     const run = state.p.run;
     if (previous.name === 'play' && route.name !== 'play' && route.name !== 'finale' && run && !isFinished(run) && run.runningSince !== null) {
       pause();
-      toast('Episode paused while you look around. Resume it from the home screen.');
+      toast(PAUSED_WHILE_BROWSING);
     }
     // Move focus to the new screen's heading so keyboard and screen-reader users land on it.
     if (!SELF_FOCUSING.has(route.name)) {

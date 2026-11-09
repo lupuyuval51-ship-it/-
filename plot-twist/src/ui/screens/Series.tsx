@@ -109,7 +109,7 @@ function Settings() {
       <button type="button" className="btn btn-ghost mt-8 -ml-3 text-err hover:text-err" onClick={() => setConfirm(true)}>
         Reset all episodes and progress
       </button>
-      <Sheet open={confirm} onClose={() => setConfirm(false)} title="Reset everything?">
+      <Sheet open={confirm} onClose={() => setConfirm(false)} title="Reset everything?" historyKey="plot-twist-reset">
         <p className="t-display mt-3 text-[1.625rem]">Cancel the whole series?</p>
         <p className="mt-2 text-ivory-dim">This deletes every episode, poster, journal entry and trait from this browser. It cannot be undone.</p>
         <div className="mt-5 grid gap-2">

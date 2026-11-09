@@ -109,6 +109,8 @@ export class DirectorError extends Error {
   retryable: boolean;
   /** Set for rate limits: how long the server asked us to wait. */
   retryAfterMs?: number;
+  /** A stream cap for the whole network (not just this connection). */
+  networkWide?: boolean;
   constructor(code: string, message: string, retryable: boolean, retryAfterMs?: number) {
     super(message);
     this.code = code;
@@ -160,11 +162,13 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
           : code === 'too_many_streams'
             ? networkWide
               ? 'Too many episodes are being written from your network right now.'
-              : 'The AI Director is still writing your other envelopes.'
+              : 'Other episodes are still being written from your connection.'
           : code === 'not_configured' || code === 'unavailable'
             ? 'The AI Director is not available right now.'
             : 'The AI Director could not take this request.';
-    throw new DirectorError(code, message, code === 'rate_limited' || code === 'busy' || code === 'too_many_streams', retryAfterMs);
+    const error = new DirectorError(code, message, code === 'rate_limited' || code === 'busy' || code === 'too_many_streams', retryAfterMs);
+    if (networkWide) error.networkWide = true;
+    throw error;
   }
 
   const reader = res.body.getReader();

@@ -177,7 +177,14 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
     dropped from either side, so a concurrent edit can't resurrect it.
 - The AI envelope is written by one tab at a time: the writing tab keeps a
   heartbeat (`plot-twist:v1:gen`, stale after 9 s). Another tab that finds the
-  envelope "writing" waits for that heartbeat to go stale before retrying.
+  envelope "writing" — at load, or when it adopts another tab's draw while it is
+  open — waits for that heartbeat to go stale and then takes the envelope over
+  (so closing the writing tab never leaves it "waiting" forever).
+- A pause the AI Director asks for (rate limit, busy server, stream caps) is
+  stored too (`plot-twist:v1:ai-block`: until when, and why), so every tab of
+  the browser deals archive envelopes until it ends, and a reload doesn't send a
+  request that is sure to be refused. The one exception stays in the tab: a
+  stream cap hit only because another tab of this browser is writing.
 - "Last seen" for the running episode is a separate key (`plot-twist:v1:seen`)
   that only moves while the page is visible (15 s heartbeat, on hide, and on
   unload only if visible). Absence is checked on load, when the tab becomes
@@ -185,15 +192,31 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
 - Unsaved input (field notes, journal) registers with `registerDraft` and is
   committed right before the page-hide save.
 
+### Routes (`src/ui/router.ts`)
+- Hash routes. The route is read from the URL with `useSyncExternalStore`, so a
+  redirect a screen makes while the app is still mounting (a deep link or reload
+  on a screen whose data is gone) always shows the screen it redirected to.
+- Each pushed entry records the URL it was pushed from (`history.state.from`).
+  The envelopes screen, reached again by Back after its envelopes were played,
+  steps back onto the scene below instead of stacking a copy of it — so the
+  next Back leaves, as it should.
+
 ### Dialogs and announcements (`src/ui/hooks.ts`, `Sheet.tsx`, `Chrome.tsx`)
 - Sheets and the paused screen are portaled to `<body>`. While any is open,
   `#root` is inert and the page can't scroll; both locks are **counted**
   (`useInertApp`, `useScrollLock`), so dialogs that open and close in any order
   always release them.
-- A sheet the user opens (the envelope letter, the AI status sheet) gets its own
-  history entry with the same URL, so the phone's Back gesture closes it instead
-  of leaving the screen. Closing it any other way removes the entry again; a
-  letter that closes because another tab re-dealt also removes it.
+- Every sheet the user opens (the envelope letter, the AI status sheet, and the
+  confirm sheets: discard, episode in progress, reset) gets its own history
+  entry with the same URL (`history.state.sheet`), so the phone's Back gesture
+  closes it instead of leaving the screen. Closing it any other way removes the
+  entry again; navigating from inside a sheet replaces its entry with the new
+  screen. An entry left over from before a reload (or reached with Forward after
+  its sheet closed) is stepped over: `installSheetHistoryGuard` runs before the
+  first render and on every `popstate`.
+- Only the topmost dialog handles Escape and Tab (a stack of focus traps), and
+  an envelope whose seal is still breaking doesn't open its letter over another
+  dialog that opened in the meantime.
 - Toasts are a visual stack; screen readers hear them from one separate live
   region that holds only the newest message. Live regions that must keep talking
   while a dialog is open (toasts, the AI envelope's progress) live outside
@@ -221,6 +244,11 @@ export async function sharePoster(blob: Blob, fileName: string, text: string): P
 - Fonts (already loaded by the app via @fontsource): `"Fraunces Variable"`
   (display serif), `"Instrument Sans Variable"` (sans; supports
   `font-stretch` 75–100%), `"JetBrains Mono Variable"` (mono).
+- The poster code is its own chunk, fetched once the app is idle after start-up
+  (`prefetchPoster`), while it is surely online: the finale's poster, Download
+  and Share keep working when the connection drops mid-episode. If the code
+  can't be loaded at all, the poster and its buttons say to check the
+  connection and reload (not that the browser can't draw it).
 - `sharePoster`: `navigator.canShare({ files })` → share the PNG; else
   `navigator.share` with text; else clipboard copy of `text` → `'copied'`;
   AbortError → `'cancelled'`.
@@ -251,4 +279,7 @@ export async function sharePoster(blob: Blob, fileName: string, text: string): P
   - The last free global slot is kept for a client with nothing open.
   - Over a limit: `429` with `rate_limited` or `too_many_streams` (the message
     says whether it was the visitor or the network) and `Retry-After`. The
-    browser then stops asking until the pause ends; the pill says Busy.
+    browser then stops asking until the pause ends (in every tab, across a
+    reload); the pill says Busy, and the status sheet says why — a rate limit,
+    a full server, this connection's or this network's open streams, or the
+    user's other tab still writing.

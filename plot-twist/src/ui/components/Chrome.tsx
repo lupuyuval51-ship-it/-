@@ -23,7 +23,7 @@ const DOT: Record<string, string> = {
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span
-      className={`t-display select-none whitespace-nowrap leading-none ${compact ? 'text-[1.1875rem]' : 'text-[clamp(17px,5.6vw,22px)]'}`}
+      className={`t-display select-none whitespace-nowrap leading-none ${compact ? 'text-[1.1875rem]' : 'text-[clamp(17px,5.6vw,22px)] max-[359px]:text-[16.5px]'}`}
       aria-label="PLOT TWIST"
     >
       <span aria-hidden="true">
@@ -58,13 +58,13 @@ export function StatusPill({ status, onClick }: { status: DirectorStatus; onClic
       // The accessible name starts with the visible text, so "click AI Online" works for voice users.
       aria-label={`AI ${short}. AI Director: ${status.label}. Show details`}
     >
-      <span className="inline-flex min-h-9 items-center gap-2 whitespace-nowrap rounded-full border border-ivory/14 bg-ivory/[0.04] py-1 pl-2.5 pr-3 text-[0.7812rem] font-semibold text-ivory-dim transition-colors group-hover:border-ivory/30 group-hover:text-ivory">
+      {/* Below 360px everything in the header gives up a few pixels, so even "AI Checking" fits one row. */}
+      <span className="inline-flex min-h-9 items-center gap-2 whitespace-nowrap rounded-full border border-ivory/14 bg-ivory/[0.04] py-1 pl-2.5 pr-3 text-[0.7812rem] max-[359px]:gap-1.5 max-[359px]:pl-2 max-[359px]:pr-2.5 font-semibold text-ivory-dim transition-colors group-hover:border-ivory/30 group-hover:text-ivory">
         <span className={`h-2 w-2 shrink-0 rounded-full ${DOT[status.state] ?? 'bg-ivory-mute'}`} aria-hidden="true" />
-        {/* Never truncated: on narrow screens the "AI ·" prefix goes, then the header wraps. */}
+        {/* Never truncated, and always says what it is about ("Off" alone reads like the app is
+            off): on narrow screens only the "·" goes, and the header wraps before anything is cut. */}
         <span aria-hidden="true">
-          <span className="max-[419px]:hidden">
-            AI <span className="text-ivory-mute">·</span>{' '}
-          </span>
+          AI <span className="text-ivory-mute max-[419px]:hidden">· </span>
           <span className="text-ivory">{short}</span>
         </span>
       </span>
@@ -119,7 +119,7 @@ export function DirectorSheet({ open, onClose }: { open: boolean; onClose: () =>
       <div className="card mt-5 p-4 text-[0.875rem] text-ivory-dim">
         <p>
           <strong className="text-ivory">How it works:</strong> when the AI Director is online, one of your three envelopes is written just for you — then checked against the same rules as our
-          curated episodes. If it misses, an archive episode takes its place. Curated episodes always work, even offline.
+          curated episodes. If it misses, an archive episode takes its place. Curated episodes keep working when the AI Director is offline.
         </p>
       </div>
       {/* aria-disabled, not disabled: a disabled button drops keyboard focus out of the dialog. */}
@@ -143,7 +143,7 @@ export function TopBar({ onStatus }: { onStatus: () => void }) {
         <button
           type="button"
           onClick={() => navigate({ name: 'series' })}
-          className="relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[0.7812rem] font-semibold text-ivory-dim transition-colors hover:bg-ivory/[0.06] hover:text-ivory"
+          className="relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[0.7812rem] max-[359px]:px-2 font-semibold text-ivory-dim transition-colors hover:bg-ivory/[0.06] hover:text-ivory"
           aria-label={`My Series, ${count} episode${count === 1 ? '' : 's'}`}
         >
           <IconFilm size={20} />
