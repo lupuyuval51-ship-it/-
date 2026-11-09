@@ -43,6 +43,11 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Short viewports: landscape phones and 200–400% zoom (1280×720 at 200% is 640×360 CSS px).
+   Fixed or sticky bars would cover half the screen there, so they flow with the content instead.
+   In em, so the breakpoint follows the user's default font size like the rem-sized bars do. */
+@custom-variant short (@media (max-height: 32em));
+
 /* Vibe tokens (data-vibe is set on <html> and #app, so portaled dialogs follow the dial too). */
 :root,
 [data-vibe='surprise'] {
@@ -97,6 +102,10 @@
     /* Keeps focused / scrolled-to elements clear of the sticky play bar and the fixed CTA dock. */
     scroll-padding-top: 4.75rem;
     scroll-padding-bottom: 10rem;
+    /* No fixed dock in short viewports, and 10rem would leave almost no room to scroll focus into. */
+    @variant short {
+      scroll-padding-bottom: 1rem;
+    }
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
     background: var(--color-ink-950);
@@ -121,9 +130,10 @@
     outline-offset: 3px;
     border-radius: 6px;
   }
-  /* On paper the vibe accent can be too faint (ivory on paper is ~1:1) — use the paper ink. */
+  /* On paper the vibe accent can be too faint (ivory on paper is ~1:1) — controls on paper use the
+     paper ink. Descendants only: an envelope is itself .paper, and its ring is drawn outside the
+     card, on the ink page, where paper ink would be invisible (see .envelope:focus-visible). */
   .paper :focus-visible,
-  .paper:focus-visible,
   .paper .chip-input:focus-visible + .chip {
     outline-color: var(--color-paper-ink);
   }
@@ -192,7 +202,7 @@
   }
   .t-kicker {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.6875rem; /* 11px at the default size; rem so it follows the user's font size */
     font-weight: 560;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -234,19 +244,25 @@
     user-select: none;
     touch-action: manipulation;
   }
-  .btn:active:not(:disabled) {
+  /* Busy buttons use aria-disabled (not disabled) so they keep keyboard focus; both look the same. */
+  .btn:active:not(:disabled, [aria-disabled='true']) {
     transform: scale(0.97);
   }
-  .btn:disabled {
+  .btn:is(:disabled, [aria-disabled='true']) {
     opacity: 0.45;
     cursor: not-allowed;
+  }
+  /* Opacity fades the focus ring too (to ~2:1 at 0.45). A focused busy button stays dimmed but keeps
+     its ring above 3:1 against the page. */
+  .btn[aria-disabled='true']:focus-visible {
+    opacity: 0.75;
   }
   .btn-primary {
     background: var(--accent);
     color: var(--accent-ink);
     box-shadow: var(--cta-shadow);
   }
-  .btn-primary:hover:not(:disabled) {
+  .btn-primary:hover:not(:disabled, [aria-disabled='true']) {
     filter: brightness(1.05);
   }
   .btn-xl {
@@ -259,7 +275,7 @@
     border-color: rgba(243, 235, 221, 0.16);
     color: var(--color-ivory);
   }
-  .btn-secondary:hover:not(:disabled) {
+  .btn-secondary:hover:not(:disabled, [aria-disabled='true']) {
     background: rgba(243, 235, 221, 0.1);
     border-color: rgba(243, 235, 221, 0.28);
   }
@@ -267,7 +283,7 @@
     background: transparent;
     color: var(--color-ivory-dim);
   }
-  .btn-ghost:hover:not(:disabled) {
+  .btn-ghost:hover:not(:disabled, [aria-disabled='true']) {
     color: var(--color-ivory);
     background: rgba(243, 235, 221, 0.06);
   }
@@ -289,12 +305,16 @@
     color: var(--color-ivory);
   }
 
-  /* Chips: visually-hidden native radios keep keyboard + screen-reader behavior. */
+  /* Chips: visually-hidden native radios keep keyboard + screen-reader behavior. Each radio covers
+     its own chip (its wrapper is position: relative), so focusing it with the arrow keys scrolls
+     that chip into view, and screen readers outline the chip, not a 1px dot. */
   .chip-input {
     position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
     opacity: 0;
-    width: 1px;
-    height: 1px;
     pointer-events: none;
   }
   .chip {
@@ -320,7 +340,8 @@
       background-color 180ms ease,
       color 180ms ease,
       border-color 180ms ease,
-      transform 160ms var(--ease-vibe);
+      scale 160ms var(--ease-vibe),
+      rotate 160ms var(--ease-vibe);
   }
   .chip:hover {
     border-color: rgba(243, 235, 221, 0.32);
@@ -336,8 +357,9 @@
     outline: 2px solid var(--accent);
     outline-offset: 3px;
   }
+  /* `scale`, not `transform`, so it combines with a vibe's `rotate` tilt instead of replacing it. */
   .chip-input:active + .chip {
-    transform: scale(0.97);
+    scale: 0.97;
   }
 
   .field {
@@ -465,6 +487,13 @@
   .envelope:active:not(:disabled) {
     transform: scale(0.985);
   }
+  /* The ring sits outside the card, on the ink page: the vibe accent is 16.7:1 (chill ivory),
+     6.3:1 (surprise orange) and 6.4:1 (main pink) against ink-950. A little heavier than the
+     default ring, since picking an envelope is the core choice. */
+  .envelope:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 4px;
+  }
   .envelope-flap {
     position: absolute;
     inset: 0 0 auto 0;
@@ -499,13 +528,61 @@
     border: 2px solid currentColor;
     border-radius: 6px;
     font-family: var(--font-mono);
-    font-size: 10.5px;
+    font-size: 0.65625rem; /* 10.5px at the default size */
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     transform: rotate(var(--tilt));
     line-height: 1.2;
     white-space: nowrap;
+  }
+  /* Envelope header: the code and "Written for you" beside the postage stamp. The postmark hangs
+     about 1rem into the text column, which keeps clear of it with its right padding, so nothing in
+     the column may grow wider than the column: if text must wrap, it wraps (balanced). The card is
+     a size container (@container on its body). */
+  .envelope-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .envelope-head-text {
+    min-width: 0;
+    padding-right: 1.25rem;
+  }
+  .envelope-head-text .t-kicker {
+    text-wrap: balance; /* "EP. 01 · / ENVELOPE A", not "EP. 01 · ENVELOPE / A" */
+  }
+  .envelope-head-text .stamp {
+    max-width: 100%;
+    white-space: normal;
+    text-wrap: balance;
+  }
+  /* 320px phones: tighter tracking keeps the code on one line and the stamp clear of the postmark. */
+  @container (width < 16rem) {
+    .envelope-head-text .t-kicker {
+      letter-spacing: 0.1em;
+    }
+    .envelope-head-text .stamp {
+      padding-inline: 0.45rem;
+      letter-spacing: 0.08em;
+    }
+  }
+  /* Large text on a small phone: once the column (card minus the 58px postage stamp, the gap and
+     the padding) can't hold "WRITTEN" with its 13px icon, text would run under the postmark, so
+     the postage stamp moves above the text instead. The rem part scales with the text. */
+  @container (width < calc(6.5rem + 75px)) {
+    .envelope-head {
+      flex-direction: column-reverse;
+      align-items: stretch;
+      gap: 1.5rem;
+    }
+    .envelope-head-text {
+      padding-right: 0;
+    }
+    .envelope-head > .postage {
+      align-self: flex-end;
+    }
   }
 
   /* Bottom sheet / dialog */
@@ -544,8 +621,20 @@
   .safe-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
+  /* The home screen's call to action: fixed in the thumb zone on phones. In short viewports it
+     would cover most of the screen (56–66% at 320×256), so there it simply ends the form. */
   .dock {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 30;
+    padding: 2.5rem 1.25rem max(1rem, env(safe-area-inset-bottom));
     background: linear-gradient(180deg, transparent, var(--color-ink-950) 38%);
+    @variant short {
+      position: static;
+      padding: 1.75rem 0 0;
+      background: none;
+    }
   }
 
   /* Progress rail + timer */
@@ -577,8 +666,10 @@
   .anim-develop {
     animation: develop 1600ms var(--ease-out-expo) both;
   }
+  /* `backwards`, not `both`: a clip-path kept after the reveal would clip whatever bleeds out of the
+     box for good (the full-bleed marquee, its pause button and that button's focus ring). */
   .anim-letterbox {
-    animation: letterbox calc(900ms * var(--motion-scale)) var(--ease-out-expo) both;
+    animation: letterbox calc(900ms * var(--motion-scale)) var(--ease-out-expo) backwards;
   }
   .anim-pulse {
     animation: pulse-soft 1.6s ease-in-out infinite;
@@ -735,43 +826,99 @@
     transform: translateX(-50%);
   }
 }
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee calc(60s * var(--motion-scale)) linear infinite;
+
+@layer components {
+  /* Clipped, not a scroll container: scrolling it into view (find in page, assistive tech) would
+     shift the titles and carry the pause button off the right edge. */
+  .marquee {
+    overflow: hidden;
+  }
+  @supports (overflow: clip) {
+    .marquee {
+      overflow: clip;
+    }
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee calc(60s * var(--motion-scale)) linear infinite;
+  }
+  /* The toggle alone decides (WCAG 2.2.2): "Play" resumes at once, even while the button keeps
+     focus or a tap's hover. Hovering the titles themselves still holds them still for reading. */
+  .marquee-track:hover,
+  .marquee[data-paused='true'] .marquee-track {
+    animation-play-state: paused;
+  }
+  /* Soft edge where the titles leave the screen (under the toggle when there is one). */
+  .marquee::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    right: 0;
+    width: 1.5rem;
+    background: linear-gradient(to left, var(--color-ink-950), transparent);
+    pointer-events: none;
+  }
+  /* Solid behind the button, faded just outside it, so its focus ring always sits on ink. */
+  .marquee-toggle {
+    background-color: var(--color-ink-950);
+  }
+  .marquee-toggle::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    right: 100%;
+    width: 1.25rem;
+    background: linear-gradient(to left, var(--color-ink-950), transparent);
+    pointer-events: none;
+  }
+  /* The marquee clips its overflow (and sits at the screen edge), so the ring goes inside. */
+  .marquee-toggle:focus-visible {
+    outline-offset: -4px;
+  }
 }
-.marquee:hover .marquee-track,
-.marquee:focus-within .marquee-track,
-.marquee[data-paused='true'] .marquee-track {
-  animation-play-state: paused;
+
+/* A still marquee gets no pause button: reduced motion stops every animation (above). */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) .marquee-toggle {
+    display: none;
+  }
+}
+:root[data-motion='reduce'] .marquee-toggle {
+  display: none;
 }
 
 /* ── vibe accents beyond color ─────────────────────────────────────── */
-/* Keep it chill: no grain, a still marquee. */
+/* Keep it chill: no grain, a still marquee — and so no pause button that would do nothing. */
 [data-vibe='chill'] {
   --grain: 0;
 }
 [data-vibe='chill'] .marquee-track {
   animation-play-state: paused;
 }
-/* Main character energy: every question gets its own sticker color, chips sit a little askew. */
-[data-vibe='main'] form fieldset:nth-of-type(2) .chip-input:checked + .chip {
-  background: var(--color-sun);
-  border-color: var(--color-sun);
-  color: #1a1205;
+[data-vibe='chill'] .marquee-toggle {
+  display: none;
 }
-[data-vibe='main'] form fieldset:nth-of-type(3) .chip-input:checked + .chip,
-[data-vibe='main'] form fieldset:nth-of-type(5) .chip-input:checked + .chip {
-  background: var(--color-teal);
-  border-color: var(--color-teal);
-  color: #04130f;
-}
-[data-vibe='main'] form .chip {
-  transform: rotate(-1deg);
-}
-[data-vibe='main'] form span:nth-child(even) > .chip,
-[data-vibe='main'] form .chip-input:nth-of-type(even) + .chip {
-  transform: rotate(1.2deg);
+@layer components {
+  /* Main character energy: every question gets its own sticker color, chips sit a little askew.
+     Questions are picked by their radio name, not by position (which changes with the layout).
+     `rotate`, not `transform`, so the tilt combines with the press feedback's `scale`. */
+  [data-vibe='main'] .chip-input[name='budget']:checked + .chip {
+    background: var(--color-sun);
+    border-color: var(--color-sun);
+    color: #1a1205;
+  }
+  [data-vibe='main'] .chip-input:is([name='setting'], [name='mood']):checked + .chip {
+    background: var(--color-teal);
+    border-color: var(--color-teal);
+    color: #04130f;
+  }
+  [data-vibe='main'] form .chip {
+    rotate: -1deg;
+  }
+  [data-vibe='main'] form .chip-option:nth-child(even) > .chip {
+    rotate: 1.2deg;
+  }
 }
 
 /* Windows High Contrast / forced colors: selection must not rely on a background fill. */
@@ -784,6 +931,22 @@
   }
   .rail-fill {
     background: Highlight;
+  }
+  /* Gradients are dropped here. Bars that content scrolls under need an opaque Canvas (and an
+     edge), and the dial needs a visible track. */
+  .dock,
+  .letter-actions {
+    background: Canvas;
+    border-top: 1px solid CanvasText;
+  }
+  .marquee-toggle {
+    background: Canvas;
+  }
+  .dial::-webkit-slider-runnable-track {
+    background: CanvasText;
+  }
+  .dial::-moz-range-track {
+    background: CanvasText;
   }
 }
 

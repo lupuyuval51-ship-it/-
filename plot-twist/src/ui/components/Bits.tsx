@@ -31,10 +31,13 @@ export function ProgressRail({ stage, phase, finished, label }: { stage: 1 | 2 |
         {[1, 2, 3].map((seg) => {
           const current = seg === stage && !finished;
           return (
-            <span key={seg} className={`t-kicker flex min-w-0 items-center gap-1 ${current ? 'text-ivory' : ''}`}>
+            // The current label keeps clear of the next column's number (a cut-short label fills its column).
+            <span key={seg} className={`t-kicker flex min-w-0 items-center gap-1 ${current ? 'pr-2 text-ivory' : ''}`}>
               {(finished || seg < stage) && <IconCheck size={12} className="shrink-0" />}
-              {/* Only the current segment spells out the label, so long labels never collide. */}
-              <span className="truncate">{current ? `${label} ${seg}` : seg}</span>
+              {/* Only the current segment spells out the label, so long labels never collide.
+                  A long label is cut short, never the stage number. */}
+              {current && <span className="min-w-0 truncate">{label}</span>}
+              <span className="shrink-0">{seg}</span>
             </span>
           );
         })}

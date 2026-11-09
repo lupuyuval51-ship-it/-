@@ -61,7 +61,7 @@ function PostageStamp({ adventure }: { adventure: Adventure }) {
   const palette = PALETTES[adventure.palette];
   return (
     <div
-      className="relative shrink-0 rotate-[3deg] p-[3px]"
+      className="postage relative shrink-0 rotate-[3deg] p-[3px]"
       style={{ background: 'repeating-linear-gradient(90deg, transparent 0 3px, rgba(43,34,25,0.18) 3px 4px)', borderRadius: 3 }}
       aria-hidden="true"
     >
@@ -119,8 +119,9 @@ export function Envelope({
     return (
       <div className="envelope paper anim-deal" style={style} data-writing={writing || undefined}>
         <div className="relative flex min-h-[188px] flex-col p-5">
-          <span className="t-kicker block whitespace-nowrap text-paper-mute">{code}</span>
-          <span className="stamp mt-3 self-start text-[color:#b4380c]">
+          {/* Wraps (balanced, after the dot) only when large text needs it; the card would clip it otherwise. */}
+          <span className="t-kicker block text-balance text-paper-mute">{code}</span>
+          <span className="stamp mt-3 max-w-full self-start whitespace-normal text-balance text-[color:#b4380c]">
             <IconSparkle size={13} /> Written for you
           </span>
           {writing ? (
@@ -183,10 +184,10 @@ export function Envelope({
         <path d="M0 0 L50 46 L100 0" fill="none" stroke="rgba(43,34,25,0.13)" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
       </svg>
       {envelope.opened && <div aria-hidden="true" className="absolute inset-x-6 -top-1 h-3 rounded-b-sm bg-[#fbf6ea] shadow-[0_2px_4px_rgba(0,0,0,0.12)]" />}
-      <div className="relative flex min-h-[188px] flex-col p-5">
-        <div className="flex items-start justify-between gap-3">
-          {/* pr leaves room for the postmark, which overlaps this column */}
-          <div className="min-w-0 pr-5">
+      {/* A size container: the header adapts to the card's width (see .envelope-head in index.css). */}
+      <div className="@container relative flex min-h-[188px] flex-col p-5">
+        <div className="envelope-head">
+          <div className="envelope-head-text">
             <span className="t-kicker block text-paper-mute">{code}</span>
             {isAi ? (
               <span className="stamp mt-3 text-[color:#b4380c]">

@@ -39,12 +39,13 @@ function NowShowing() {
     </div>
   );
   return (
-    <div className="marquee relative mt-6 -mx-5 overflow-hidden border-y border-ivory/10 py-2.5" data-paused={paused}>
+    <div className="marquee relative mt-6 -mx-5 border-y border-ivory/10 py-2.5" data-paused={paused}>
       <p className="sr-only">Now showing: {titles.join(', ')}</p>
+      {/* Hidden by CSS whenever the marquee is still anyway (Keep it chill, reduced motion). */}
       <button
         type="button"
         onClick={() => setPaused((p) => !p)}
-        className="absolute inset-y-0 right-0 z-10 grid w-11 place-items-center bg-gradient-to-l from-ink-950 from-60% to-transparent text-ivory-dim hover:text-ivory"
+        className="marquee-toggle absolute inset-y-0 right-0 z-10 grid w-11 place-items-center text-ivory-dim hover:text-ivory"
         aria-label={paused ? 'Play the title marquee' : 'Pause the title marquee'}
       >
         {paused ? <IconPlay size={14} /> : <IconPause size={14} />}
@@ -59,7 +60,7 @@ function NowShowing() {
   );
 }
 
-function ResumeCard({ onDiscarded }: { onDiscarded: () => void }) {
+function ResumeCard({ onResume, onDiscarded }: { onResume: () => void; onDiscarded: () => void }) {
   const { state, abandonRun } = useStore();
   const run = state.p.run;
   const now = useNow(1000, Boolean(run));
@@ -80,7 +81,11 @@ function ResumeCard({ onDiscarded }: { onDiscarded: () => void }) {
             {run.adventure.stageLabel ?? 'Stage'} {node.stage} of 3 — {node.title}
           </p>
         )}
-        {/* The primary "Resume" lives in the bottom dock; the card only offers discarding. */}
+        {/* The primary "Resume" lives in the bottom dock. In short viewports the dock ends the form
+            instead, screens below, so there the card offers it (only one of the two is ever shown). */}
+        <button type="button" className="btn btn-primary mt-4 hidden w-full short:inline-flex" onClick={onResume}>
+          <IconPlay size={18} /> Resume Episode {pad2(run.episodeNumber)}
+        </button>
         <div className="mt-3 flex">
           <button type="button" className="btn btn-ghost -ml-3 text-[0.875rem]" onClick={() => setConfirm(true)}>
             Discard this episode
@@ -132,9 +137,14 @@ export function SetScene() {
     drawEnvelopes();
     navigate({ name: 'envelopes' });
   };
+  const resumeRun = () => {
+    if (activeRun && activeRun.runningSince === null) resume();
+    navigate({ name: 'play' });
+  };
 
   return (
-    <div className="px-5 pb-36">
+    // The bottom padding keeps the end of the form clear of the fixed dock (which flows in short viewports).
+    <div className="px-5 pb-36 short:pb-8">
       <section className="anim-letterbox pt-6">
         <p className="t-kicker">
           {next === 1 ? 'Pilot episode' : `Episode ${pad2(next)}`}
@@ -148,6 +158,7 @@ export function SetScene() {
       </section>
 
       <ResumeCard
+        onResume={resumeRun}
         onDiscarded={() => {
           toast('Episode discarded.');
           window.requestAnimationFrame(() => ctaRef.current?.focus());
@@ -211,20 +222,12 @@ export function SetScene() {
           </div>
         )}
 
-        <div className="dock safe-bottom fixed inset-x-0 bottom-0 z-30 px-5 pt-10">
+        <div className="dock">
           <div className="mx-auto max-w-[480px]">
             {activeRun ? (
               <>
-                {/* One clear primary action while an episode is in progress. */}
-                <button
-                  ref={ctaRef}
-                  type="button"
-                  className="btn btn-primary btn-xl w-full"
-                  onClick={() => {
-                    if (activeRun.runningSince === null) resume();
-                    navigate({ name: 'play' });
-                  }}
-                >
+                {/* One clear primary action while an episode is in progress (on the card in short viewports). */}
+                <button ref={ctaRef} type="button" className="btn btn-primary btn-xl w-full short:hidden" onClick={resumeRun}>
                   <IconPlay size={20} /> Resume Episode {pad2(activeRun.episodeNumber)}
                 </button>
                 <button type="submit" className="btn btn-ghost mt-1 w-full text-[0.875rem]">
@@ -255,8 +258,7 @@ export function SetScene() {
             data-autofocus
             onClick={() => {
               setConfirmNew(false);
-              if (activeRun && activeRun.runningSince === null) resume();
-              navigate({ name: 'play' });
+              resumeRun();
             }}
           >
             Resume “{activeRun?.adventure.title}” <IconArrowRight size={18} />

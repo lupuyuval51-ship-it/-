@@ -41,7 +41,9 @@ export function ChipGroup<T extends string | number>({
         {options.map((opt) => {
           const inputId = `${id}-${String(opt.value)}`;
           return (
-            <span key={String(opt.value)} className={cell ? 'contents' : 'relative'}>
+            // Positioned per option (in grids too), so each hidden radio covers its own chip and
+            // arrowing to an option scrolls that chip into view.
+            <span key={String(opt.value)} className="chip-option relative flex">
               <input
                 id={inputId}
                 className="chip-input"

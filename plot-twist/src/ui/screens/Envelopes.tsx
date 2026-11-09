@@ -75,8 +75,9 @@ function Letter({ adventure, source, episodeNumber, onStart, onBack }: { adventu
       </div>
       <p className="mt-4 text-[0.8125rem] text-paper-mute">Three stages · one choice that changes the story · {adventure.endings.length} possible endings</p>
 
-      {/* The decision stays in the thumb zone, however long the letter is. */}
-      <div className="sticky -bottom-4 z-10 -mx-5 mt-6 grid gap-2 bg-gradient-to-t from-[color:var(--color-paper)] from-70% to-transparent px-5 pb-4 pt-6">
+      {/* The decision stays in the thumb zone, however long the letter is. In short viewports
+          (landscape, 200–400% zoom) a sticky bar would cover half the letter, so there it ends it. */}
+      <div className="letter-actions sticky -bottom-4 z-10 -mx-5 mt-6 grid gap-2 bg-gradient-to-t from-[color:var(--color-paper)] from-70% to-transparent px-5 pb-4 pt-6 short:static short:bg-none short:pt-0">
         <button type="button" className="btn btn-xl w-full bg-paper-ink text-paper shadow-[0_12px_30px_-12px_rgba(43,34,25,0.6)]" onClick={onStart}>
           Start episode
         </button>
