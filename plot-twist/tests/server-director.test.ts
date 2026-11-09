@@ -516,6 +516,24 @@ describe('timeout attribution (QA round 2)', () => {
     expect(logs.join('\n')).toMatch(/shared status unchanged/);
   });
 
+  it('a provider error that arrives as the budget runs out keeps its own kind', async () => {
+    let clock = 1_000_000;
+    const backend: Backend = {
+      provider: 'anthropic',
+      model: 'claude-opus-5-5',
+      async stream() {
+        clock += 200_000; // past the 150 s budget on the test clock
+        throw Anthropic.APIError.generate(529, { type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }, undefined, new Headers());
+      },
+      async verify() {},
+    };
+    const events: GenerateEvent[] = [];
+    const status = new StatusTracker(backend, backend.model, () => clock, { log: () => {} });
+    await generateEpisode({ prefs }, { backend, effort: 'medium', status, log: () => {}, deadlineMs: 150_000, now: () => clock }, new AbortController().signal, (e) => events.push(e));
+    expect(events.at(-1)).toMatchObject({ type: 'error', code: 'overloaded' });
+    expect(status.snapshot().state).toBe('rate_limited');
+  });
+
   it('starts a repair round only when the budget left covers about as long as the first draft took', async () => {
     const firstDraftTakes = async (ms: number) => {
       let clock = 1_000_000;

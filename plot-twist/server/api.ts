@@ -325,6 +325,7 @@ export function createApiHandler(opts: ApiOptions = {}): ApiHandler {
       // passed the next request re-checks (as /api/status would) instead of being refused
       // until someone happens to load the status.
       const snap = await currentStatus(false);
+      if (res.destroyed || req.socket.destroyed) return; // the caller left while the status was checked
       if (!snap.canGenerate && snap.state !== 'checking') {
         return sendJson(res, 503, { error: 'unavailable', status: snap });
       }

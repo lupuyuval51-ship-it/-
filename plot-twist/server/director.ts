@@ -292,9 +292,11 @@ export async function generateEpisode(
       const sending = attemptNow?.headers ? 'still streaming' : 'still connecting';
       detail = `${what}; ${aboutProvider ? `the provider had sent nothing for ${secs(silentMs)}s (stalled)` : `the provider was ${sending} (last sign ${secs(silentMs)}s before), so only this request failed`}`;
     };
+    // An error from the provider itself (a 529, a 401…) keeps its kind even if it arrived as the budget ran out.
+    const cutShort = c.kind === 'aborted' || c.kind === 'timeout';
     if (signal.aborted && !isDeadline(signal.reason)) {
       kind = 'aborted';
-    } else if (signal.aborted || deadline.aborted || remaining() <= 0 || (attemptNow?.timer.aborted && attemptNow.limit === 'deadline')) {
+    } else if (signal.aborted || deadline.aborted || (cutShort && remaining() <= 0) || (attemptNow?.timer.aborted && attemptNow.limit === 'deadline')) {
       timedOut(`no complete episode within the ${wholeSecs(deadlineMs)}s budget${attemptNow?.n === 2 ? ' (the repair round was cut)' : ''}`);
     } else if (attemptNow?.timer.aborted) {
       timedOut(`one attempt took longer than ${wholeSecs(attemptTimeoutMs)}s`);

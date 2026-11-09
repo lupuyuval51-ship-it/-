@@ -602,6 +602,47 @@ describe('the hold after a provider failure (QA round 2)', () => {
     }
   });
 
+  it('does not start a generation for a caller who left while the status was being checked', async () => {
+    const clock = { t: 1_000_000 };
+    let verifies = 0;
+    let streams = 0;
+    let releaseVerify: () => void = () => {};
+    const backend: Backend = {
+      provider: 'anthropic',
+      model: 'claude-opus-5-5',
+      async stream(): Promise<StreamResult> {
+        streams++;
+        const text = JSON.stringify(mockAiEpisode(30));
+        return { text, stopReason: 'end_turn', model: 'claude-opus-5-5' };
+      },
+      async verify() {
+        verifies++;
+        if (verifies > 1) await new Promise<void>((r) => (releaseVerify = r));
+      },
+    };
+    const handler = createApiHandler({ config: config(), backend, log: silent, now: () => clock.t });
+    await handler.status.refresh();
+    const app = await listen(handler);
+    try {
+      clock.t += 6 * 60_000; // the Online result is stale: the next request checks again
+      const ctl = new AbortController();
+      const pending = generate(app.url).catch(() => null);
+      const left = fetch(`${app.url}/api/episodes/generate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prefs }), signal: ctl.signal }).catch(() => null);
+      for (let i = 0; i < 100 && verifies < 2; i++) await new Promise((r) => setTimeout(r, 10));
+      expect(verifies).toBe(2); // both requests wait on one check
+      ctl.abort();
+      await left;
+      await new Promise((r) => setTimeout(r, 50)); // the server sees the connection close
+      releaseVerify();
+      const stayed = await pending;
+      expect(stayed?.status).toBe(200);
+      await stayed?.text();
+      expect(streams).toBe(1); // only for the caller who stayed
+    } finally {
+      app.server.close();
+    }
+  });
+
   it('a busy hold ends the same way', async () => {
     const clock = { t: 1_000_000 };
     const env = await gatedApp({}, { now: () => clock.t });
