@@ -31,6 +31,14 @@ npm start            # serves dist/ + API on http://localhost:8787 (PORT to chan
 `npm start` warns `dist/ is older than the source — run npm run build` when a
 file in `src/` or `shared/` is newer than `dist/index.html`, and
 `GET /api/health` reports the served build's time (`{ "ok": true, "build": "<ISO date>" }`).
+The check uses the project the build belongs to (the nearest folder above it
+with a `package.json`), so another build folder, such as `PLOT_TWIST_DIST=e2e/.dist`,
+is checked too and named in the warning.
+
+The production server answers only `GET` and `HEAD` for the app (anything else
+gets `405` with `Allow: GET, HEAD`), never serves hidden files (`/.env`, `/.git/…`;
+`/.well-known/` is the exception), and serves a file only if its real path,
+symlinks resolved, is inside the build folder.
 
 ### Turn on the AI Director (optional)
 
@@ -48,13 +56,13 @@ npm run dev              # or npm start
 | `ANTHROPIC_API_KEY` | — | Enables the AI Director. Never sent to the browser. A key with spaces, control or non-ASCII characters is refused at startup (logged without the key). |
 | `PLOT_TWIST_MODEL` | `claude-opus-5-5` | Model used for episodes. |
 | `PLOT_TWIST_EFFORT` | `medium` | `low` is faster, `high` is more considered. |
-| `PLOT_TWIST_RATE_LIMIT` | `8` | Generations per client per 10 minutes (IPv6 clients are grouped by /64). Requests turned away as busy do not count. |
-| `PLOT_TWIST_MAX_CONCURRENT` | `4` | Concurrent generations per server. Each client may also have at most 2 open at once. |
+| `PLOT_TWIST_RATE_LIMIT` | `8` | Generations per client per 10 minutes. IPv6 clients are grouped by /64, and each /48 also shares 4× this limit. Requests turned away as busy do not count. |
+| `PLOT_TWIST_MAX_CONCURRENT` | `4` | Concurrent generations per server. Each client may also have at most 2 open at once (an IPv6 /48 at most 4), and the last free slot is kept for a client that has none open. |
 | `PLOT_TWIST_TIMEOUT_MS` | `120000` | Upper bound for one model attempt, response stream included. |
-| `PLOT_TWIST_DEADLINE_MS` | `150000` | Overall budget for one generation, repair round included. A stalled provider ends as "took too long" and shows `Unreachable`. |
+| `PLOT_TWIST_DEADLINE_MS` | `150000` | Overall budget for one generation, repair round included. A repair round starts only if the budget left is at least what the first draft took. |
 | `PLOT_TWIST_TRUST_PROXY` | — | Set `1` behind a trusted reverse proxy: the client is read from `X-Forwarded-For` and the public host from `X-Forwarded-Host`. See below. |
 | `PLOT_TWIST_TRUSTED_HOPS` | `1` | Number of trusted proxies that append to `X-Forwarded-For`; the client is that many entries from the **right**. |
-| `PLOT_TWIST_ALLOWED_ORIGINS` | — | Comma-separated extra origins allowed to request episodes, e.g. `https://plottwist.example,https://www.plottwist.example` (bare hosts work too). |
+| `PLOT_TWIST_ALLOWED_ORIGINS` | — | Comma-separated extra origins allowed to request episodes, e.g. `https://plottwist.example,https://www.plottwist.example:8443` (bare hosts such as `plottwist.example` or `[::1]:5173` work too). No wildcards: list every origin. An entry that can never match a browser's `Origin` (a `*`, a `;` or space instead of a comma, another scheme, a host with characters other than `a-z 0-9 . -`) is ignored with a warning at startup. |
 | `PORT` | `8787` | Production server port. |
 
 The status pill shows the **verified** state: `Online` only after the key and
@@ -62,34 +70,50 @@ model check out (a free Models API call), `Key rejected`, `Key invalid`,
 `Unreachable`, `Busy`, `Unstable`, `Not configured`, or `Off` when the server
 itself is unreachable. The status is shared by every visitor, so only provider
 problems change it: after the provider is busy, unreachable or stalls while
-writing, that state holds for 30 seconds even if the Models API still answers;
-one visitor's refused or rejected draft is only logged. `GET /api/status?refresh=1`
+writing, that state holds for 30 seconds even if the Models API still answers,
+and then the next status request or generation request checks again. One
+visitor's refused or rejected draft is only logged. `GET /api/status?refresh=1`
 re-checks the provider at most every 15 seconds.
+
+A **stall** is a provider that sends nothing at all (no response headers, no
+event, not even a keep-alive ping) for 30 seconds, or for half of
+`PLOT_TWIST_TIMEOUT_MS` if that is shorter; it ends as "took too long" and shows
+`Unreachable`. A generation that is still streaming when it runs out of time
+(the attempt cap, or the deadline cutting a repair round) fails only that
+request: it falls back to a curated episode, is logged, and leaves the status
+alone.
 
 ### Behind a reverse proxy
 
 Set `PLOT_TWIST_TRUST_PROXY=1` only when every request reaches the server
 through your proxy. Each proxy must **append** the address it saw to
 `X-Forwarded-For` (anything to the left of it is whatever the client sent), and
-the public host must arrive in `Host` or `X-Forwarded-Host` — otherwise every
-generation is refused as cross-origin. With nginx:
+the public host, **port included**, must arrive in `Host` or `X-Forwarded-Host`
+— it is compared with the browser's `Origin`, so otherwise every generation is
+refused as cross-origin. With nginx:
 
 ```nginx
 location / {
   proxy_pass http://127.0.0.1:8787;
   proxy_http_version 1.1;
-  proxy_set_header Host $host;                                   # nginx's default is $proxy_host
+  proxy_set_header Host $http_host;                              # the host the browser asked for, with its port
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;   # appends the client address
-  proxy_set_header X-Forwarded-Host $host;
+  proxy_set_header X-Forwarded-Host $http_host;
   proxy_set_header X-Forwarded-Proto $scheme;
   proxy_buffering off;                                           # episodes stream as server-sent events
   proxy_read_timeout 180s;                                       # longer than PLOT_TWIST_DEADLINE_MS
 }
 ```
 
+Use `$http_host`, not `$host`: nginx's `$host` never includes the port, while a
+browser's `Origin` does (`https://plottwist.example:8443`), so on a non-default
+port `$host` refuses every generation. (nginx's default `Host` is `$proxy_host`,
+the upstream address, which never matches.) If your proxy cannot forward the host
+with its port, list the site's origin, port included, in
+`PLOT_TWIST_ALLOWED_ORIGINS` instead.
+
 With a second proxy in front (a CDN → nginx → server), set
-`PLOT_TWIST_TRUSTED_HOPS=2`. If the proxy cannot forward the public host, list
-the site's origin in `PLOT_TWIST_ALLOWED_ORIGINS` instead.
+`PLOT_TWIST_TRUSTED_HOPS=2`.
 
 ## What's inside
 
