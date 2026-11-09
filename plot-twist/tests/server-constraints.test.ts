@@ -126,6 +126,27 @@ describe('free budget', () => {
     expect(withText(text, free)).toEqual([]);
   });
 
+  it.each([
+    'Watch the commuters grabbing a coffee from the kiosk.',
+    'Watch people boarding the bus and count the umbrellas.',
+    'Count the tourists going into the museum.',
+    'Watch the commuters grab a coffee and run for the bus.',
+    'Notice who is sitting in the café window and sketch the cups.',
+  ])('does not flag what other people do: %j', (text) => {
+    expect(withText(text, free)).toEqual([]);
+  });
+
+  it.each(['Feel free to grab a coffee on the way.', 'Feel free to buy a coffee on the way.', 'Then hop on the bus for two stops.', 'Quickly get a pastry from the bakery.'])(
+    'flags the instruction %j',
+    (text) => {
+      expect(withText(text, free)).toContain('free-budget');
+    },
+  );
+
+  it.each(['Pick up a free ticket from the library desk.', 'Find out which free bus tickets the city hands out.'])('a free ticket is not a purchase: %j', (text) => {
+    expect(withText(text, free)).toEqual([]);
+  });
+
   it('counts treats, rides and paid places only outside: a snack from your own fridge is free', () => {
     const home: Prefs = { ...base, setting: 'home' };
     expect(withText('Grab a snack from the fridge and eat it slowly.', home)).not.toContain('free-budget');
@@ -213,6 +234,7 @@ describe('at home', () => {
     'Go out on the balcony and listen for one minute.',
     'Pop out of your chair like a jack-in-the-box.',
     'Count the cars parked outside your building from the window.',
+    'Listen for the neighbours popping out for the paper.',
   ])('does not flag %j (QA round 2)', (text) => {
     expect(atHome(text)).toEqual([]);
   });
@@ -225,6 +247,7 @@ describe('at home', () => {
     'Walk to the local library and find the oldest book.',
     'Take a picture at the park and come back.',
     'Walk to the nearest station and count the platforms.',
+    'Time to go out for a walk around the block.',
   ])('flags %j (QA round 2)', (text) => {
     expect(atHome(text)).toContain('stay-home');
   });

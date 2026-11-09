@@ -15,7 +15,7 @@
 import { KINDS } from '../shared/constants.ts';
 import { enumeratePaths, pathMinutes } from '../shared/graph.ts';
 import type { Adventure, Kind, Prefs, StageNode } from '../shared/types.ts';
-import { clauseBefore, hypotheticalAt, insideQuotes, negatedAt, quoteModelText, wordsOf } from './text.ts';
+import { clauseBefore, hypotheticalAt, imperativeBefore, insideQuotes, negatedAt, quoteModelText, wordsOf } from './text.ts';
 
 export type ConstraintRule =
   | 'free-budget'
@@ -54,8 +54,6 @@ export interface Cue {
 }
 
 const NEGATIONS: ReadonlySet<string> = new Set(['no', 'not', 'never', 'nothing', 'without', 'nor', "don't", 'dont', "doesn't", "isn't", "won't", "can't", 'cannot', 'zero']);
-/** "a free ticket", "free entry" are not purchases. */
-const PURCHASE_NEGATIONS: ReadonlySet<string> = new Set([...NEGATIONS, 'free']);
 /** Words that make a negated segment a list the next comma continues: "no buying, ordering or paying". */
 const LIST_WORDS: ReadonlySet<string> = new Set([
   'buy', 'buying', 'buys', 'purchase', 'purchases', 'purchasing', 'order', 'ordering', 'orders', 'pay', 'paying', 'payment',
@@ -88,6 +86,12 @@ function findCue(text: string, cues: readonly Cue[], negations: ReadonlySet<stri
   return null;
 }
 
+/**
+ * Where a base-form verb is an instruction to the user ("Grab a coffee", "…, then hop on the bus",
+ * "feel free to visit the museum"), not what others do ("commuters grabbing a coffee").
+ */
+const INSTRUCTION = imperativeBefore(['to']);
+
 /** The rest of the clause after a match (up to the next clause break). */
 const clauseAfter = (text: string, index: number, match: string) => /^[^.!?;:()[\]{}"“”—–…]*/.exec(text.slice(index + match.length))?.[0] ?? '';
 
@@ -96,13 +100,18 @@ const clauseAfter = (text: string, index: number, match: string) => /^[^.!?;:()[
 /** A purchase word that is imagined ("you'd buy", "imagine you could order") or quoted from a sign. */
 const notAPurchase = (text: string, index: number) => hypotheticalAt(text, index) || insideQuotes(text, index);
 
-/** Tickets that are found objects: "an old ticket", "a crumpled bus ticket", "the ticket in your bag". */
+/**
+ * Tickets that cost nothing ("a free ticket", "free bus tickets") or are found objects ("an old
+ * ticket", "a crumpled bus ticket", "the ticket in your bag"). "Free" only counts right before the
+ * ticket: "feel free to buy a ticket" is still a purchase.
+ */
 const OLD_THINGS: ReadonlySet<string> = new Set([
   'old', 'used', 'expired', 'torn', 'crumpled', 'creased', 'forgotten', 'faded', 'lost', 'discarded', 'found', 'stray',
   'abandoned', 'yellowed', 'folded', "yesterday's", "someone's", 'souvenir', 'vintage', 'ancient',
 ]);
-function foundTicket(text: string, index: number, match: string): boolean {
+function freeOrFoundTicket(text: string, index: number, match: string): boolean {
   const before = wordsOf(clauseBefore(text, index).split(',').pop() ?? '').slice(-3);
+  if (before.slice(-2).includes('free')) return true;
   if (before.some((w) => OLD_THINGS.has(w))) return true;
   return /^\s+(?:[\w'-]+\s+){0,4}?(?:from|in|out\s+of)\s+(?:your|a|an|the)\s+(?:old\s+)?(?:bag|pocket|wallet|drawer|coat|jacket|purse|notebook|book|box|album)\b/i.test(
     clauseAfter(text, index, match),
@@ -127,7 +136,7 @@ export const PURCHASE_CUES: readonly Cue[] = [
   { re: /\bplace\s+an?\s+order\b/i, skip: notAPurchase },
   {
     re: /\btickets?\b(?!\s*(?:stubs?|machines?|booths?|offices?|barriers?|gates?|inspectors?|validators?)\b)/i,
-    skip: (text, index, match) => notAPurchase(text, index) || foundTicket(text, index, match),
+    skip: (text, index, match) => notAPurchase(text, index) || freeOrFoundTicket(text, index, match),
   },
   { re: /\b(?:entry|entrance|admission|cover)\s+(?:fees?|charges?)\b/i },
   // "spend" is money only with money words: "spend some cash", never "spend 3 minutes" or "spend 30 seconds"
@@ -155,28 +164,37 @@ const PAID_PLACE = String.raw`(?:museums?|cinemas?|movie\s+theat(?:er|re)s?|caf[
 export const OUTSIDE_SPENDING_CUES: readonly Cue[] = [
   {
     re: new RegExp(
-      String.raw`\b(?:grab|grabs|grabbing|get|gets|getting|pick\s+up|treat\s+yourself\s+to|reward\s+yourself\s+with)\s+(?:yourself\s+)?(?:(?:a|an|one|two|some|the|your|a\s+(?:cup|glass|scoop|slice|bag|piece|bottle|can)\s+of)\s+)?(?:(?:small|smallest|cheapest|quick|cold|hot|fresh|warm|little|iced|takeaway|local|street|single|tiny)\s+)?${FOOD}(?![\w-])`,
+      String.raw`${INSTRUCTION}(?:grab|get|pick\s+up|treat\s+yourself\s+to|reward\s+yourself\s+with)\s+(?:yourself\s+)?(?:(?:a|an|one|two|some|the|your|a\s+(?:cup|glass|scoop|slice|bag|piece|bottle|can)\s+of)\s+)?(?:(?:small|smallest|cheapest|quick|cold|hot|fresh|warm|little|iced|takeaway|local|street|single|tiny)\s+)?${FOOD}(?![\w-])`,
       'i',
     ),
     skip: (text, index, match) => notAPurchase(text, index) || FREE_SOURCE.test(clauseAfter(text, index, match)),
   },
   {
-    re: /\b(?:take|takes|taking|ride|rides|riding|catch|catches|catching|board|boards|boarding|hop\s+on(?:to)?|get\s+on(?:to)?|jump\s+on(?:to)?)\s+(?:(?:a|the|any|your|one|two|three)\s+)?(?:(?:next|first|local|night|city|number\s+\d+|\d+)\s+)?(?:bus|buses|train|trains|tram|trams|light[- ]rail|metro|subway|underground|taxi|taxis|cab|cabs|ferry|ferries|shuttle)\b(?!\s+(?:stops?|shelters?|stations?|maps?|timetables?|schedules?|numbers?|tickets?)\b)/i,
-    skip: notAPurchase,
-  },
-  {
     re: new RegExp(
-      String.raw`\b(?:go|goes|going|head|heading|walk|walking|step|stepping|pop|popping|nip|slip|wander|duck)\s+(?:in(?:to)?|inside)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|big|little|neighbou?rhood|corner|busiest|quietest)\s+)?${PAID_PLACE}(?![a-z])`,
+      String.raw`${INSTRUCTION}(?:take|ride|catch|board|hop\s+on(?:to)?|get\s+on(?:to)?|jump\s+on(?:to)?)\s+(?:(?:a|the|any|your|one|two|three)\s+)?(?:(?:next|first|local|night|city|number\s+\d+|\d+)\s+)?(?:bus|buses|train|trains|tram|trams|light[- ]rail|metro|subway|underground|taxi|taxis|cab|cabs|ferry|ferries|shuttle)\b(?!\s+(?:stops?|shelters?|stations?|maps?|timetables?|schedules?|numbers?|tickets?)\b)`,
       'i',
     ),
     skip: notAPurchase,
   },
   {
-    re: /\b(?:enter|enters|entering|visit|visits|visiting|tour|touring)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|big|little|neighbou?rhood)\s+)?(?:museums?|cinemas?|movie\s+theat(?:er|re)s?|zoo|aquarium|escape\s+room)(?![a-z])/i,
+    re: new RegExp(
+      String.raw`${INSTRUCTION}(?:go|head|walk|step|pop|nip|slip|wander|duck)\s+(?:in(?:to)?|inside)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|big|little|neighbou?rhood|corner|busiest|quietest)\s+)?${PAID_PLACE}(?![a-z])`,
+      'i',
+    ),
     skip: notAPurchase,
   },
   {
-    re: /\b(?:sit|sitting|take\s+a\s+seat|grab\s+a\s+(?:seat|table))\s+(?:down\s+)?(?:in|inside|at)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|quiet|busy|corner|neighbou?rhood)\s+)?(?:caf[eé]|coffee\s+shop|restaurant|bakery)(?![a-z])/i,
+    re: new RegExp(
+      String.raw`${INSTRUCTION}(?:enter|visit|tour)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|big|little|neighbou?rhood)\s+)?(?:museums?|cinemas?|movie\s+theat(?:er|re)s?|zoo|aquarium|escape\s+room)(?![a-z])`,
+      'i',
+    ),
+    skip: notAPurchase,
+  },
+  {
+    re: new RegExp(
+      String.raw`${INSTRUCTION}(?:sit|take\s+a\s+seat|grab\s+a\s+(?:seat|table))\s+(?:down\s+)?(?:in|inside|at)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|quiet|busy|corner|neighbou?rhood)\s+)?(?:caf[eé]|coffee\s+shop|restaurant|bakery)(?![a-z])`,
+      'i',
+    ),
     skip: notAPurchase,
   },
 ];
@@ -204,11 +222,14 @@ export const LEAVE_HOME_CUES: readonly Cue[] = [
   { re: /\bhead(?:ing)?\s+out\b(?!\s+(?:to|onto)\s+(?:the|your)\s+balcony)/i, skip: imagined },
   // "nip out for a breath of fresh air", "go out for a walk" — not "pop out of the box", "out onto the balcony"
   {
-    re: /\b(?:nip|nips|nipping|pop|pops|popping|slip|slips|slipping|duck|ducks|ducking|dash|dashes|dashing)\s+out\b(?!\s+(?:of\s+(?:bed|(?:the|your|this|that|a)\s+(?:room|bedroom|kitchen|bathroom|lounge|study|hall(?:way)?|cupboard|box|drawer|book|frame|page|photo|picture|chair|seat))\b|(?:on(?:to)?|to|into|onto)\s+(?:the|your|a)\s+(?:balcony|garden|yard|terrace|porch|patio|kitchen|hall(?:way)?|corridor|landing|stairwell)\b))/i,
+    re: new RegExp(String.raw`${INSTRUCTION}(?:nip|pop|slip|duck|dash)\s+out\b(?!\s+(?:of\s+(?:bed|(?:the|your|this|that|a)\s+(?:room|bedroom|kitchen|bathroom|lounge|study|hall(?:way)?|cupboard|box|drawer|book|frame|page|photo|picture|chair|seat))\b|(?:on(?:to)?|to|into|onto)\s+(?:the|your|a)\s+(?:balcony|garden|yard|terrace|porch|patio|kitchen|hall(?:way)?|corridor|landing|stairwell)\b))`, 'i'),
     skip: imagined,
   },
   {
-    re: /\b(?:go|goes|going)\s+out\b(?=\s+(?:for|to|and|into|tonight|now|again|alone|together|with|in\s+search)\b)(?!\s+(?:to|onto|on)\s+(?:the|your)\s+(?:balcony|garden|yard|terrace|porch|patio)\b)/i,
+    re: new RegExp(
+      String.raw`${INSTRUCTION}go\s+out\b(?=\s+(?:for|to|and|into|tonight|now|again|alone|together|with|in\s+search)\b)(?!\s+(?:to|onto|on)\s+(?:the|your)\s+(?:balcony|garden|yard|terrace|porch|patio)\b)`,
+      'i',
+    ),
     skip: imagined,
   },
   // "a bench outside your building" — not when it is watched from a window or the balcony
@@ -438,11 +459,11 @@ export function checkHardConstraints(adv: Adventure, input: ConstraintInput): Co
     const cues = prefs.setting === 'outside' ? [...PURCHASE_CUES, ...OUTSIDE_SPENDING_CUES] : PURCHASE_CUES;
     const hits: string[] = [];
     adv.items.forEach((item, i) => {
-      if (findCue(item, PURCHASE_CUES, PURCHASE_NEGATIONS)) hits.push(`items[${i}] ${quoteModelText(item)}`);
+      if (findCue(item, PURCHASE_CUES)) hits.push(`items[${i}] ${quoteModelText(item)}`);
     });
     for (const n of adv.nodes) {
       for (const [field, text] of instructions(n)) {
-        const cue = findCue(text, cues, PURCHASE_NEGATIONS);
+        const cue = findCue(text, cues);
         if (cue) hits.push(`${place(n.id)}.${field} (${quoteModelText(cue)})`);
       }
     }

@@ -7,6 +7,20 @@
 /** Punctuation that ends a clause outright. A comma is handled by `negatedAt` and `hypotheticalAt`. */
 export const CLAUSE_BREAK = /[.!?;:()[\]{}"“”—–…]/;
 
+/** Words after which a base-form verb is an instruction: "and grab a coffee", "then stand on the roof", "you sit…". */
+const IMPERATIVE_LEADS = ['and', 'then', 'or', 'you', 'now', 'first', 'next', 'finally', 'just', 'quickly', 'carefully', 'slowly', 'quietly', 'secretly', 'sneakily', 'discreetly', 'please', 'simply', 'go', 'try\\s+to'];
+
+/**
+ * A regex lookbehind for where an imperative verb can stand: the start of the text, a
+ * sentence or a clause, or after one of IMPERATIVE_LEADS (plus `extra`). Used before
+ * base verb forms, it tells an instruction ("Grab a coffee", "…and lean over the
+ * railing") from a description of others ("commuters grabbing a coffee", "a man
+ * leaning over the railing"). A lookbehind, so the match starts at the verb.
+ */
+export function imperativeBefore(extra: readonly string[] = []): string {
+  return String.raw`(?<=^|[.!?;:,—–(]\s*|\b(?:${[...IMPERATIVE_LEADS, ...extra].join('|')})\s+)`;
+}
+
 /** Lowercase words of `text`; curly apostrophes count as straight ones. */
 export function wordsOf(text: string): string[] {
   return text.toLowerCase().replace(/[’‘]/g, "'").match(/[a-z']+/g) ?? [];

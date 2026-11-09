@@ -12,7 +12,7 @@
  * lead-in before a comma ("Without a sound, follow the man") is not.
  */
 import type { Adventure } from '../shared/types.ts';
-import { negatedAt as negatedInClause, quoteModelText } from './text.ts';
+import { imperativeBefore, negatedAt as negatedInClause, quoteModelText } from './text.ts';
 
 interface Rule {
   reason: string;
@@ -37,6 +37,13 @@ const COMPOUND_NOUN = new RegExp(`^${COMPOUND_NOUNS}$`);
  * stranger's footsteps"), and not a modifier ("follow the tourist trail").
  */
 const PERSON_OBJECT = String.raw`${PERSON}\b(?!-)(?!['’]s?\s+(?!(?:footsteps|steps|trail|path|route|tracks?|shadow|scent|lead|way|every)\b)[a-z])(?!\s+${COMPOUND_NOUNS}\b)`;
+
+/**
+ * Where an imperative verb can stand (see imperativeBefore). Rules that could also describe what
+ * others do ("kids playing in the street", "a man leaning over the railing") use it with base verb
+ * forms, so only instructions match, and a match starts at the verb, where its negation is judged.
+ */
+const IMPERATIVE = imperativeBefore();
 
 /** Words that, among the three words before a match (same clause), negate it. */
 const NEGATIONS: ReadonlySet<string> = new Set([
@@ -205,7 +212,10 @@ function recordsPeople(text: string): boolean {
 
 /** Recording a conversation: "record the conversation at the next table" — not a conversation with yourself. */
 const CONVERSATION_PATTERNS: RegExp[] = [
-  /\b(?:record|records|recording|recorded|tape|taping|film|filming|livestream|livestreaming)\s+(?:the|a|an|their|other\s+people's|people's|strangers'?|someone's|somebody's|everyone's|any)\s+(?:[\w'-]+\s+){0,2}?(?:conversations?|chats?|discussions?|arguments?|phone\s+calls?|calls?|gossip)\b(?!\s+with\s+yourself)/i,
+  new RegExp(
+    String.raw`${IMPERATIVE}(?:record|tape|film|livestream)\s+(?:the|a|an|their|other\s+people's|people's|strangers'?|someone's|somebody's|everyone's|any)\s+(?:[\w'-]+\s+){0,2}?(?:conversations?|chats?|discussions?|arguments?|phone\s+calls?|calls?|gossip)\b(?!\s+with\s+yourself)`,
+    'i',
+  ),
 ];
 
 // ── covert surveillance ──────────────────────────────────────────────
@@ -240,23 +250,28 @@ const FOLLOW_PATTERNS: RegExp[] = [
   /\bfollow(?:s|ed|ing)?\s+(?:him|her)\b(?!\s+(?:advice|lead|directions?|tips?|instructions?|recipes?|example|gaze|eyes|finger|map|recommendations?|suggestions?|rules?|steps|story|account|blog))/i,
   // "stay ten steps behind them", "keep a few paces behind the man"
   new RegExp(
-    String.raw`\b(?:stay|stays|staying|keep|keeps|keeping|walk|walks|walking|remain|remaining|trail|trailing|lurk|lurking|hang\s+back)\s+(?:about\s+|exactly\s+|roughly\s+|around\s+|at\s+least\s+|just\s+|only\s+)?(?:\d+|a\s+few|a\s+couple\s+of|several|some|two|three|four|five|six|seven|eight|nine|ten|fifteen|twenty|thirty|fifty)\s+(?:steps|paces|metres|meters|feet|yards|strides|m)\s+behind\s+(?:them|him|her|(?:(?:a|an|the|that|this|one|some|any|those|these|your)\s+)?(?:(?!of\b)[\w'-]+\s+){0,2}?${PERSON_OBJECT})`,
+    String.raw`${IMPERATIVE}(?:stay|keep|walk|remain|trail|lurk|hang\s+back)\s+(?:about\s+|exactly\s+|roughly\s+|around\s+|at\s+least\s+|just\s+|only\s+)?(?:\d+|a\s+few|a\s+couple\s+of|several|some|two|three|four|five|six|seven|eight|nine|ten|fifteen|twenty|thirty|fifty)\s+(?:steps|paces|metres|meters|feet|yards|strides|m)\s+behind\s+(?:them|him|her|(?:(?:a|an|the|that|this|one|some|any|those|these|your)\s+)?(?:(?!of\b)[\w'-]+\s+){0,2}?${PERSON_OBJECT})`,
     'i',
   ),
   // "walk behind the woman with the red umbrella"
   new RegExp(
-    String.raw`\b(?:walk|walks|walking|stay|staying|keep|keeping|stroll|strolling|trail|trailing|creep|creeping|tiptoe|tiptoeing|sneak|sneaking|lurk|lurking)\s+(?:right\s+|closely\s+|just\s+|quietly\s+|close\s+|directly\s+|silently\s+)?behind\s+(?:(?:a|an|the|that|this|one|some|any|those|these|random|your)\s+)?(?:(?!of\b)[\w'-]+\s+){0,2}?${PERSON_OBJECT}`,
+    String.raw`${IMPERATIVE}(?:walk|stay|keep|stroll|trail|creep|tiptoe|sneak|lurk)\s+(?:right\s+|closely\s+|just\s+|quietly\s+|close\s+|directly\s+|silently\s+)?behind\s+(?:(?:a|an|the|that|this|one|some|any|those|these|random|your)\s+)?(?:(?!of\b)[\w'-]+\s+){0,2}?${PERSON_OBJECT}`,
     'i',
   ),
   // "copy her pace", "match his stride"
-  /\b(?:copy|copying|match|matching|mirror|mirroring|mimic|mimicking|imitate|imitating)\s+(?:her|his)\s+(?:pace|steps|stride|walk|gait|moves|route|speed)\b/i,
+  new RegExp(String.raw`${IMPERATIVE}(?:copy|match|mirror|mimic|imitate)\s+(?:her|his)\s+(?:pace|steps|stride|walk|gait|moves|route|speed)\b`, 'i'),
 ];
+
+const FOLLOW_THEM = new RegExp(
+  String.raw`\bfollow(?:s|ed|ing)?\s+them\b|${IMPERATIVE}(?:walk|stay|keep|stroll|trail|creep|tiptoe|sneak|lurk)\s+(?:right\s+|closely\s+|just\s+|quietly\s+|close\s+|directly\s+)?behind\s+them\b`,
+  'gi',
+);
 
 /** "Pick someone … and follow them" / "… walk behind them": a pronoun counts when the sentence names a person. */
 function followsThem(text: string): boolean {
   return sentences(text).some((s) => {
     if (!PERSON_RE.test(s)) return false;
-    for (const m of s.matchAll(/\b(?:follow(?:s|ed|ing)?|(?:walk|stay|keep|stroll|trail|creep|tiptoe|sneak|lurk)\w*\s+(?:right\s+|closely\s+|just\s+|quietly\s+|close\s+|directly\s+)?behind)\s+them\b/gi)) {
+    for (const m of s.matchAll(FOLLOW_THEM)) {
       if (!negatedAt(s, m.index)) return true;
     }
     return false;
@@ -287,11 +302,6 @@ const WATER = String.raw`(?:sea|ocean|water|waves|surf|river|lake|pond|stream|fo
 const NOT_IN_WATER = String.raw`(?!['’]s\b|\s+(?:bridges?|banks?|sides?|walks?|paths?|promenades?|front|views?|edges?|walls?|crossings?|beds?|cruises?|ferry|ferries|taxis?|bus|boats?|tours?|trips?|parks?|gardens?|caf[eé]s?|restaurants?|stalls?|signs?|of)\b)`;
 /** Imperative motion verbs only: "wade into the fountain" is an instruction, "kids splashing in the fountain" is a description. */
 const INTO_WATER_VERBS = String.raw`(?:walk|wade|step|jump|dive|go|get|run|climb|wander|head|paddle|plunge|splash|hop|slip)`;
-/**
- * Where an imperative verb can stand: the start of a sentence or clause, or after "and", "then", "you"…
- * A lookbehind, so a match starts at the verb and its negation is judged there.
- */
-const IMPERATIVE = String.raw`(?<=^|[.!?;:,—–(]\s*|\b(?:and|then|or|you|now|first|next|finally|just|quickly|carefully|slowly|please|simply|go|try\s+to)\s+)`;
 /** "climbing" or "jumping" only counts after these: "try climbing the fence", not "ivy climbing the wall". */
 const ING_AFTER = String.raw`(?:go|goes|try|tries|trying|start|starting|keep|keeping|you're|you\s+are|by|enjoy|love)\s+`;
 const BARRIER = String.raw`(?:fences?|walls?|gates?|railings?|barriers?|barricades?|hedges?)`;
@@ -346,32 +356,50 @@ const RULES: Rule[] = [
     reason: 'involves balancing on walls, railings or edges',
     patterns: [
       // walking along the top of a wall or railing
-      /\b(?:walk|walking|balance|balancing|stand|standing|tiptoe|tiptoeing|step|stepping|run|running|hop|hopping|teeter|teetering|sit|sitting)\s+(?:along|across|on|onto|over|up\s+on)\s+(?:the\s+)?top\s+of\s+(?:a|an|the|that|this|your|any)\s+(?:[\w'-]+\s+){0,2}?(?:walls?|railings?|rails?|fences?|parapets?|bridges?|barriers?|balustrades?|gates?)\b/i,
+      new RegExp(
+        String.raw`${IMPERATIVE}(?:walk|balance|stand|tiptoe|step|run|hop|teeter|sit|stroll|creep)\s+(?:along|across|on|onto|over|up\s+on)\s+(?:the\s+)?top\s+of\s+(?:a|an|the|that|this|your|any)\s+(?:[\w'-]+\s+){0,2}?(?:walls?|railings?|rails?|fences?|parapets?|bridges?|barriers?|balustrades?|gates?)\b`,
+        'i',
+      ),
       // balancing on a wall, a railing or an edge (not a curb)
-      /\b(?:balance|balancing|tightrope|tiptoe|tiptoeing)\s+(?:along|on|across|over)\s+(?:a|an|the|that|this|your|any)\s+(?:[\w'-]+\s+){0,2}?(?:walls?|railings?|rails?|fences?|parapets?|edges?|ledges?|barriers?|balustrades?)\b/i,
-      /\b(?:walls?|railings?|rails?|fences?)\s+like\s+a\s+tightrope\b/i,
+      new RegExp(
+        String.raw`${IMPERATIVE}(?:balance|tightrope|tiptoe)\s+(?:along|on|across|over)\s+(?:a|an|the|that|this|your|any)\s+(?:[\w'-]+\s+){0,2}?(?:walls?|railings?|rails?|fences?|parapets?|edges?|ledges?|barriers?|balustrades?)\b`,
+        'i',
+      ),
+      new RegExp(String.raw`${IMPERATIVE}(?:walk|balance|tiptoe|cross)\s+(?:along\s+|across\s+)?(?:(?:a|the|that|this|your)\s+)?(?:[\w'-]+\s+)?(?:walls?|railings?|rails?|fences?)\s+like\s+a\s+tightrope\b`, 'i'),
       // leaning over a railing, a parapet or an edge; leaning out of a window
-      /\blean(?:s|ed|ing)?\s+(?:out\s+|far\s+|way\s+)?over\s+(?:a|an|the|that|this|your|any)\s+(?:[\w'-]+\s+){0,2}?(?:railings?|rails?|balustrades?|barriers?|parapets?|edges?|walls?|balcon(?:y|ies)|bridges?|ledges?)\b/i,
-      /\blean(?:s|ed|ing)?\s+(?:far\s+|way\s+)?out\s+(?:of|over|from)\s+(?:a|an|the|that|this|your)\s+(?:[\w'-]+\s+)?(?:windows?|balcon(?:y|ies))\b/i,
+      new RegExp(
+        String.raw`${IMPERATIVE}lean\s+(?:out\s+|far\s+|way\s+)?over\s+(?:a|an|the|that|this|your|any)\s+(?:[\w'-]+\s+){0,2}?(?:railings?|rails?|balustrades?|barriers?|parapets?|edges?|walls?|balcon(?:y|ies)|bridges?|ledges?)\b`,
+        'i',
+      ),
+      new RegExp(String.raw`${IMPERATIVE}lean\s+(?:far\s+|way\s+)?out\s+(?:of|over|from)\s+(?:a|an|the|that|this|your)\s+(?:[\w'-]+\s+)?(?:windows?|balcon(?:y|ies))\b`, 'i'),
       // sitting or standing on the edge of a drop
-      /\b(?:sit|sitting|stand|standing|perch|perching|balance|balancing|dangle|dangling)\s+(?:right\s+)?(?:on|at|over)\s+(?:the\s+)?(?:very\s+)?edge\s+of\s+(?:a|the|that|this|your)\s+(?:[\w'-]+\s+)?(?:roofs?|rooftops?|cliffs?|bridges?|balcon(?:y|ies)|platforms?|drops?|walls?|stairwells?)\b/i,
+      new RegExp(
+        String.raw`${IMPERATIVE}(?:sit|stand|perch|balance|dangle)\s+(?:right\s+)?(?:on|at|over)\s+(?:the\s+)?(?:very\s+)?edge\s+of\s+(?:a|the|that|this|your)\s+(?:[\w'-]+\s+)?(?:roofs?|rooftops?|cliffs?|bridges?|balcon(?:y|ies)|platforms?|drops?|walls?|stairwells?)\b`,
+        'i',
+      ),
     ],
   },
   {
     // Standing in the road or stepping into traffic — not "turn into the street that smells of bread".
     reason: 'involves traffic',
     patterns: [
-      /\b(?:stand|standing|lie|lying|sit|sitting|wait|waiting|dance|dancing|pose|posing|play|playing|stop|stopping|kneel|kneeling)\s+(?:down\s+)?(?:in\s+the\s+(?:middle\s+of\s+(?:the|a)\s+)?(?:road|street|highway|motorway|carriageway|intersection|junction|crossroads|bike\s+lane|bus\s+lane|tram\s+lane)|on\s+the\s+(?:road|highway|motorway|carriageway))\b(?!\s+(?:corners?|benches?|signs?|lamps?|lights?|art|food|markets?|musicians?|performers?|names?|level|views?|stalls?|vendors?|caf[eé]s?|side|parties|party|festival|fair))/i,
-      /\b(?:lie|lying)\s+down\s+on\s+the\s+(?:street|pavement|sidewalk|crossing)\b/i,
-      /\b(?:step|stepping|run|running|dash|dashing|dart|darting|jump|jumping|leap|leaping|rush|rushing|sprint|sprinting|walk|walking|wander|wandering|dance|dancing|weave|weaving|cycle|cycling)\s+(?:out\s+)?(?:into|in|through|between|onto)\s+(?:the\s+)?(?:oncoming\s+|moving\s+|busy\s+|heavy\s+|rush-hour\s+)?(?:traffic|cars)\b/i,
-      /\b(?:step|stepping|run|running|dash|dashing|dart|darting|jump|jumping|leap|leaping|rush|rushing|sprint|sprinting)\s+(?:out\s+)?(?:into|onto)\s+(?:the|a)\s+(?:busy\s+)?(?:road|street|highway|motorway|intersection|junction)\b/i,
+      new RegExp(
+        String.raw`${IMPERATIVE}(?:stand|lie|sit|wait|dance|pose|play|stop|kneel)\s+(?:down\s+)?(?:in\s+the\s+(?:middle\s+of\s+(?:the|a)\s+)?(?:road|street|highway|motorway|carriageway|intersection|junction|crossroads|bike\s+lane|bus\s+lane|tram\s+lane)|on\s+the\s+(?:road|highway|motorway|carriageway))\b(?!\s+(?:corners?|benches?|signs?|lamps?|lights?|art|food|markets?|musicians?|performers?|names?|level|views?|stalls?|vendors?|caf[eé]s?|side|parties|party|festival|fair))`,
+        'i',
+      ),
+      new RegExp(String.raw`${IMPERATIVE}lie\s+down\s+on\s+the\s+(?:street|pavement|sidewalk|crossing)\b`, 'i'),
+      new RegExp(
+        String.raw`${IMPERATIVE}(?:step|run|dash|dart|jump|leap|rush|sprint|walk|wander|dance|weave|cycle)\s+(?:out\s+)?(?:into|in|through|between|onto)\s+(?:the\s+)?(?:oncoming\s+|moving\s+|busy\s+|heavy\s+|rush-hour\s+)?(?:traffic|cars)\b`,
+        'i',
+      ),
+      new RegExp(String.raw`${IMPERATIVE}(?:step|run|dash|dart|jump|leap|rush|sprint)\s+(?:out\s+)?(?:into|onto)\s+(?:the|a)\s+(?:busy\s+)?(?:road|street|highway|motorway|intersection|junction)\b`, 'i'),
     ],
   },
   {
     reason: 'involves covert surveillance of people',
     patterns: [
       /\bwithout\s+(?:them|him|her|anyone|anybody|people|the\s+(?:person|stranger|people|owner)|(?:the\s+)?(?:strangers?|passersby|passers?-by))\s+(?:noticing|knowing|seeing|realizing|realising|spotting|looking)\b/i,
-      /\beavesdrop(?:s|ped|ping)?\b|\blisten(?:s|ing)?\s+in\s+on\b/i,
+      new RegExp(String.raw`${IMPERATIVE}(?:eavesdrop|listen\s+in)\s+on\b`, 'i'),
     ],
     test: covertlyWatchesPeople,
   },
@@ -459,9 +487,12 @@ const RULES: Rule[] = [
       /\b(?:dip|dipping|soak|soaking|dangle|dangling)\s+(?:your|both)\s+(?:feet|toes|legs)\b/i,
       new RegExp(String.raw`\b(?:dip|put|stick|soak|dangle|plunge)\s+(?:your|both)\s+(?:feet|toes|legs|hands?)\s+(?:in|into)\s+(?:the|a|that|this)\s+(?:[\w'-]+\s+)?${WATER}\b`, 'i'),
       // "with your feet dangling over the water"
-      new RegExp(String.raw`\b(?:feet|legs|toes)\s+(?:dangling|hanging|swinging|dangle|hang|dipped|dipping|trailing)\s+(?:over|off|above|into|in)\s+(?:the|a|that|this)\s+(?:[\w'-]+\s+)?(?:${WATER}|edge|side)\b`, 'i'),
+      new RegExp(String.raw`\b(?:your|both)\s+(?:feet|legs|toes)\s+(?:dangling|hanging|swinging|dangle|hang|dipped|dipping|trailing)\s+(?:over|off|above|into|in)\s+(?:the|a|that|this)\s+(?:[\w'-]+\s+)?(?:${WATER}|edge|side)\b`, 'i'),
       // "sit on the edge of the pier" (deep water; the rim of a fountain is fine)
-      /\b(?:sit|sitting|stand|standing|perch|perching|lie|lying|balance|balancing|crouch|crouching|kneel|kneeling)\s+(?:right\s+)?(?:on|at)\s+(?:the\s+)?(?:very\s+)?edge\s+of\s+(?:the|a|that|this)\s+(?:[\w'-]+\s+)?(?:piers?|docks?|jett(?:y|ies)|quays?|wharf|harbou?r\s+walls?|breakwaters?|sea\s*walls?|river|canal|lake|reservoir|sea|ocean)\b/i,
+      new RegExp(
+        String.raw`${IMPERATIVE}(?:sit|stand|perch|lie|balance|crouch|kneel)\s+(?:right\s+)?(?:on|at)\s+(?:the\s+)?(?:very\s+)?edge\s+of\s+(?:the|a|that|this)\s+(?:[\w'-]+\s+)?(?:piers?|docks?|jett(?:y|ies)|quays?|wharf|harbou?r\s+walls?|breakwaters?|sea\s*walls?|river|canal|lake|reservoir|sea|ocean)\b`,
+        'i',
+      ),
       /\bwade\b(?=\s*(?:$|[.,;:!?)]|\s+(?:in|into|out|across|around)\b))/i,
     ],
   },

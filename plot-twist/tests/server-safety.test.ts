@@ -277,6 +277,34 @@ const QA2_MORE_HARMLESS = [
   'Hands clasped behind your back, walk the lap like a critic.',
   'Stand half in, half out of the shadow under a railing.',
   'Take a photo of the family photo on the wall.',
+  // what other people (or animals) do is a description, not an instruction
+  'Listen to the kids playing in the street below.',
+  'Count the people waiting in the street for the bus.',
+  'A dog lying down on the street, sound asleep.',
+  'Watch a cyclist weaving through traffic.',
+  'A dog running into the road makes everyone gasp.',
+  'A cat walking along the top of the wall watches you.',
+  'Watch a pigeon balancing on the railing.',
+  'A man leaning over the railing is feeding the ducks.',
+  'Fishermen sitting on the edge of the pier wave at you.',
+  'A boy with his feet dangling over the water hums a tune.',
+  'A dog walking ten steps behind them carries a stick.',
+  'A child walking behind the woman copies her steps.',
+  'A child copying her pace makes the street smile.',
+  'The cat walks the fence like a tightrope.',
+  'A reporter recording the conversation nods.',
+  'Pigeons eavesdropping on the café terrace.',
+];
+
+/** …and the same actions as instructions. */
+const QA2_INSTRUCTIONS: [string, RegExp][] = [
+  ['Play in the street for five minutes.', /traffic/],
+  ['Lie down on the street.', /traffic/],
+  ['Then run into the road.', /traffic/],
+  ['Balance on the railing for ten seconds.', /balancing/],
+  ['Walk the wall like a tightrope.', /balancing/],
+  ['Secretly record the conversation at the next table.', /recording people/],
+  ['Your mission: walk along the top of the wall.', /balancing/],
 ];
 
 describe('safety screen: QA round 2', () => {
@@ -294,6 +322,10 @@ describe('safety screen: QA round 2', () => {
 
   it.each(QA2_MORE_HARMLESS)('does not flag %j', (text) => {
     expect(screenText(text)).toEqual([]);
+  });
+
+  it.each(QA2_INSTRUCTIONS)('flags %j', (text, reason) => {
+    expect(screenText(text).join(' | ')).toMatch(reason);
   });
 
   it('a comma ends a negated lead-in, but not a negated list', () => {
