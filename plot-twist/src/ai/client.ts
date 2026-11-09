@@ -111,12 +111,27 @@ export class DirectorError extends Error {
   retryAfterMs?: number;
   /** A stream cap for the whole network (not just this connection). */
   networkWide?: boolean;
+  /**
+   * Reported by the server while it was writing (the AI provider failed), not a refusal of the
+   * request itself: it says nothing about this visitor.
+   */
+  inStream?: boolean;
   constructor(code: string, message: string, retryable: boolean, retryAfterMs?: number) {
     super(message);
     this.code = code;
     this.retryable = retryable;
     if (retryAfterMs !== undefined) this.retryAfterMs = retryAfterMs;
   }
+}
+
+/** "in under a minute", "in about 10 minutes", "in about 2 hours". */
+export function inAbout(ms: number): string {
+  if (ms < 60_000) return 'in under a minute';
+  if (ms < 90 * 60_000) {
+    const minutes = Math.ceil(ms / 60_000);
+    return `in about ${minutes} minute${minutes === 1 ? '' : 's'}`;
+  }
+  return `in about ${Math.round(ms / 3_600_000)} hours`;
 }
 
 /**
@@ -156,7 +171,7 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
     }
     const message =
       code === 'rate_limited'
-        ? 'The AI Director is taking a short break — back in a few minutes.'
+        ? `The AI Director is taking a short break — back ${retryAfterMs !== undefined ? inAbout(retryAfterMs) : 'in a few minutes'}.`
         : code === 'busy'
           ? 'The AI Director is busy with other episodes right now.'
           : code === 'too_many_streams'
@@ -200,6 +215,7 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
       }
     } else if (event.type === 'error') {
       failure = new DirectorError(event.code, event.message, event.retryable);
+      failure.inStream = true;
     }
   };
 

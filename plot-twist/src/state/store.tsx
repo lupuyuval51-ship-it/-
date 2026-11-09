@@ -13,7 +13,7 @@
  *   when the tab was kept open in the background.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
-import { DirectorError, fetchDirectorStatus, requestEpisode, type DirectorEvent, type DirectorStatus } from '../ai/client.ts';
+import { DirectorError, fetchDirectorStatus, inAbout, requestEpisode, type DirectorEvent, type DirectorStatus } from '../ai/client.ts';
 import { getCuratedAdventure, LIBRARY } from '../content/library.ts';
 import { matchAdventures } from '../engine/matching.ts';
 import { hashSeed, makeId } from '../engine/random.ts';
@@ -36,7 +36,6 @@ import { dealCurated, samePrefs } from './deal.ts';
 import {
   AI_BLOCK_KEY,
   clearGenBeat,
-  GEN_BEAT_STALE_MS,
   mergeStates,
   ownedElsewhere,
   parseAiBlock,
@@ -85,8 +84,8 @@ export const CHECKING_STATUS: DirectorStatus = {
 
 export type StorageIssue = null | 'quota' | 'unavailable';
 
-/** Why AI envelopes are paused for this browser; `tab` (another tab of it is writing) stays in this tab. */
-export type BlockReason = AiBlockReason | 'tab';
+/** Why AI envelopes are paused for this browser (every tab of it). */
+export type BlockReason = AiBlockReason;
 
 interface State {
   p: PersistedState;
@@ -146,7 +145,6 @@ const BLOCK_DETAIL: Record<BlockReason, string> = {
   busy: 'The AI Director is busy writing for other people right now.',
   connection: 'Other episodes are still being written from your connection.',
   network: 'Too many episodes are being written from your network right now.',
-  tab: 'The AI Director is still writing an envelope in your other tab.',
 };
 
 /**
@@ -156,9 +154,7 @@ const BLOCK_DETAIL: Record<BlockReason, string> = {
  */
 export function withClientLimit(status: DirectorStatus, blockedUntil: number, reason: BlockReason | null, now: number): DirectorStatus {
   if (now >= blockedUntil || !status.canGenerate) return status;
-  const wait = blockedUntil - now;
-  const minutes = Math.max(1, Math.ceil(wait / 60_000));
-  const when = wait < 60_000 ? 'in under a minute' : `in about ${minutes} minute${minutes === 1 ? '' : 's'}`;
+  const when = inAbout(blockedUntil - now);
   return {
     ...status,
     state: 'rate_limited',
@@ -374,7 +370,20 @@ interface GenTarget {
   ctl: AbortController;
   drawId: string;
   slot: number;
+  /** The envelope being written (its genKey), wherever a re-deal moves it. */
+  key: string;
+  /** This generation's beat. */
+  token: string;
 }
+
+/** The envelope a generation writes, by its key (older stored envelopes have none: by place). */
+function writingFor(draw: Draw | null, g: { key: string; drawId: string; slot: number }): DrawEnvelope | null {
+  if (!draw) return null;
+  return draw.envelopes.find((e) => e.status === 'writing' && (e.genKey ? e.genKey === g.key : draw.id === g.drawId && e.slot === g.slot)) ?? null;
+}
+
+/** How long a takeover claim must stand before this tab writes the envelope. */
+const CLAIM_SETTLE_MS = 450;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const boot = useRef<Boot | null>(null);
@@ -489,14 +498,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       const next = dirty.current ? mergeStates(latest.current, theirs, changedAt.current) : theirs;
       knownStamp.current = stamp;
-      // A generation for an envelope that is no longer waiting on this tab is wasted work.
+      // A generation for an envelope that is no longer waiting on this tab is wasted work. One that
+      // another tab carried into its re-deal (same scene) is still wanted: it goes on, into that draw.
       const g = gen.current;
       if (g) {
-        const env = next.draw && next.draw.id === g.drawId ? next.draw.envelopes.find((e) => e.slot === g.slot) : undefined;
-        if (!env || env.status !== 'writing') {
+        const env = writingFor(next.draw, g);
+        if (!env || !next.draw) {
           g.ctl.abort();
           gen.current = null;
           dispatch({ type: 'endGeneration', drawId: g.drawId, slot: g.slot });
+        } else if (next.draw.id !== g.drawId || env.slot !== g.slot) {
+          g.drawId = next.draw.id;
+          g.slot = env.slot;
+          writeGenBeat(getBrowserStorage(), { drawId: g.drawId, slot: g.slot, owner: TAB_ID, token: g.token, at: Date.now() });
+          dispatch({ type: 'retargetGeneration', drawId: g.drawId, slot: g.slot });
         }
       }
       adopt(next);
@@ -685,7 +700,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (draw: Draw, slot: number) => {
       gen.current?.ctl.abort();
       const ctl = new AbortController();
-      const target: GenTarget = { ctl, drawId: draw.id, slot };
+      const key = draw.envelopes.find((e) => e.slot === slot)?.genKey ?? `${draw.id}:${slot}`;
+      const target: GenTarget = { ctl, drawId: draw.id, slot, key, token: makeId('gen') };
       gen.current = target;
       const others = draw.envelopes.filter((e) => e.slot !== slot && e.adventure).map((e) => e.adventure!);
       const recent = latest.current.completed.slice(-5).map((c) => c.title);
@@ -693,13 +709,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       // The detail travels with the draw, so a retry after a reload still uses it.
       const detail = (draw.detail ?? '').trim().slice(0, MAX_AI_DETAIL);
 
-      // Whether another tab of this browser is writing right now — read before this tab's own
-      // beat takes the key over. (If the server turns this request away over open streams, that
-      // tab is why.)
-      const before = readGenBeat(getBrowserStorage());
-      const otherTabWriting = Boolean(before && before.owner !== TAB_ID && Date.now() - before.at < GEN_BEAT_STALE_MS);
       // Tell other tabs this envelope is being written here, so they don't start a duplicate.
-      const beat = () => writeGenBeat(getBrowserStorage(), { drawId: target.drawId, slot: target.slot, owner: TAB_ID, at: Date.now() });
+      const beat = () => writeGenBeat(getBrowserStorage(), { drawId: target.drawId, slot: target.slot, owner: TAB_ID, token: target.token, at: Date.now() });
       beat();
       const beatTimer = window.setInterval(beat, 3_000);
 
@@ -734,23 +745,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         })
         .catch((err: unknown) => {
           if ((err as Error).name === 'AbortError' || ctl.signal.aborted || unloading.current) return;
-          let reason = err instanceof DirectorError ? err.message : 'The AI Director could not finish.';
-          if (err instanceof DirectorError && (err.code === 'rate_limited' || err.code === 'busy' || err.code === 'too_many_streams')) {
-            const now = Date.now();
-            const why: BlockReason =
-              err.code === 'rate_limited' ? 'rate_limited' : err.code === 'busy' ? 'busy' : err.networkWide ? 'network' : otherTabWriting ? 'tab' : 'connection';
-            const until = now + (err.retryAfterMs ?? (err.code === 'rate_limited' ? 60_000 : 20_000));
+          const reason = err instanceof DirectorError ? err.message : 'The AI Director could not finish.';
+          // Our own server turned this browser away (its rate limit, a full server, stream caps):
+          // every tab of it would be too, until then. A provider limit hit while writing is not
+          // about this visitor: the server's status holds it for a moment instead.
+          if (err instanceof DirectorError && !err.inStream && (err.code === 'rate_limited' || err.code === 'busy' || err.code === 'too_many_streams')) {
+            const why: BlockReason = err.code === 'rate_limited' ? 'rate_limited' : err.code === 'busy' ? 'busy' : err.networkWide ? 'network' : 'connection';
+            const until = Date.now() + (err.retryAfterMs ?? (err.code === 'rate_limited' ? 60_000 : 20_000));
             // A longer pause already in force keeps its own end and its own reason.
             if (until >= aiBlockedUntil.current) {
               aiBlockedUntil.current = until;
               aiBlockReason.current = why;
             }
-            // Every tab of this browser would be turned away too — except over a stream that
-            // one of them is writing, which ends with that stream.
             const reasonNow = aiBlockReason.current ?? why;
-            if (reasonNow !== 'tab') writeAiBlock(getBrowserStorage(), { until: aiBlockedUntil.current, reason: reasonNow });
+            writeAiBlock(getBrowserStorage(), { until: aiBlockedUntil.current, reason: reasonNow });
             dispatch({ type: 'aiBlocked', until: aiBlockedUntil.current, reason: reasonNow });
-            if (why === 'tab') reason = BLOCK_DETAIL.tab;
           }
           const current = latest.current.draw;
           const fb = current && current.id === target.drawId ? fallbackFor(current, latest.current.completed) : null;
@@ -765,19 +774,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .finally(() => {
           window.removeEventListener('beforeunload', onBeforeUnload);
           window.clearInterval(beatTimer);
-          clearGenBeat(getBrowserStorage(), TAB_ID);
+          // The outcome is saved before the beat goes: a tab that finds no beat must also find the
+          // envelope written (or the draw gone), or it would pay to write it again.
+          flush();
+          clearGenBeat(getBrowserStorage(), target.token);
           if (gen.current === target) gen.current = null;
           dispatch({ type: 'endGeneration', drawId: target.drawId, slot: target.slot });
         });
     },
-    [update, refreshDirector],
+    [update, refreshDirector, flush],
   );
 
   useEffect(() => () => gen.current?.ctl.abort(), []);
 
   // Envelopes left "writing" by a previous page load, or by another tab: ask again once we know
-  // the Director can write — unless another open tab is still writing that envelope (then wait
-  // for its result, and take over if its beat goes quiet).
+  // the Director can write — unless another open tab is still writing (then wait for its result,
+  // and take over if its beat goes quiet).
   useEffect(() => {
     if (!pendingWriting.current || state.director.state === 'checking') return;
     const draw = latest.current.draw;
@@ -786,13 +798,37 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       pendingWriting.current = false;
       return;
     }
-    if (ownedElsewhere(readGenBeat(getBrowserStorage()), draw.id, env.slot, TAB_ID, Date.now())) {
-      const id = window.setTimeout(() => setWritingCheck((n) => n + 1), 5_000);
+    const storage = getBrowserStorage();
+    if (ownedElsewhere(readGenBeat(storage), TAB_ID, Date.now())) {
+      // Each tab looks again at its own moment, so two open tabs don't decide in step.
+      const id = window.setTimeout(() => setWritingCheck((n) => n + 1), 4_000 + Math.random() * 2_000);
       return () => window.clearTimeout(id);
     }
-    pendingWriting.current = false;
-    if (state.director.canGenerate) generate(draw, env.slot);
-    else update((p) => settleWriting(p, state.director.state === 'rate_limited' ? 'The AI Director is busy right now.' : 'The AI Director is offline right now.'));
+    if (!state.director.canGenerate) {
+      pendingWriting.current = false;
+      update((p) => settleWriting(p, state.director.state === 'rate_limited' ? 'The AI Director is busy right now.' : 'The AI Director is offline right now.'));
+      return;
+    }
+    // Claim it first. Two open tabs that find it orphaned at once both claim; the claim written
+    // last is the one both read back, so exactly one of them writes the envelope.
+    const claim = makeId('claim');
+    writeGenBeat(storage, { drawId: draw.id, slot: env.slot, owner: TAB_ID, token: claim, at: Date.now() });
+    const id = window.setTimeout(() => {
+      const beat = readGenBeat(getBrowserStorage());
+      const current = latest.current.draw;
+      const still = current?.envelopes.find((e) => e.slot === env.slot && e.status === 'writing');
+      if (beat?.token === claim && current && still && !gen.current) {
+        pendingWriting.current = false;
+        generate(current, still.slot);
+        return;
+      }
+      clearGenBeat(getBrowserStorage(), claim);
+      setWritingCheck((n) => n + 1);
+    }, CLAIM_SETTLE_MS + Math.random() * 400);
+    return () => {
+      window.clearTimeout(id);
+      clearGenBeat(getBrowserStorage(), claim);
+    };
   }, [state.director, generate, update, writingCheck]);
 
   // ── draws ──
@@ -803,14 +839,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const detail = s.detail.trim().slice(0, MAX_AI_DETAIL);
       const current = latest.current.draw;
       // A personalized envelope survives a re-deal with the same prefs and detail: one still
-      // being written (no second paid request), or one written but not opened yet.
+      // being written, in this tab or in another open one (no second paid request), or one
+      // written but not opened yet.
       const g = gen.current;
       const sameAsk = Boolean(current && samePrefs(current.prefs, prefs) && (current.detail ?? '') === detail);
+      const writing = current?.envelopes.find((e) => e.source === 'ai' && e.status === 'writing') ?? null;
+      const writingHere = Boolean(g && current && writing && writingFor(current, g) === writing);
+      const writingElsewhere = Boolean(!g && writing && ownedElsewhere(readGenBeat(getBrowserStorage()), TAB_ID, Date.now()));
       const carry = !sameAsk
         ? null
-        : g && current && g.drawId === current.id
-          ? current.envelopes.find((e) => e.slot === g.slot && e.status === 'writing') ?? null
-          : (current?.envelopes.find((e) => e.source === 'ai' && e.status === 'ready' && e.adventure && !e.opened) ?? null);
+        : writing && (writingHere || writingElsewhere)
+          ? writing
+          : g && current && g.drawId === current.id
+            ? null
+            : (current?.envelopes.find((e) => e.source === 'ai' && e.status === 'ready' && e.adventure && !e.opened) ?? null);
       const withAi = aiOn || carry !== null;
       const count = withAi ? 2 : 3;
       const seed = previous ? previous.seed + 1 : hashSeed('draw', Date.now(), latest.current.completed.length);
@@ -818,26 +860,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const envelopes: DrawEnvelope[] = picks.map((pick, i) => ({ slot: i, status: 'ready', source: 'curated', adventure: pick.adventure, opened: false }));
       const aiSlot = envelopes.length;
       if (carry) envelopes.push({ ...carry, slot: aiSlot });
-      else if (aiOn) envelopes.push({ slot: aiSlot, status: 'writing', source: 'ai', adventure: null, opened: false, note: 'Written for you' });
+      else if (aiOn) envelopes.push({ slot: aiSlot, status: 'writing', source: 'ai', adventure: null, opened: false, note: 'Written for you', genKey: makeId('gen') });
       const draw: Draw = { id: makeId('draw'), createdAt: Date.now(), prefs, seed, envelopes, shownIds };
       if (detail && (aiOn || carry)) draw.detail = detail;
       dispatch({ type: 'match', match });
-      if (carry && g && carry.status === 'writing') {
-        g.drawId = draw.id;
-        g.slot = aiSlot;
-        // Other tabs see the new draw at once: the beat has to name it now, not at its next tick.
-        writeGenBeat(getBrowserStorage(), { drawId: draw.id, slot: aiSlot, owner: TAB_ID, at: Date.now() });
-        dispatch({ type: 'retargetGeneration', drawId: draw.id, slot: aiSlot });
-      } else if (g) {
+      const keepWriting = Boolean(carry && writingHere && g);
+      if (g && !keepWriting) {
         g.ctl.abort();
         gen.current = null;
         dispatch({ type: 'generation', generation: null });
       }
       update((p) => ({ ...p, prefs, draw }));
+      // The beat naming the new draw goes out first, then the draw itself — saved now, not after
+      // the usual short delay. Other tabs drop work for the old draw (or carry on with an envelope
+      // it kept) at once, and never find a "writing" envelope without a live beat beside it.
+      if (keepWriting && g) {
+        g.drawId = draw.id;
+        g.slot = aiSlot;
+        writeGenBeat(getBrowserStorage(), { drawId: draw.id, slot: aiSlot, owner: TAB_ID, token: g.token, at: Date.now() });
+        dispatch({ type: 'retargetGeneration', drawId: draw.id, slot: aiSlot });
+      }
       if (aiOn && !carry) generate(draw, aiSlot);
+      flush();
       return draw;
     },
-    [generate, update],
+    [generate, update, flush],
   );
 
   const api = useMemo<StoreApi>(() => {
@@ -878,7 +925,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       retryAiEnvelope: (slot) => {
         const draw = latest.current.draw;
         if (!draw || !stateRef.current.director.canGenerate) return;
-        const next: Draw = { ...draw, envelopes: draw.envelopes.map((e) => (e.slot === slot ? { ...e, status: 'writing', source: 'ai', adventure: null, opened: false, note: 'Written for you' } : e)) };
+        const next: Draw = {
+          ...draw,
+          envelopes: draw.envelopes.map((e) =>
+            e.slot === slot ? { ...e, status: 'writing', source: 'ai', adventure: null, opened: false, note: 'Written for you', genKey: makeId('gen') } : e,
+          ),
+        };
         update((p) => ({ ...p, draw: next }));
         generate(next, slot);
       },

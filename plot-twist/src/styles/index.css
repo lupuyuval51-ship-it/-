@@ -265,10 +265,11 @@
   .btn-primary:hover:not(:disabled, [aria-disabled='true']) {
     filter: brightness(1.05);
   }
-  /* Main character energy: the CTA casts a hard sun shadow 5px down and right, and a ring at the
-     usual offset would cross it (pink on yellow, ~2:1). Here the ring clears the shadow. */
+  /* Main character energy: the CTA casts a hard sun shadow 5px down and right, and the ring would
+     cross it (pink on yellow, ~2:1). While focused the shadow steps aside instead, so the ring
+     keeps the usual offset and never lands on the controls next to the button. */
   [data-vibe='main'] .btn-primary:focus-visible {
-    outline-offset: 8px;
+    box-shadow: none;
   }
   .btn-xl {
     min-height: 60px;
@@ -642,18 +643,28 @@
     inset-inline: 0;
     bottom: 0;
     z-index: 30;
-    padding: 2.5rem 1.25rem max(1rem, env(safe-area-inset-bottom));
-    background: linear-gradient(180deg, transparent, var(--color-ink-950) 38%);
-    /* The fade at the top is see-through, so taps go through it too, to whatever shows there. */
-    pointer-events: none;
+    /* The top padding keeps a focus ring on the button over the opaque part, not the fade. */
+    padding: 0.5rem 1.25rem max(1rem, env(safe-area-inset-bottom));
+    /* Opaque, edge to edge: a tap anywhere on it lands on the dock, never on a control hidden behind it. */
+    background: var(--color-ink-950);
     @variant short {
       position: static;
       padding: 1.75rem 0 0;
       background: none;
     }
   }
-  .dock > * {
-    pointer-events: auto;
+  /* The fade above the dock is see-through, so taps go through it to whatever shows there. */
+  .dock::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: 2.5rem;
+    background: linear-gradient(180deg, transparent, var(--color-ink-950));
+    pointer-events: none;
+    @variant short {
+      display: none;
+    }
   }
   /* The play bar's controls are always on screen. Focusing one must not scroll the page to clear
      the scroll padding that keeps everything else out from under the bar (it would jump the
@@ -957,8 +968,9 @@
   .rail-fill {
     background: Highlight;
   }
-  /* Gradients are dropped here. Bars that content scrolls under need an opaque Canvas (and an
-     edge), and the dial needs a visible track. */
+  /* Gradients are dropped here (the dock's fade with them, so what shows through it can be
+     tapped). Bars that content scrolls under need an opaque Canvas (and an edge), and the dial
+     needs a visible track. */
   .dock,
   .letter-actions {
     background: Canvas;

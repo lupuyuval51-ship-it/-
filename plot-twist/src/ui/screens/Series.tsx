@@ -9,7 +9,7 @@ import { PosterActions, PosterImage } from '../components/Poster.tsx';
 import { Sheet } from '../components/Sheet.tsx';
 import { formatClock, pad2 } from '../hooks.ts';
 import { IconArrowLeft, IconEnvelope, IconPencil } from '../icons.tsx';
-import { navigate } from '../router.ts';
+import { goBackTo, navigate } from '../router.ts';
 import { typographic } from '../../../shared/template.ts';
 import { uiAccent } from '../color.ts';
 import { JournalField, Recap, twistBody, useEpisodeGone } from './Finale.tsx';
@@ -170,7 +170,7 @@ export function Series() {
   return (
     <div className="px-5 pb-20">
       <div className="flex items-center gap-2 pt-2">
-        <button type="button" className="icon-btn -ml-2" onClick={() => navigate({ name: 'scene' })} aria-label="Back home">
+        <button type="button" className="icon-btn -ml-2" onClick={() => goBackTo({ name: 'scene' })} aria-label="Back home">
           <IconArrowLeft />
         </button>
         <p className="t-kicker">My Series</p>
@@ -245,7 +245,7 @@ export function EpisodeDetail({ episodeId }: { episodeId: string }) {
   return (
     <div className="px-5 pb-20" style={{ '--ep-accent': accent } as React.CSSProperties}>
       <div className="flex items-center gap-2 pt-2">
-        <button type="button" className="icon-btn -ml-2" onClick={() => navigate({ name: 'series' })} aria-label="Back to My Series">
+        <button type="button" className="icon-btn -ml-2" onClick={() => goBackTo({ name: 'series' })} aria-label="Back to My Series">
           <IconArrowLeft />
         </button>
         <p className="t-kicker">

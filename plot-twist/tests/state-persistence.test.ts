@@ -342,6 +342,17 @@ describe('sanitizeState', () => {
     expect(clean.draw!.envelopes[3]).toMatchObject({ status: 'failed', adventure: null });
   });
 
+  it('keeps the key of an AI envelope being written, and drops a broken one', () => {
+    const state = asJson(fullState()) as PersistedState;
+    state.draw!.envelopes[1].genKey = 'gen-abc';
+    expect(sanitizeState(asJson(state), NOW).state.draw!.envelopes[1].genKey).toBe('gen-abc');
+    (state.draw!.envelopes[1] as unknown as Record<string, unknown>).genKey = 42;
+    const { state: clean, repaired } = sanitizeState(asJson(state), NOW);
+    expect(repaired).toBe(true);
+    expect(clean.draw!.envelopes[1].genKey).toBeUndefined();
+    expect(clean.draw!.envelopes[1].status).toBe('writing');
+  });
+
   it('repairs draw details and drops a draw without a usable shape', () => {
     const state = asJson(fullState()) as PersistedState;
     const draw = state.draw as unknown as Record<string, unknown>;

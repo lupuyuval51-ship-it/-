@@ -10,7 +10,7 @@ import { useStore } from '../../state/store.tsx';
 import { ProgressRail } from '../components/Bits.tsx';
 import { formatClock, pad2, useFocusTrap, useInertApp, useNow, useScrollLock } from '../hooks.ts';
 import { IconBolt, IconCheck, IconClose, IconGroup, IconPause, IconPlay, IconSwap } from '../icons.tsx';
-import { navigate } from '../router.ts';
+import { cameFrom, goBackTo, leaveFor, navigate } from '../router.ts';
 import { uiAccent } from '../color.ts';
 
 /**
@@ -348,14 +348,17 @@ export function Play() {
   const firstNodeKey = useRef<string | null>(run ? `${run.nodeId}:${run.phase}` : null);
   const hadRun = useRef(Boolean(run));
 
-  // No run: a deep link, or another tab finished or discarded it. (Finishing here
-  // navigates to the finale itself, to the same place.)
+  // No run: a deep link, Back / Forward onto an episode that is over, or another tab finished or
+  // discarded it. (Finishing here navigates to the finale itself, to the same place.) Gone for
+  // good, it leaves no dead entry: the envelopes below it were used up by this episode (unless
+  // another tab dealt new ones), so a step back carries on past them to the scene.
   useEffect(() => {
     if (run) return;
     const id = lastRunId.current;
     const done = id ? state.p.completed.find((c) => c.id === id) : undefined;
     if (!done && hadRun.current) toast('This episode was discarded in another tab.');
-    navigate(done ? { name: 'finale', episodeId: done.id } : { name: 'scene' }, { replace: true });
+    if (done) navigate({ name: 'finale', episodeId: done.id }, { replace: true });
+    else leaveFor({ name: 'scene' }, { arrived: !hadRun.current, stepBack: cameFrom({ name: 'envelopes' }) && !state.p.draw });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, state.p.completed]);
 
@@ -382,7 +385,10 @@ export function Play() {
 
   const exit = () => {
     saveAndExit();
-    navigate({ name: 'scene' });
+    // Back down to the scene when it is the entry below, or past the envelopes this episode used
+    // up (they step back to the scene themselves): Save & exit and Resume never pile up history.
+    if (cameFrom({ name: 'envelopes' }) && !state.p.draw) window.history.back();
+    else goBackTo({ name: 'scene' });
   };
   const resumeAndFocus = () => {
     resume();

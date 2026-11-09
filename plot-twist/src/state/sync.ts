@@ -174,7 +174,10 @@ export function writeSeen(storage: StorageLike | null, runId: string, at: number
 export interface GenBeat {
   drawId: string;
   slot: number;
+  /** The tab writing it. */
   owner: string;
+  /** This one generation (or takeover claim): a tab's next generation never clears it by mistake. */
+  token: string;
   at: number;
 }
 
@@ -184,7 +187,7 @@ export function readGenBeat(storage: StorageLike | null): GenBeat | null {
   try {
     const b = JSON.parse(raw) as Partial<GenBeat>;
     return typeof b.drawId === 'string' && typeof b.slot === 'number' && typeof b.owner === 'string' && typeof b.at === 'number' && Number.isFinite(b.at)
-      ? { drawId: b.drawId, slot: b.slot, owner: b.owner, at: b.at }
+      ? { drawId: b.drawId, slot: b.slot, owner: b.owner, token: typeof b.token === 'string' ? b.token : '', at: b.at }
       : null;
   } catch {
     return null;
@@ -200,18 +203,23 @@ export function writeGenBeat(storage: StorageLike | null, beat: GenBeat): void {
   }
 }
 
-export function clearGenBeat(storage: StorageLike | null, owner: string): void {
-  if (!storage) return;
+/** Removes the beat only while it is still this generation's: never a newer one's from the same tab. */
+export function clearGenBeat(storage: StorageLike | null, token: string): void {
+  if (!storage || !token) return;
   try {
-    if (readGenBeat(storage)?.owner === owner) storage.removeItem(GEN_KEY);
+    if (readGenBeat(storage)?.token === token) storage.removeItem(GEN_KEY);
   } catch {
     // Best effort.
   }
 }
 
-/** True when another, still-alive tab is writing this envelope. */
-export function ownedElsewhere(beat: GenBeat | null, drawId: string, slot: number, self: string, now: number): boolean {
-  return Boolean(beat && beat.owner !== self && beat.drawId === drawId && beat.slot === slot && now - beat.at < GEN_BEAT_STALE_MS);
+/**
+ * True while another, still-alive tab is writing an AI envelope. Whatever draw its beat names:
+ * there is one shared draw, so a beat naming another one means a re-deal is on its way (its new
+ * draw is saved just after), and taking over in between would pay for the same envelope twice.
+ */
+export function ownedElsewhere(beat: GenBeat | null, self: string, now: number): boolean {
+  return Boolean(beat && beat.owner !== self && now - beat.at < GEN_BEAT_STALE_MS);
 }
 
 // ── AI pause shared by tabs ──────────────────────────────────────────
@@ -229,8 +237,11 @@ export interface AiBlock {
   reason: AiBlockReason;
 }
 const AI_BLOCK_REASONS: readonly AiBlockReason[] = ['rate_limited', 'busy', 'connection', 'network'];
-/** Longer than any pause the server asks for: a stored value beyond it is junk (or a clock jump). */
-const AI_BLOCK_MAX_MS = 60 * 60_000;
+/**
+ * Longer than any pause the server can ask for (its rate-limit window goes up to 24 hours):
+ * a stored value beyond it is junk, or a clock jump.
+ */
+const AI_BLOCK_MAX_MS = 24 * 3_600_000 + 5 * 60_000;
 
 /** A pause still in force at `now`, or null. */
 export function parseAiBlock(raw: string | null, now: number): AiBlock | null {

@@ -235,6 +235,8 @@ function sanitizeEnvelope(raw: Obj, index: number, r: Repairs): DrawEnvelope {
   const envelope: DrawEnvelope = { slot, status, source, adventure, opened };
   if (typeof raw.note === 'string') envelope.note = raw.note;
   else if (raw.note !== undefined) r.repaired = true;
+  if (typeof raw.genKey === 'string' && raw.genKey.length > 0 && raw.genKey.length <= 64) envelope.genKey = raw.genKey;
+  else if (raw.genKey !== undefined) r.repaired = true;
   return envelope;
 }
 

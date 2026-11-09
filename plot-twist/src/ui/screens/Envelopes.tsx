@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import {
   BUDGET_LABEL,
   COMPANY_LABEL,
@@ -17,10 +17,10 @@ import { envelopeAdventure, useStore } from '../../state/store.tsx';
 import { Fact } from '../components/Bits.tsx';
 import { Envelope, PHASE_COPY, WaxSeal } from '../components/Envelope.tsx';
 import { Sheet } from '../components/Sheet.tsx';
-import { dialogOpen, formatCost, pad2, sheetOnTop, useCloseOnBack, useReducedMotion } from '../hooks.ts';
+import { dialogOpen, formatCost, pad2, pushSheetEntry, sheetOnTop, useCloseOnBack, useReducedMotion } from '../hooks.ts';
 import { typographic } from '../../../shared/template.ts';
 import { IconArrowLeft, IconClock, IconCoin, IconGroup, IconHome, IconNote, IconOutside, IconRefresh, IconSolo, IconSparkle } from '../icons.tsx';
-import { cameFrom, navigate } from '../router.ts';
+import { entryState, goBackTo, leaveFor, navigate } from '../router.ts';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const COUNT_WORDS = ['No envelopes', 'One envelope', 'Two envelopes', 'Three envelopes'];
@@ -41,8 +41,7 @@ function letterOnTop(): boolean {
 
 /** Back to the scene: a step back when the scene is the entry below (no duplicate entry). */
 function backToScene(): void {
-  if (cameFrom({ name: 'scene' })) window.history.back();
-  else navigate({ name: 'scene' });
+  goBackTo({ name: 'scene' });
 }
 
 function Letter({ adventure, source, episodeNumber, onStart, onBack }: { adventure: Adventure; source: 'ai' | 'curated'; episodeNumber: number; onStart: () => void; onBack: () => void }) {
@@ -150,37 +149,23 @@ export function Envelopes() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const episodeNumber = state.p.completed.reduce((max, c) => Math.max(max, c.episodeNumber), 0) + 1;
 
-  // Opened without a draw (deep link, reload, or Back from the episode these envelopes started)
-  // → the scene. Back from an episode steps back once more, onto the scene below, so the next
-  // Back leaves instead of landing on a copy of it. Mount-only on purpose: starting an episode
+  // Opened without a draw (deep link, reload, or Back / Forward over the episode these envelopes
+  // started) → the scene, without leaving a dead entry: Back steps back once more onto the scene
+  // below, Forward carries on to the episode beyond. Mount-only on purpose: starting an episode
   // clears the draw and navigates to play itself.
   const mountedWithDraw = useRef(Boolean(draw));
-  const steppedBack = useRef(false);
   useEffect(() => {
-    if (draw) return;
-    if (!cameFrom({ name: 'scene' })) {
-      navigate({ name: 'scene' }, { replace: true });
-      return;
-    }
-    // Once, even when StrictMode replays this effect.
-    if (!steppedBack.current) {
-      steppedBack.current = true;
-      window.history.back();
-    }
-    // If there was nothing to step back to after all, replace this entry instead.
-    const id = window.setTimeout(() => {
-      if (window.location.hash === '#/envelopes') navigate({ name: 'scene' }, { replace: true });
-    }, 400);
-    return () => window.clearTimeout(id);
+    if (!draw) leaveFor({ name: 'scene' }, { arrived: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Back (gesture or button) while the letter is open closes the letter.
+  // Any history move during the seal animation cancels the letter. (Back while the letter is
+  // open closes it through its own entry: useCloseOnBack below.)
   const openTimer = useRef<number | null>(null);
   useEffect(() => {
     const onPop = () => {
       if (openTimer.current !== null) window.clearTimeout(openTimer.current);
-      setOpenSlot(null);
+      openTimer.current = null;
       setOpening(null);
     };
     window.addEventListener('popstate', onPop);
@@ -199,7 +184,8 @@ export function Envelopes() {
     setOpenSlot(null);
     if (letterOnTop()) window.history.back();
   }, [letterGone]);
-  // Registers the open letter's entry (the popstate handler above does the closing).
+  // Back closes the letter: it registers the letter's entry and closes it once that entry is left
+  // (not when a sheet stacked above it closes and history lands back on the letter's own entry).
   useCloseOnBack(openSlot !== null, LETTER_STATE, () => setOpenSlot(null));
 
   // Nothing to show while the redirect above happens (no flash of the "gone" notice).
@@ -209,7 +195,7 @@ export function Envelopes() {
       <div className="px-5 pb-32 pt-8">
         <h1 className="t-display text-[clamp(34px,10vw,44px)]">These envelopes are gone.</h1>
         <p className="mt-2 text-ivory-dim">They were replaced or played in another tab.</p>
-        <button type="button" className="btn btn-primary mt-6" onClick={() => navigate({ name: 'scene' }, { replace: true })}>
+        <button type="button" className="btn btn-primary mt-6" onClick={backToScene}>
           Set the scene
         </button>
       </div>
@@ -244,11 +230,13 @@ export function Envelopes() {
     if (!env || (envelopeAdventure(env)?.id ?? null) !== id) return;
     // Another dialog opened during the seal animation (the AI status): the letter doesn't stack
     // on top of it. The envelope stays open; one more tap reads it.
-    if (dialogOpen()) return;
+    if (dialogOpen() || (entryState()?.sheet && !letterOnTop())) return;
     // One history entry per open letter, however many taps it took to open it.
-    if (!letterOnTop()) window.history.pushState({ sheet: LETTER_STATE }, '');
+    pushSheetEntry(LETTER_STATE);
     openedId.current = id;
-    setOpenSlot(slot);
+    // Shown (and the page behind it made inert) right now, together with its entry: a tap on a
+    // slow phone can't open another dialog in between and end up on top of the letter.
+    flushSync(() => setOpenSlot(slot));
   };
 
   const open = (slot: number, alreadyOpened: boolean, id: string | null) => {

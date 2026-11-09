@@ -135,10 +135,20 @@ export function TopBar({ onStatus }: { onStatus: () => void }) {
   const count = state.p.completed.length;
   return (
     <header className="relative z-20 flex flex-wrap items-center justify-between gap-x-2 px-3 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] min-[360px]:px-4">
-      <a href="#/" className="-ml-1 inline-flex min-h-11 min-w-0 items-center rounded-lg px-1" aria-label="PLOT TWIST — home">
+      <a
+        href="#/"
+        className="-ml-1 inline-flex min-h-11 min-w-0 items-center rounded-lg px-1"
+        aria-label="PLOT TWIST — home"
+        onClick={(e) => {
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          // In-app navigation: no second entry for the same screen (a bare URL and #/ are one place).
+          e.preventDefault();
+          navigate({ name: 'scene' });
+        }}
+      >
         <Wordmark />
       </a>
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1">
         <StatusPill status={state.director} onClick={onStatus} />
         <button
           type="button"
@@ -147,7 +157,7 @@ export function TopBar({ onStatus }: { onStatus: () => void }) {
           aria-label={`My Series, ${count} episode${count === 1 ? '' : 's'}`}
         >
           <IconFilm size={20} />
-          <span className="hidden min-[400px]:inline">Series</span>
+          <span className="hidden min-[420px]:inline">Series</span>
           <span className="t-num grid h-5 min-w-5 place-items-center rounded-full bg-ivory/12 px-1 text-[0.6875rem] text-ivory" aria-hidden="true">
             {count}
           </span>
@@ -191,11 +201,13 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
  */
 function useToastAnnouncement(toasts: readonly Toast[]): string {
   const [text, setText] = useState('');
-  const lastId = useRef<string | null>(null);
+  /** Toasts already announced (or already on screen), so a dismissal never re-announces one. */
+  const known = useRef(new Set<string>());
   useEffect(() => {
-    const newest = toasts[toasts.length - 1];
-    if (!newest || newest.id === lastId.current) return;
-    lastId.current = newest.id;
+    const fresh = toasts.filter((t) => !known.current.has(t.id));
+    known.current = new Set(toasts.map((t) => t.id));
+    const newest = fresh[fresh.length - 1];
+    if (!newest) return;
     setText((prev) => (prev === newest.message ? `${newest.message}\u00a0` : newest.message));
   }, [toasts]);
   return text;

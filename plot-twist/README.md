@@ -56,7 +56,8 @@ npm run dev              # or npm start
 | `ANTHROPIC_API_KEY` | — | Enables the AI Director. Never sent to the browser. A key with spaces, control or non-ASCII characters is refused at startup (logged without the key). |
 | `PLOT_TWIST_MODEL` | `claude-opus-5-5` | Model used for episodes. |
 | `PLOT_TWIST_EFFORT` | `medium` | `low` is faster, `high` is more considered. |
-| `PLOT_TWIST_RATE_LIMIT` | `8` | Generations per client per 10 minutes. IPv6 clients are grouped by /64, and each /48 also shares 4× this limit. Requests turned away as busy do not count. |
+| `PLOT_TWIST_RATE_LIMIT` | `8` | Generations per client per window (10 minutes by default). IPv6 clients are grouped by /64, and each /48 also shares 4× this limit. Requests turned away as busy do not count. |
+| `PLOT_TWIST_RATE_WINDOW_MS` | `600000` | Length of that window, from 1 second up to 24 hours. A visitor who reaches the limit is told how long to wait ("in about 10 minutes", "in about 2 hours"). |
 | `PLOT_TWIST_MAX_CONCURRENT` | `4` | Concurrent generations per server. Each client may also have at most 2 open at once (an IPv6 /48 at most 4), and the last free slot is kept for a client that has none open. |
 | `PLOT_TWIST_TIMEOUT_MS` | `120000` | Upper bound for one model attempt, response stream included. |
 | `PLOT_TWIST_DEADLINE_MS` | `150000` | Overall budget for one generation, repair round included. A repair round starts only if the budget left is at least what the first draft took. |
@@ -74,8 +75,11 @@ key or model is wrong). Tapping it opens the status sheet with the precise state
 `Unreachable`, `Not configured`, and so on — and what it means. When the AI
 Director turns this browser away for a while (its rate limit, a full server, or
 too many episodes being written from the same connection or network), the pill
-says `AI Busy` in every tab, the sheet says which of these it is, and envelopes
-come from the archive until the pause ends — a reload doesn't reset it. The status is shared by every visitor, so only provider
+says `AI Busy` in every tab, the sheet says which of these it is and for how
+long, and envelopes come from the archive until the pause ends — a reload
+doesn't reset it. A limit the AI provider hits while writing is not blamed on
+the visitor: that envelope comes from the archive, and the pill shows the
+server's own word for it. The status is shared by every visitor, so only provider
 problems change it: after the provider is busy, unreachable or stalls while
 writing, that state holds for 30 seconds even if the Models API still answers,
 and then the next status request or generation request checks again. One

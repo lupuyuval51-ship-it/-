@@ -8,7 +8,7 @@ import { TRAIT_COLOR, TraitMeter } from '../components/Bits.tsx';
 import { PosterActions, PosterImage } from '../components/Poster.tsx';
 import { formatClock, pad2 } from '../hooks.ts';
 import { IconArrowRight, IconFilm, IconSparkle } from '../icons.tsx';
-import { navigate } from '../router.ts';
+import { leaveFor, navigate } from '../router.ts';
 import { typographic } from '../../../shared/template.ts';
 import { uiAccent } from '../color.ts';
 
@@ -186,7 +186,9 @@ export function useEpisodeGone(present: boolean, toast: (message: string) => voi
       return;
     }
     if (wasPresent.current) toast('This episode was removed in another tab.');
-    navigate({ name: 'series' }, { replace: true });
+    // Onto My Series below it when it is there (no second copy of it), forward past it when the
+    // user was going forward, else in its place.
+    leaveFor({ name: 'series' }, { arrived: !wasPresent.current });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [present]);
 }

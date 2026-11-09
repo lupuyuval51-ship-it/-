@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { entryState } from './router.ts';
+import { entryState, historyMove, pushEntry } from './router.ts';
 
 /** Re-renders every `intervalMs` while enabled; returns the current time. */
 export function useNow(intervalMs = 1000, enabled = true): number {
@@ -103,7 +103,7 @@ export function sheetOnTop(key: string): boolean {
 
 /** Call from the click that opens the sheet (not from an effect, which StrictMode replays). */
 export function pushSheetEntry(key: string): void {
-  if (!sheetOnTop(key)) window.history.pushState({ sheet: key }, '');
+  if (!sheetOnTop(key)) pushEntry({ sheet: key });
 }
 
 /** Call when the sheet closes any other way (X, Escape, backdrop), so the entry doesn't linger. */
@@ -166,17 +166,31 @@ export function useSheetHistory(open: boolean, key: string | undefined, onClose:
 /**
  * A sheet's entry can outlive its sheet: a reload with the sheet open (or a phone reloading a
  * discarded tab), or Forward after it was closed. Nothing shows for it, so the next Back would
- * seem to do nothing. Such an entry is stepped over, at startup and whenever history lands on one.
- * Install once, before the app renders. Returns the uninstall function.
+ * seem to do nothing. Such an entry is stepped over, at startup and whenever history lands on one,
+ * in the direction the user was going: Forward carries on forward (back if there is nothing
+ * beyond it), anything else steps back.
+ * Install once, before the app renders (after the history index). Returns the uninstall function.
  */
 export function installSheetHistoryGuard(): () => void {
-  const skipStale = () => {
+  const stale = () => {
     const key = entryState()?.sheet;
-    if (key && !openSheets.has(key)) window.history.back();
+    return key && !openSheets.has(key) ? key : null;
   };
-  skipStale();
-  window.addEventListener('popstate', skipStale);
-  return () => window.removeEventListener('popstate', skipStale);
+  const skip = (onPop: boolean) => {
+    const key = stale();
+    if (!key) return;
+    if (onPop && historyMove() === 'forward') {
+      const at = entryState()?.idx;
+      window.history.forward();
+      window.setTimeout(() => {
+        if (entryState()?.idx === at && stale() === key) window.history.back();
+      }, 400);
+    } else window.history.back();
+  };
+  skip(false);
+  const onPop = () => skip(true);
+  window.addEventListener('popstate', onPop);
+  return () => window.removeEventListener('popstate', onPop);
 }
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -222,7 +236,20 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
       document.removeEventListener('keydown', onKey, true);
       const at = trapStack.lastIndexOf(token);
       if (at >= 0) trapStack.splice(at, 1);
-      previouslyFocused?.focus?.({ preventScroll: true });
+      if (previouslyFocused?.isConnected) {
+        previouslyFocused.focus?.({ preventScroll: true });
+        return;
+      }
+      // What opened the dialog is gone (another tab removed it): the screen's heading, not <body>.
+      // (On the next frame: a dialog under this one may still be releasing the page.)
+      window.requestAnimationFrame(() => {
+        if (document.activeElement && document.activeElement !== document.body) return;
+        const heading = document.querySelector<HTMLElement>('#root main h1') ?? document.querySelector<HTMLElement>('#root h1');
+        if (!heading) return;
+        if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+        heading.classList.add('outline-none');
+        heading.focus({ preventScroll: true });
+      });
     };
   }, [active, ref]);
 }

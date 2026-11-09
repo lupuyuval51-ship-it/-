@@ -19,7 +19,7 @@ import { ChipGroup, WeirdnessDial } from '../components/Controls.tsx';
 import { Sheet } from '../components/Sheet.tsx';
 import { formatClock, pad2, useNow } from '../hooks.ts';
 import { IconArrowRight, IconEnvelope, IconGroup, IconHome, IconOutside, IconPause, IconPlay, IconSolo } from '../icons.tsx';
-import { navigate } from '../router.ts';
+import { goBackTo, navigate } from '../router.ts';
 
 /** A slow festival-style marquee of episode titles — a hint of what's in the envelopes. */
 function NowShowing() {
@@ -128,6 +128,10 @@ export function SetScene() {
   const next = state.p.completed.reduce((max, c) => Math.max(max, c.episodeNumber), 0) + 1;
   const aiOn = state.director.canGenerate;
   const activeRun = state.p.run;
+  // The "Episode in progress" question goes with the episode (another tab may end it meanwhile).
+  useEffect(() => {
+    if (!activeRun) setConfirmNew(false);
+  }, [activeRun]);
 
   const go = () => {
     if (activeRun) {
@@ -139,40 +143,52 @@ export function SetScene() {
   };
   const resumeRun = () => {
     if (activeRun && activeRun.runningSince === null) resume();
-    navigate({ name: 'play' });
+    // Back onto the episode's own entry when it is the one below (after Save & exit): Save & exit
+    // and Resume, over and over, never pile up history.
+    goBackTo({ name: 'play' });
   };
 
   // There are two Resume buttons, one per layout (the dock; the card in short viewports).
-  // Rotating or zooming across the breakpoint hides the focused one: focus moves to its twin
-  // instead of dropping to <body>. The browser may drop focus before or after the media query
-  // reports the change, so the twin that had focus is remembered rather than read back then.
+  // Rotating, zooming or changing the text size across the breakpoint hides the focused one:
+  // focus moves to its twin instead of dropping to <body>. The browser may drop focus before or
+  // after the media query reports the change, and a text-size change reports none at all, so the
+  // twin that had focus is remembered, and either event hands focus over.
   useEffect(() => {
     let focusedTwin: HTMLElement | null = null;
+    let frame = 0;
     const isTwin = (el: EventTarget | null): el is HTMLElement => el instanceof HTMLElement && el.hasAttribute('data-resume-twin');
-    const onFocusIn = (e: FocusEvent) => {
-      focusedTwin = isTwin(e.target) ? e.target : null;
-    };
-    const onFocusOut = (e: FocusEvent) => {
-      // Focus sent nowhere while the button is still shown (a tap on the page, the window losing
-      // focus): the user moved on. Hidden by the new layout: that is the case handled below.
-      const twin = focusedTwin;
-      if (twin && e.target === twin && e.relatedTarget === null && twin.getClientRects().length > 0) focusedTwin = null;
-    };
-    const mq = window.matchMedia('(max-height: 32em)');
-    const onChange = () => {
+    const handOff = () => {
       const was = focusedTwin;
       const active = document.activeElement;
       if (!was || (active !== was && active !== document.body && active !== null)) return;
       const shown = Array.from(document.querySelectorAll<HTMLElement>('[data-resume-twin]')).find((el) => el.getClientRects().length > 0);
       if (shown && shown !== was) shown.focus();
     };
+    const onFocusIn = (e: FocusEvent) => {
+      focusedTwin = isTwin(e.target) ? e.target : null;
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      const twin = focusedTwin;
+      if (!twin || e.target !== twin || e.relatedTarget !== null) return;
+      // Focus sent nowhere while the button is still shown (a tap on the page, the window losing
+      // focus): the user moved on.
+      if (twin.getClientRects().length > 0) {
+        focusedTwin = null;
+        return;
+      }
+      // Hidden by the new layout: hand over once it has settled.
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(handOff);
+    };
+    const mq = window.matchMedia('(max-height: 32em)');
     document.addEventListener('focusin', onFocusIn);
     document.addEventListener('focusout', onFocusOut);
-    mq.addEventListener('change', onChange);
+    mq.addEventListener('change', handOff);
     return () => {
+      window.cancelAnimationFrame(frame);
       document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('focusout', onFocusOut);
-      mq.removeEventListener('change', onChange);
+      mq.removeEventListener('change', handOff);
     };
   }, []);
 
@@ -282,7 +298,8 @@ export function SetScene() {
         </div>
       </form>
 
-      <Sheet open={confirmNew} onClose={() => setConfirmNew(false)} title="Episode in progress" historyKey="plot-twist-in-progress">
+      {/* Closes by itself if another tab ends the episode meanwhile (nothing left to resume). */}
+      <Sheet open={confirmNew && Boolean(activeRun)} onClose={() => setConfirmNew(false)} title="Episode in progress" historyKey="plot-twist-in-progress">
         <p className="t-display mt-3 text-[1.625rem]">Episode {activeRun ? pad2(activeRun.episodeNumber) : ''} is still running.</p>
         <p className="mt-2 text-ivory-dim">Pick up where you left off, or start fresh with new envelopes (the current episode will be discarded).</p>
         <div className="mt-5 grid gap-2">

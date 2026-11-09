@@ -277,42 +277,31 @@ export async function round4Suite(browser, base, aiBase, check) {
   });
 
   await section('poster offline', async () => {
-    {
-      const ctx = await browser.newContext({ ...PHONE, acceptDownloads: true });
-      const page = await ctx.newPage();
-      const chunk = page.waitForResponse((r) => /\/assets\/render-[^/]+\.js$/.test(r.url()), { timeout: 15000 });
-      await page.goto(base);
-      await chunk;
-      await startEpisode(page, base);
-      await ctx.setOffline(true);
-      const finished = await finishEpisode(page);
-      const img = page.locator('img[alt^="Poster for Episode"]').first();
-      await img.waitFor({ timeout: 10000 }).catch(() => {});
-      check('offline from stage 1 on: the finale poster is still drawn', finished && (await img.count()) === 1);
-      const dl = page.waitForEvent('download', { timeout: 10000 }).catch(() => null);
-      await page.getByRole('button', { name: /Download PNG/ }).click();
-      const download = await dl;
-      const buf = download ? readFileSync(await download.path()) : Buffer.alloc(0);
-      check('…and Download PNG saves a real PNG', buf.length > 10000 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), `${buf.length} bytes`);
-      await ctx.close();
-    }
-    {
-      const ctx = await browser.newContext(PHONE);
-      const page = await ctx.newPage();
-      const chunks = /\/assets\/(render|fromEpisode|export)-[^/]+\.js$/;
-      await page.route(chunks, (r) => r.abort('internetdisconnected'));
-      await startEpisode(page, base);
-      await finishEpisode(page);
-      await sleep(1500);
-      const box = await page.locator('div.aspect-\\[2\\/3\\]').first().innerText();
-      check('poster code unavailable: the poster says to check the connection', /Check your connection, then reload the page/.test(box), box);
-      await page.unroute(chunks);
-      await page.reload();
-      const img = page.locator('img[alt^="Poster for Episode"]').first();
-      await img.waitFor({ timeout: 10000 }).catch(() => {});
-      check('…and a reload with the connection back draws it', (await img.count()) === 1);
-      await ctx.close();
-    }
+    // The poster code ships with the app: offline from the first screen on, the finale still
+    // draws the poster and Download saves it. (No chunk is fetched for it, ever.)
+    const ctx = await browser.newContext({ ...PHONE, acceptDownloads: true });
+    const page = await ctx.newPage();
+    const scripts = new Set();
+    page.on('request', (r) => r.resourceType() === 'script' && scripts.add(new URL(r.url()).pathname));
+    await page.goto(base);
+    await waitH1(page, /plot/i);
+    await ctx.setOffline(true);
+    await page.getByRole('button', { name: /give me a plot twist/i }).click();
+    await page.waitForFunction(() => location.hash === '#/envelopes');
+    await page.locator('button.envelope').first().click();
+    await page.getByRole('button', { name: /start episode/i }).click();
+    await page.waitForFunction(() => location.hash === '#/play');
+    const finished = await finishEpisode(page);
+    const img = page.locator('img[alt^="Poster for Episode"]').first();
+    await img.waitFor({ timeout: 10000 }).catch(() => {});
+    check('offline from the first screen on: the finale poster is still drawn', finished && (await img.count()) === 1);
+    const dl = page.waitForEvent('download', { timeout: 10000 }).catch(() => null);
+    await page.getByRole('button', { name: /Download PNG/ }).click();
+    const download = await dl;
+    const buf = download ? readFileSync(await download.path()) : Buffer.alloc(0);
+    check('…and Download PNG saves a real PNG', buf.length > 10000 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), `${buf.length} bytes`);
+    check('…from one script: nothing is left to fetch later', scripts.size === 1, [...scripts].join(' '));
+    await ctx.close();
   });
 
   await section('AI pause', async () => {

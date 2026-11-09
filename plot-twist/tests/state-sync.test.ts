@@ -9,17 +9,21 @@ import { dealCurated } from '../src/state/deal.ts';
 import { defaultState } from '../src/state/persistence.ts';
 import {
   AI_BLOCK_KEY,
+  clearGenBeat,
   GEN_BEAT_STALE_MS,
+  GEN_KEY,
   mergeCompleted,
   mergeStates,
   ownedElsewhere,
   parseAiBlock,
   readAiBlock,
+  readGenBeat,
   readSeen,
   restamp,
   SEEN_KEY,
   storedStamp,
   writeAiBlock,
+  writeGenBeat,
   writeSeen,
 } from '../src/state/sync.ts';
 import type { Draw, PersistedState, StorageLike } from '../src/state/types.ts';
@@ -194,13 +198,33 @@ describe('mergeStates with section stamps', () => {
 });
 
 describe('AI envelope ownership beat', () => {
-  it('tells a new tab to wait while another tab is still writing the same envelope', () => {
-    const beat = { drawId: 'd1', slot: 2, owner: 'tab-a', at: T0 };
-    expect(ownedElsewhere(beat, 'd1', 2, 'tab-b', T0 + 2_000)).toBe(true);
-    expect(ownedElsewhere(beat, 'd1', 2, 'tab-a', T0 + 2_000)).toBe(false);
-    expect(ownedElsewhere(beat, 'd2', 2, 'tab-b', T0 + 2_000)).toBe(false);
-    expect(ownedElsewhere(beat, 'd1', 2, 'tab-b', T0 + GEN_BEAT_STALE_MS + 1)).toBe(false);
-    expect(ownedElsewhere(null, 'd1', 2, 'tab-b', T0)).toBe(false);
+  it('tells a tab to wait while another tab is still writing, whichever draw its beat names', () => {
+    const beat = { drawId: 'd1', slot: 2, owner: 'tab-a', token: 'g1', at: T0 };
+    expect(ownedElsewhere(beat, 'tab-b', T0 + 2_000)).toBe(true);
+    expect(ownedElsewhere(beat, 'tab-a', T0 + 2_000)).toBe(false);
+    // A beat naming another draw: a re-deal is being saved; taking over now would pay twice.
+    expect(ownedElsewhere({ ...beat, drawId: 'd2' }, 'tab-b', T0 + 2_000)).toBe(true);
+    expect(ownedElsewhere(beat, 'tab-b', T0 + GEN_BEAT_STALE_MS + 1)).toBe(false);
+    expect(ownedElsewhere(null, 'tab-b', T0)).toBe(false);
+  });
+
+  it('clears only the beat of the generation that ends, never a newer one from the same tab', () => {
+    const storage = new MemoryStorage();
+    writeGenBeat(storage, { drawId: 'd2', slot: 2, owner: 'tab-a', token: 'g2', at: T0 });
+    clearGenBeat(storage, 'g1'); // the aborted generation for the old draw finishes late
+    expect(readGenBeat(storage)?.token).toBe('g2');
+    clearGenBeat(storage, 'g2');
+    expect(readGenBeat(storage)).toBeNull();
+    clearGenBeat(storage, '');
+    expect(readGenBeat(storage)).toBeNull();
+  });
+
+  it('reads a beat stored without a token (it can never be cleared by mistake)', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(GEN_KEY, JSON.stringify({ drawId: 'd1', slot: 0, owner: 'tab-a', at: T0 }));
+    expect(readGenBeat(storage)).toEqual({ drawId: 'd1', slot: 0, owner: 'tab-a', token: '', at: T0 });
+    clearGenBeat(storage, '');
+    expect(readGenBeat(storage)).not.toBeNull();
   });
 });
 
@@ -288,10 +312,15 @@ describe('AI pause shared by tabs', () => {
   it('rejects junk: unknown reasons, absurd lengths, broken JSON', () => {
     expect(parseAiBlock(JSON.stringify({ until: T0 + MIN, reason: 'tab' }), T0)).toBeNull();
     expect(parseAiBlock(JSON.stringify({ until: T0 + MIN, reason: 'whatever' }), T0)).toBeNull();
-    expect(parseAiBlock(JSON.stringify({ until: T0 + 2 * 60 * MIN, reason: 'busy' }), T0)).toBeNull();
+    expect(parseAiBlock(JSON.stringify({ until: T0 + 25 * 60 * MIN, reason: 'busy' }), T0)).toBeNull();
     expect(parseAiBlock(JSON.stringify({ until: 'soon', reason: 'busy' }), T0)).toBeNull();
     expect(parseAiBlock('{nope', T0)).toBeNull();
     expect(parseAiBlock(null, T0)).toBeNull();
+  });
+
+  it('keeps a long rate-limit pause (the server window can be configured up to a day)', () => {
+    expect(parseAiBlock(JSON.stringify({ until: T0 + 2 * 60 * MIN, reason: 'rate_limited' }), T0)?.until).toBe(T0 + 2 * 60 * MIN);
+    expect(parseAiBlock(JSON.stringify({ until: T0 + 24 * 60 * MIN, reason: 'rate_limited' }), T0)?.until).toBe(T0 + 24 * 60 * MIN);
   });
 
   it('keeps every reason the server can give', () => {

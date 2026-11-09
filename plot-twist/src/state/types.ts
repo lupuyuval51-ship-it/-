@@ -13,6 +13,11 @@ export interface DrawEnvelope {
   opened: boolean;
   /** Optional short note shown on the envelope, e.g. "Written for you" or why it was swapped. */
   note?: string;
+  /**
+   * Names an AI envelope being written, so the tab writing it keeps at it when a re-deal with the
+   * same scene (in any tab) carries it into the new draw.
+   */
+  genKey?: string;
 }
 
 export interface Draw {

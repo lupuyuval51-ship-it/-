@@ -32,6 +32,9 @@ export default defineConfig({
     sourcemap: true,
     // Fonts are always emitted as files: the production CSP allows font-src 'self' only (no data: URLs).
     assetsInlineLimit: (filePath: string) => (filePath.endsWith('.woff2') || filePath.endsWith('.woff') ? false : undefined),
+    // One bundle on purpose (about 175 KB compressed, the poster code included): an episode is
+    // often played on a weak connection, and nothing it needs at the finale should be left to fetch.
+    chunkSizeWarningLimit: 600,
   },
   test: {
     include: ['tests/**/*.test.ts'],

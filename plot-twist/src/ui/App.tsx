@@ -3,8 +3,8 @@ import type { Weirdness } from '../../shared/types.ts';
 import { isFinished } from '../engine/run.ts';
 import { PAUSED_WHILE_BROWSING, StoreProvider, useStore } from '../state/store.tsx';
 import { DirectorSheet, StorageBanner, Toasts, TopBar } from './components/Chrome.tsx';
-import { dropSheetEntry, pushSheetEntry, useCloseOnBack } from './hooks.ts';
-import { useRoute, type Route } from './router.ts';
+import { dialogOpen, dropSheetEntry, pushSheetEntry, useCloseOnBack } from './hooks.ts';
+import { entryState, useRoute, type Route } from './router.ts';
 import { Envelopes } from './screens/Envelopes.tsx';
 import { Finale } from './screens/Finale.tsx';
 import { Play } from './screens/Play.tsx';
@@ -59,6 +59,9 @@ function Shell() {
   const { state, pause, toast } = useStore();
   const [statusOpen, setStatusOpen] = useState(false);
   const openStatus = () => {
+    // Never on top of another dialog — including one whose entry is pushed but that a slow phone
+    // has not drawn yet (the letter, as its seal breaks).
+    if (dialogOpen() || entryState()?.sheet) return;
     pushSheetEntry(STATUS_SHEET);
     setStatusOpen(true);
   };

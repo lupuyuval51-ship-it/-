@@ -49,6 +49,18 @@ describe('requestEpisode', () => {
     const err = await requestEpisode({ prefs }).catch((e) => e);
     expect(err).toBeInstanceOf(DirectorError);
     expect(err.code).toBe('refused');
+    expect(err.inStream).toBe(true);
+  });
+
+  it('tells a provider limit hit while writing apart from the server turning the visitor away', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => sseResponse([{ type: 'error', code: 'rate_limited', message: 'The AI Director is busy right now.', retryable: true }])));
+    const inStream = await requestEpisode({ prefs }).catch((e) => e);
+    expect(inStream).toMatchObject({ code: 'rate_limited', inStream: true, message: 'The AI Director is busy right now.' });
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'rate_limited', retryAfterMs: 2 * 3_600_000 }), { status: 429 })));
+    const refused = await requestEpisode({ prefs }).catch((e) => e);
+    expect(refused.inStream).toBeUndefined();
+    expect(refused.retryAfterMs).toBe(2 * 3_600_000);
+    expect(refused.message).toBe('The AI Director is taking a short break — back in about 2 hours.');
   });
 
   it('maps HTTP errors (rate limit) and network failures', async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { DirectorStatus } from '../src/ai/client.ts';
+import { inAbout, type DirectorStatus } from '../src/ai/client.ts';
 import { withClientLimit } from '../src/state/store.tsx';
 
 const NOW = Date.UTC(2026, 10, 9, 9);
@@ -28,13 +28,21 @@ describe('withClientLimit (this browser was asked to pause)', () => {
     expect(detail('busy')).toMatch(/^The AI Director is busy writing for other people right now\./);
     expect(detail('connection')).toMatch(/^Other episodes are still being written from your connection\./);
     expect(detail('network')).toMatch(/^Too many episodes are being written from your network right now\./);
-    expect(detail('tab')).toMatch(/^The AI Director is still writing an envelope in your other tab\./);
-    for (const reason of ['busy', 'connection', 'network', 'tab'] as const) expect(detail(reason)).not.toMatch(/You have asked/);
+    for (const reason of ['busy', 'connection', 'network'] as const) expect(detail(reason)).not.toMatch(/You have asked/);
   });
 
   it('says "in under a minute" for short pauses', () => {
     expect(withClientLimit(ONLINE, NOW + 20_000, 'busy', NOW).detail).toContain('in under a minute');
     expect(withClientLimit(ONLINE, NOW + 61_000, 'busy', NOW).detail).toContain('in about 2 minutes');
+  });
+
+  it('counts long pauses in hours (the server window can be up to a day)', () => {
+    expect(withClientLimit(ONLINE, NOW + 2 * 3_600_000, 'rate_limited', NOW).detail).toContain('in about 2 hours');
+    expect(inAbout(89 * 60_000)).toBe('in about 89 minutes');
+    expect(inAbout(90 * 60_000)).toBe('in about 2 hours');
+    expect(inAbout(24 * 3_600_000)).toBe('in about 24 hours');
+    expect(inAbout(60_000)).toBe('in about 1 minute');
+    expect(inAbout(59_999)).toBe('in under a minute');
   });
 
   it('leaves the status alone once the pause is over, or when the Director cannot write anyway', () => {
