@@ -942,6 +942,12 @@
   .marquee-toggle {
     background: Canvas;
   }
+  /* The paper grain is an image, which forced colors keep: it would sit as a grey smudge
+     behind the text. Paper surfaces get a plain edge instead. */
+  .paper {
+    background-image: none;
+    border: 1px solid CanvasText;
+  }
   .dial::-webkit-slider-runnable-track {
     background: CanvasText;
   }

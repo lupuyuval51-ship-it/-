@@ -14,11 +14,13 @@
  *   5. conflict (dev server, `?library=none` → explanation + one-tap relaxations)
  *   6. resilience (two tabs, double taps, long absences, drafts, Back on the letter)
  *   7. round3 (Back closes sheets, paused modal, Check again, toast announcer, journal, fallback)
+ *   8. a11y-round3 (envelope focus ring, short viewports, chip radios, marquee, forced colors, small phones)
  */
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { a11yRound3Suite } from './a11ySuite.mjs';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
@@ -821,6 +823,7 @@ async function main() {
       conflict: () => conflictSuite(browser, 'http://127.0.0.1:5197'),
       resilience: () => resilienceSuite(browser, 'http://127.0.0.1:8790/'),
       round3: () => round3Suite(browser, 'http://127.0.0.1:8790/', 'http://127.0.0.1:8791/', 'http://127.0.0.1:8792/'),
+      'a11y-round3': () => a11yRound3Suite(browser, 'http://127.0.0.1:8790/', check),
     };
     for (const [name, run] of Object.entries(suites)) {
       if (only && only !== name) continue;
