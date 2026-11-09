@@ -7,11 +7,15 @@
  *
  * A problem triggers the Director's repair round, so every message tells the
  * model exactly what to change. The cue lists are deliberately conservative
- * (instructions, not mentions) and are tested against every curated episode.
+ * (instructions, not mentions): a cue is ignored when it is negated ("no need to
+ * buy anything"), imagined ("imagine you could order anything"), quoted from a
+ * sign ('Buy one, get one free'), or about objects rather than people ("sort them
+ * in groups"). Every curated episode is tested against them.
  */
 import { KINDS } from '../shared/constants.ts';
 import { enumeratePaths, pathMinutes } from '../shared/graph.ts';
 import type { Adventure, Kind, Prefs, StageNode } from '../shared/types.ts';
+import { clauseBefore, hypotheticalAt, insideQuotes, negatedAt, quoteModelText, wordsOf } from './text.ts';
 
 export type ConstraintRule =
   | 'free-budget'
@@ -26,7 +30,7 @@ export type ConstraintRule =
 
 export interface ConstraintProblem {
   rule: ConstraintRule;
-  /** Written for the model's repair round. */
+  /** Written for the model's repair round. Model text in it is JSON-quoted (see quoteModelText). */
   message: string;
 }
 
@@ -42,77 +46,256 @@ export const MAX_ALTERNATIVE_SIMILARITY = 0.8;
 
 // ── cue matching ─────────────────────────────────────────────────────
 
+/** A pattern (non-global) that flags an instruction, and the matches of it that are not one. */
+export interface Cue {
+  re: RegExp;
+  /** True when this match is not an instruction (imagined, quoted, about objects…). */
+  skip?: (text: string, index: number, match: string) => boolean;
+}
+
 const NEGATIONS: ReadonlySet<string> = new Set(['no', 'not', 'never', 'nothing', 'without', 'nor', "don't", 'dont', "doesn't", "isn't", "won't", "can't", 'cannot', 'zero']);
 /** "a free ticket", "free entry" are not purchases. */
 const PURCHASE_NEGATIONS: ReadonlySet<string> = new Set([...NEGATIONS, 'free']);
-const CLAUSE_BREAK = /[.!?;:()[\]{}"“”—–…]/;
+/** Words that make a negated segment a list the next comma continues: "no buying, ordering or paying". */
+const LIST_WORDS: ReadonlySet<string> = new Set([
+  'buy', 'buying', 'buys', 'purchase', 'purchases', 'purchasing', 'order', 'ordering', 'orders', 'pay', 'paying', 'payment',
+  'spend', 'spending', 'ticket', 'tickets', 'price', 'prices', 'fee', 'fees', 'fare', 'fares', 'cost', 'costs', 'money', 'cash',
+  'shopping', 'entry', 'admission', 'rent', 'renting', 'rental', 'hire', 'hiring', 'coins', 'shekels',
+  'leave', 'leaving', 'go', 'going', 'walk', 'walking', 'travel', 'travelling', 'traveling', 'bus', 'buses', 'train', 'trains',
+  'taxi', 'taxis', 'car', 'cars', 'driving', 'ride', 'rides', 'riding', 'outside', 'outdoors', 'trip', 'trips',
+  'crew', 'friends', 'friend', 'team', 'teams', 'group', 'groups', 'partner', 'partners', 'players', 'others',
+]);
 
-/** True when one of the three words before `index` (same clause) negates the cue: "no need to buy anything". */
-function negatedAt(text: string, index: number, negations: ReadonlySet<string>): boolean {
-  const clause = text.slice(Math.max(0, index - 80), index).split(CLAUSE_BREAK).pop() ?? '';
-  const words = clause.toLowerCase().replace(/’/g, "'").match(/[a-z']+/g) ?? [];
-  return words.slice(-3).some((w) => negations.has(w));
-}
-
-/** The first un-negated cue in `text`, or null. Patterns must be non-global. */
-function findCue(text: string, cues: readonly RegExp[], negations: ReadonlySet<string> = NEGATIONS): string | null {
+/** The first cue in `text` that is an instruction (not negated, not skipped), or null. */
+function findCue(text: string, cues: readonly Cue[], negations: ReadonlySet<string> = NEGATIONS): string | null {
   for (const cue of cues) {
-    for (const m of text.matchAll(new RegExp(cue.source, `${cue.flags}g`))) {
-      if (!negatedAt(text, m.index, negations)) return m[0];
+    for (const m of text.matchAll(new RegExp(cue.re.source, `${cue.re.flags}g`))) {
+      if (negatedAt(text, m.index, negations, LIST_WORDS)) continue;
+      if (cue.skip?.(text, m.index, m[0])) continue;
+      return m[0];
     }
   }
   return null;
 }
 
+/** The rest of the clause after a match (up to the next clause break). */
+const clauseAfter = (text: string, index: number, match: string) => /^[^.!?;:()[\]{}"“”—–…]*/.exec(text.slice(index + match.length))?.[0] ?? '';
+
+// ── free budget ──────────────────────────────────────────────────────
+
+/** A purchase word that is imagined ("you'd buy", "imagine you could order") or quoted from a sign. */
+const notAPurchase = (text: string, index: number) => hypotheticalAt(text, index) || insideQuotes(text, index);
+
+/** Tickets that are found objects: "an old ticket", "a crumpled bus ticket", "the ticket in your bag". */
+const OLD_THINGS: ReadonlySet<string> = new Set([
+  'old', 'used', 'expired', 'torn', 'crumpled', 'creased', 'forgotten', 'faded', 'lost', 'discarded', 'found', 'stray',
+  'abandoned', 'yellowed', 'folded', "yesterday's", "someone's", 'souvenir', 'vintage', 'ancient',
+]);
+function foundTicket(text: string, index: number, match: string): boolean {
+  const before = wordsOf(clauseBefore(text, index).split(',').pop() ?? '').slice(-3);
+  if (before.some((w) => OLD_THINGS.has(w))) return true;
+  return /^\s+(?:[\w'-]+\s+){0,4}?(?:from|in|out\s+of)\s+(?:your|a|an|the)\s+(?:old\s+)?(?:bag|pocket|wallet|drawer|coat|jacket|purse|notebook|book|box|album)\b/i.test(
+    clauseAfter(text, index, match),
+  );
+}
+
 /** Purchases, prices and tickets. Not "a ticket stub" (a found object), "shuffle the order", "a cashier". */
-export const PURCHASE_CUES: readonly RegExp[] = [
-  /₪\s?\d|\d\s?₪/,
-  /\b\d+(?:[.,]\d+)?\s?(?:nis|ils|shekels?|shekalim|agorot)\b/i,
-  /\b(?:shekels?|shekalim|agorot)\b/i,
-  /\bNIS\b/,
-  /\b(?:buy|buys|buying|bought|purchase|purchases|purchasing|purchased)\b/i,
-  /\b(?:pay|pays|paying|paid)\s+(?:(?:for|with|at|by)\b|the\s+(?:bill|fare|fee|entry|entrance|cashier|vendor|driver)\b|a\s+(?:fee|fare|deposit)\b|cash\b|money\b|₪|\d)/i,
-  /\b(?:order|orders|ordering|ordered)\s+(?:a|an|one|two|some|something|anything|yourself|food|coffee|tea|drinks?|takeaway|take-?out|dessert|lunch|dinner|breakfast|the\s+(?:cheapest|special|soup|dish|coffee|tea|cake|pastry|meal|drink))\b/i,
-  /\bplace\s+an?\s+order\b/i,
-  /\btickets?\b(?!\s*stubs?\b)/i,
-  /\b(?:entry|entrance|admission|cover)\s+(?:fees?|charges?)\b/i,
-  /\b(?:spend|spending|spent)\s+(?:₪|\d|money|cash|a\s+few\s+(?:shekels|coins)|some\s+(?:money|cash|shekels|coins)|your\s+(?:money|cash|allowance))/i,
-  /\b(?:rent|rents|renting|rented|hire|hiring|hired)\s+(?:a|an|the)\s+(?:bike|scooter|boat|kayak|pedal\s*boat|car|locker|board)\b/i,
-  /\bfares?\b/i,
-  /\b(?:costs?|priced?)\s+(?:about\s+|around\s+|only\s+|just\s+)?(?:₪|\d)/i,
-  /\bat\s+the\s+(?:till|checkout|cash\s+register|register)\b/i,
+export const PURCHASE_CUES: readonly Cue[] = [
+  { re: /₪\s?\d|\d\s?₪/ },
+  { re: /\b\d+(?:[.,]\d+)?\s?(?:nis|ils|shekels?|shekalim|agorot)\b/i },
+  { re: /\b(?:shekels?|shekalim|agorot)\b/i, skip: notAPurchase },
+  { re: /\bNIS\b/ },
+  { re: /\b(?:buy|buys|buying|bought|purchase|purchases|purchasing|purchased)\b/i, skip: notAPurchase },
+  {
+    re: /\b(?:pay|pays|paying|paid)\s+(?:(?:for|with|at|by)\b|the\s+(?:bill|fare|fee|entry|entrance|cashier|vendor|driver)\b|a\s+(?:fee|fare|deposit)\b|cash\b|money\b|₪|\d)/i,
+    skip: notAPurchase,
+  },
+  {
+    re: /\b(?:order|orders|ordering|ordered)\s+(?:a|an|one|two|some|something|anything|yourself|food|coffee|tea|drinks?|takeaway|take-?out|dessert|lunch|dinner|breakfast|the\s+(?:cheapest|special|soup|dish|coffee|tea|cake|pastry|meal|drink))\b/i,
+    skip: notAPurchase,
+  },
+  { re: /\bplace\s+an?\s+order\b/i, skip: notAPurchase },
+  {
+    re: /\btickets?\b(?!\s*(?:stubs?|machines?|booths?|offices?|barriers?|gates?|inspectors?|validators?)\b)/i,
+    skip: (text, index, match) => notAPurchase(text, index) || foundTicket(text, index, match),
+  },
+  { re: /\b(?:entry|entrance|admission|cover)\s+(?:fees?|charges?)\b/i },
+  // "spend" is money only with money words: "spend some cash", never "spend 3 minutes" or "spend 30 seconds"
+  // (amounts in ₪ or shekels are caught above).
+  {
+    re: /\b(?:spend|spends|spending|spent)\s+(?:(?:a\s+(?:little|bit\s+of|few|couple\s+of)|some|any|your|real|the|all\s+your|no\s+more\s+than|less\s+than|at\s+most|up\s+to)\s+)?(?:money|cash|coins|shekels?|shekalim|nis|ils|allowance|pocket\s+money|savings)\b/i,
+    skip: notAPurchase,
+  },
+  { re: /\b(?:rent|rents|renting|rented|hire|hiring|hired)\s+(?:a|an|the)\s+(?:bike|scooter|boat|kayak|pedal\s*boat|car|locker|board)\b/i, skip: notAPurchase },
+  { re: /\b(?:costs?|priced?)\s+(?:about\s+|around\s+|only\s+|just\s+)?(?:₪|\d)/i, skip: notAPurchase },
+  { re: /\bat\s+the\s+(?:till|checkout|cash\s+register|register)\b/i },
 ];
+
+const FOOD = String.raw`(?:coffees?|espressos?|lattes?|cappuccinos?|teas?|hot\s+chocolates?|pastry|pastries|croissants?|burekas?|rugelach|ice[\s-]?creams?|gelatos?|popsicles?|falafels?|shawarmas?|sabich|hummus|pitas?|bagels?|sandwich(?:es)?|drinks?|sodas?|juices?|smoothies?|lemonades?|snacks?|cookies?|cakes?|muffins?|donuts?|doughnuts?|sufganiyah|pizzas?|fries|sweets|desserts?)`;
+/** Food and drink from home, a bag or a water fountain is free. */
+const FREE_SOURCE =
+  /^\s+(?:[\w'-]+\s+){0,4}?(?:(?:from|in|out\s+of)\s+(?:the|your|a)\s+(?:fridge|freezer|kitchen|cupboard|pantry|bag|backpack|pocket|drawer|lunchbox|home|house|flask|thermos|bottle|water\s+fountain|tap)\b|(?:you|that\s+you)\s+(?:brought|packed|made)\b|from\s+home\b)|^\s+of\s+water\b/i;
+const PAID_PLACE = String.raw`(?:museums?|cinemas?|movie\s+theat(?:er|re)s?|caf[eé]s?|coffee\s+shops?|bakery|bakeries|restaurants?|ice[\s-]?cream\s+(?:shops?|parlou?rs?)|patisseries?|zoo|aquarium|escape\s+room|arcade)`;
+
+/**
+ * Spending that never names a price, for someone outside on a free budget: treats
+ * ("grab a coffee from the kiosk"), public transport ("hop on the light rail"), and
+ * places with a ticket or a till ("go into the museum", "sit in a café").
+ */
+export const OUTSIDE_SPENDING_CUES: readonly Cue[] = [
+  {
+    re: new RegExp(
+      String.raw`\b(?:grab|grabs|grabbing|get|gets|getting|pick\s+up|treat\s+yourself\s+to|reward\s+yourself\s+with)\s+(?:yourself\s+)?(?:(?:a|an|one|two|some|the|your|a\s+(?:cup|glass|scoop|slice|bag|piece|bottle|can)\s+of)\s+)?(?:(?:small|smallest|cheapest|quick|cold|hot|fresh|warm|little|iced|takeaway|local|street|single|tiny)\s+)?${FOOD}(?![\w-])`,
+      'i',
+    ),
+    skip: (text, index, match) => notAPurchase(text, index) || FREE_SOURCE.test(clauseAfter(text, index, match)),
+  },
+  {
+    re: /\b(?:take|takes|taking|ride|rides|riding|catch|catches|catching|board|boards|boarding|hop\s+on(?:to)?|get\s+on(?:to)?|jump\s+on(?:to)?)\s+(?:(?:a|the|any|your|one|two|three)\s+)?(?:(?:next|first|local|night|city|number\s+\d+|\d+)\s+)?(?:bus|buses|train|trains|tram|trams|light[- ]rail|metro|subway|underground|taxi|taxis|cab|cabs|ferry|ferries|shuttle)\b(?!\s+(?:stops?|shelters?|stations?|maps?|timetables?|schedules?|numbers?|tickets?)\b)/i,
+    skip: notAPurchase,
+  },
+  {
+    re: new RegExp(
+      String.raw`\b(?:go|goes|going|head|heading|walk|walking|step|stepping|pop|popping|nip|slip|wander|duck)\s+(?:in(?:to)?|inside)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|big|little|neighbou?rhood|corner|busiest|quietest)\s+)?${PAID_PLACE}(?![a-z])`,
+      'i',
+    ),
+    skip: notAPurchase,
+  },
+  {
+    re: /\b(?:enter|enters|entering|visit|visits|visiting|tour|touring)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|big|little|neighbou?rhood)\s+)?(?:museums?|cinemas?|movie\s+theat(?:er|re)s?|zoo|aquarium|escape\s+room)(?![a-z])/i,
+    skip: notAPurchase,
+  },
+  {
+    re: /\b(?:sit|sitting|take\s+a\s+seat|grab\s+a\s+(?:seat|table))\s+(?:down\s+)?(?:in|inside|at)\s+(?:a|an|the|your|any|one|that|this)\s+(?:(?:nearest|closest|local|small|quiet|busy|corner|neighbou?rhood)\s+)?(?:caf[eé]|coffee\s+shop|restaurant|bakery)(?![a-z])/i,
+    skip: notAPurchase,
+  },
+];
+
+// ── at home ──────────────────────────────────────────────────────────
 
 /** `\b` treats "é" as a non-word character, so words that may end in one close with this instead. */
 const END = '(?![a-z0-9])';
-const OUTDOOR_PLACE = String.raw`(?:park|playground|caf[eé]s?|coffee\s+shop|shop|store|supermarket|grocery|mall|market|shuk|kiosk|bakery|bus\s+stop|bus\s+station|train\s+station|station|square|plaza|library|beach|promenade|boardwalk|cinema|museum|post\s+office|pharmacy|corner\s+shop|street\s+corner|bench|sidewalk|pavement|crosswalk|street|road|neighbou?rhood|block|town|city\s+cent(?:re|er)|downtown)`;
+/** Places that are outside whatever comes before them. */
+const OUTDOOR_PLACE = String.raw`(?:park|playground|caf[eé]s?|coffee\s+shop|shop|store|supermarket|grocery|mall|market|shuk|kiosk|bakery|bus\s+stop|bus\s+station|train\s+station|square|plaza|beach|promenade|boardwalk|cinema|post\s+office|pharmacy|corner\s+shop|street\s+corner|bench|sidewalk|pavement|crosswalk|street|road|neighbou?rhood|block|town|city\s+cent(?:re|er)|downtown)`;
+/** Places that a game at home borrows as names ("the next station: the bathroom mirror", "the museum of your bookshelves") unless they are the nearest or local one. */
+const PUBLIC_PLACE = String.raw`(?:station|library|museum|gallery)`;
+const LOCAL = String.raw`(?:nearest|closest|local|public|neighbou?rhood|city)`;
+/** Imagined trips ("imagine you are at the beach") never leave the house. */
+const imagined = (text: string, index: number) => hypotheticalAt(text, index);
 
 /** Leaving home. Not "the room or the street" (a home/outside episode), "walk it slowly", "a short walk". */
-export const LEAVE_HOME_CUES: readonly RegExp[] = [
-  /\b(?:leave|leaving|exit|exiting)\s+(?:the|your)\s+(?:house|flat|apartment|building)\b|\bleav(?:e|ing)\s+home\b/i,
-  /\b(?:step|walk|head|go|get|run|pop|slip|nip)\s+out\s+(?:of\s+)?(?:the|your)\s+(?:front\s+door|house|flat|apartment|building)\b/i,
-  /\b(?:go|going|head|heading|step|stepping|walk|walking|get|getting|pop|nip|wander|run|venture)\s+(?:back\s+)?(?:outside|outdoors|out\s+of\s+doors|out\s+into\s+the\s+(?:street|world|city|neighbou?rhood|sun|fresh\s+air))\b(?!\s+(?:on(?:to)?|to)\s+(?:the|your)\s+balcony)/i,
-  /\bhead(?:ing)?\s+out\b(?!\s+(?:to|onto)\s+(?:the|your)\s+balcony)/i,
-  new RegExp(
-    String.raw`\b(?:walk|walking|go|going|head|heading|stroll|run|jog|wander|cycle|ride|pop|nip|get|travel|drive|hop)\s+(?:(?:down|over|out|back|across|up)\s+)?(?:to|into|towards?|around|along|down|through)\s+(?:the\s+|a\s+|an\s+|your\s+|any\s+)?(?:(?:nearest|closest|local|neighbou?rhood|corner|next|other|end\s+of\s+the|top\s+of\s+the)\s+)?${OUTDOOR_PLACE}${END}`,
-    'i',
-  ),
-  /\b(?:take|taking|ride|riding|catch|catching|board|boarding|hop\s+on(?:to)?|get\s+on(?:to)?|jump\s+on(?:to)?)\s+(?:a|the|any|your|one)\s+(?:(?:next|first|local|night|city)\s+)?(?:bus|buses|train|tram|light[- ]rail|metro|subway|underground|taxi|cab|ferry|shuttle)\b/i,
-  new RegExp(String.raw`\b(?:at|in|inside)\s+(?:the|a|your)\s+(?:nearest\s+|local\s+)?(?:park|playground|caf[eé]|coffee\s+shop|supermarket|mall|market|shuk|kiosk|bakery|bus\s+stop|library|beach|cinema|museum)${END}`, 'i'),
+export const LEAVE_HOME_CUES: readonly Cue[] = [
+  { re: /\b(?:leave|leaving|exit|exiting)\s+(?:the|your)\s+(?:house|flat|apartment|building)\b|\bleav(?:e|ing)\s+home\b/i, skip: imagined },
+  { re: /\b(?:step|walk|head|go|get|run|pop|slip|nip)\s+out\s+(?:of\s+)?(?:the|your)\s+(?:front\s+door|house|flat|apartment|building)\b/i, skip: imagined },
+  {
+    re: /\b(?:go|going|head|heading|step|stepping|walk|walking|get|getting|pop|nip|wander|run|venture)\s+(?:back\s+)?(?:outside|outdoors|out\s+of\s+doors|out\s+into\s+the\s+(?:street|world|city|neighbou?rhood|sun|fresh\s+air))\b(?!\s+(?:on(?:to)?|to)\s+(?:the|your)\s+balcony)/i,
+    skip: imagined,
+  },
+  { re: /\bhead(?:ing)?\s+out\b(?!\s+(?:to|onto)\s+(?:the|your)\s+balcony)/i, skip: imagined },
+  // "nip out for a breath of fresh air", "go out for a walk" — not "pop out of the box", "out onto the balcony"
+  {
+    re: /\b(?:nip|nips|nipping|pop|pops|popping|slip|slips|slipping|duck|ducks|ducking|dash|dashes|dashing)\s+out\b(?!\s+(?:of\s+(?:bed|(?:the|your|this|that|a)\s+(?:room|bedroom|kitchen|bathroom|lounge|study|hall(?:way)?|cupboard|box|drawer|book|frame|page|photo|picture|chair|seat))\b|(?:on(?:to)?|to|into|onto)\s+(?:the|your|a)\s+(?:balcony|garden|yard|terrace|porch|patio|kitchen|hall(?:way)?|corridor|landing|stairwell)\b))/i,
+    skip: imagined,
+  },
+  {
+    re: /\b(?:go|goes|going)\s+out\b(?=\s+(?:for|to|and|into|tonight|now|again|alone|together|with|in\s+search)\b)(?!\s+(?:to|onto|on)\s+(?:the|your)\s+(?:balcony|garden|yard|terrace|porch|patio)\b)/i,
+    skip: imagined,
+  },
+  // "a bench outside your building" — not when it is watched from a window or the balcony
+  {
+    re: /\b(?:outside|in\s+front\s+of|across\s+from|opposite|around\s+the\s+corner\s+from|down\s+the\s+(?:street|road)\s+from)\s+(?:your|the)\s+(?:building|house|flat|apartment|front\s+door|block|home|entrance|gate)\b/i,
+    skip: (text, index) => imagined(text, index) || /\b(?:window|balcony|windowsill|sill)\b/i.test(text),
+  },
+  {
+    re: new RegExp(
+      String.raw`\b(?:walk|walking|go|going|head|heading|stroll|run|jog|wander|cycle|ride|pop|nip|get|travel|drive|hop)\s+(?:(?:down|over|out|back|across|up)\s+)?(?:to|into|towards?|around|along|down|through)\s+(?:the\s+|a\s+|an\s+|your\s+|any\s+)?(?:(?:${LOCAL}\s+${PUBLIC_PLACE})|(?:(?:${LOCAL}|corner|next|other|end\s+of\s+the|top\s+of\s+the)\s+)?${OUTDOOR_PLACE})${END}`,
+      'i',
+    ),
+    skip: imagined,
+  },
+  {
+    re: /\b(?:take|taking|ride|riding|catch|catching|board|boarding|hop\s+on(?:to)?|get\s+on(?:to)?|jump\s+on(?:to)?)\s+(?:a|the|any|your|one)\s+(?:(?:next|first|local|night|city)\s+)?(?:bus|buses|train|tram|light[- ]rail|metro|subway|underground|taxi|cab|ferry|shuttle)\b/i,
+    skip: imagined,
+  },
+  {
+    re: new RegExp(
+      String.raw`\b(?:at|in|inside)\s+(?:(?:the|a|an)\s+(?:(?:${LOCAL})\s+)?(?:park|playground|caf[eé]|coffee\s+shop|supermarket|mall|market|shuk|kiosk|bakery|bus\s+stop|beach|cinema)|(?:the|a|your)\s+${LOCAL}\s+${PUBLIC_PLACE})${END}`,
+      'i',
+    ),
+    skip: imagined,
+  },
 ];
 
+// ── solo ─────────────────────────────────────────────────────────────
+
+/** Words for people a group is made of, as opposed to objects sorted "into two teams". */
+const PEOPLE_WORDS: ReadonlySet<string> = new Set([
+  'crew', 'crews', 'friends', 'group', 'groups', 'party', 'players', 'team', 'teams', 'people', 'family', 'kids', 'children',
+  'cousins', 'class', 'squad', 'gang', 'guests', 'everyone', 'everybody', 'others', 'siblings', 'roommates', 'flatmates', 'housemates',
+]);
+/** "Divide the pigeons into two teams" sorts things, not people. */
+const OBJECT_DIVISION = /\b(?:divide|divides|dividing|split|splitting|sort|sorting|group|grouping|organi[sz]e|organi[sz]ing|arrange|arranging|separate|separating|line\s+up)\s+(?:the|your|these|those|all\s+(?:the|your)|some|every)\s+(?:[\w'-]+\s+){0,2}?([\w'-]+)\s+into\s+(?:[\w'-]+\s+)?$/i;
+/** "Lay the objects out in pairs", "sort everything in groups by colour". */
+const ARRANGING = /\b(?:sort|sorting|lay|laying|arrange|arranging|group|grouping|line|lining|organi[sz]e|organi[sz]ing|stack|stacking|put|putting|place|placing|set|setting|pile|piling|match|matching|pair|pairing|file|bundle|cluster|display|order|ordering)\b/i;
+/** "Let your left and right hand take turns": the turns are not taken by people. */
+const BODY_OR_OBJECT = /\b(?:hands?|eyes|feet|fingers|thumbs|ears|legs|arms|sides|pens?|pencils?|colou?rs|dice|coins?|cards)\b/i;
+const FRIEND = String.raw`(?:friend|partner|buddy|pal|sibling|brother|sister|roommate|flatmate|housemate|mate|teammate|companion|cousin)s?`;
+
 /** Other people. Not "a crew of one", "an invisible tour group", "split your view", "both of you" (you and your self-portrait). */
-export const GROUP_CUES: readonly RegExp[] = [
-  /\b(?:your|the\s+other|other|(?:the|your)\s+whole)\s+(?:friends|crew|crewmates?|group|team|teammates?|squad|gang|party|companions|players|fellow\s+players)\b/i,
-  /\bteams\b|\bteam\s+(?:up|mates?|members?)\b|\bteammates?\b|\bcrewmates?\b/i,
-  /\b(?:each|every|the\s+other|another)\s+players?\b/i,
-  /\b(?:each|every|all)\s+of\s+you\b/i,
-  /\b(?:split|splitting|divide|dividing|break|breaking)\s+(?:up\b|into\s+(?:two|three|pairs|teams|groups|halves)\b|your\s+(?:crew|group|team|friends|party)\b)/i,
-  /\b(?:take|taking)\s+turns\b/i,
-  /\bwhoever\s+(?:loses|wins|finishes|guesses|spots)\b/i,
-  /\b(?:with|together\s+with)\s+your\s+(?:friends|crew|group|team|squad)\b/i,
-  /\bin\s+(?:pairs|teams|groups)\b/i,
+export const GROUP_CUES: readonly Cue[] = [
+  {
+    re: /\b(?:your|the\s+other|other|(?:the|your)\s+whole)\s+(?:friends|crew|crewmates?|group|team|teammates?|squad|gang|party|companions|players|fellow\s+players)\b/i,
+    // "your group chat" is a phone thread; "the other players are everyone else on this street" casts strangers.
+    skip: (text, index, match) =>
+      /^\s+(?:chats?|texts?|threads?|messages?|channels?|calls?)\b|^\s+(?:are|is)\s+(?:everyone|everybody|all\s+the|strangers|passersby|the\s+(?:city|street|strangers|people|crowd|passersby|world))\b/i.test(
+        text.slice(index + match.length),
+      ),
+  },
+  {
+    re: /\bteams\b|\bteam\s+(?:up|mates?|members?)\b|\bteammates?\b|\bcrewmates?\b/i,
+    skip: (text, index) => {
+      const object = OBJECT_DIVISION.exec(clauseBefore(text, index))?.[1]?.toLowerCase();
+      return object !== undefined && !PEOPLE_WORDS.has(object);
+    },
+  },
+  {
+    re: /\b(?:each|every|the\s+other|another)\s+players?\b/i,
+    skip: (text, index, match) => /^\s+(?:are|is)\s+(?:everyone|everybody|all\s+the|strangers|passersby|the\s+(?:city|street|strangers|people|crowd|passersby|world))\b/i.test(text.slice(index + match.length)),
+  },
+  { re: /\b(?:each|every|all)\s+of\s+you\b/i },
+  // "split up", "break into teams", "split your crew" — not "break up the walk into three legs"
+  {
+    re: /\b(?:split|splitting|divide|dividing|break|breaking)\s+(?:up\b(?!\s+(?:the|your|this|that|a|an|each|every)\s+(?!(?:crew|group|team|friends|party|players|squad|gang)\b))|into\s+(?:two|three|four|pairs|teams|groups|halves)\b|your\s+(?:crew|group|team|friends|party)\b)/i,
+  },
+  { re: /\b(?:take|taking)\s+turns\b/i, skip: (text, index) => BODY_OR_OBJECT.test(clauseBefore(text, index)) },
+  { re: /\bwhoever\s+(?:loses|wins|finishes|guesses|spots)\b/i },
+  { re: /\b(?:with|together\s+with)\s+your\s+(?:friends|crew|group|team|squad)\b/i },
+  { re: /\bin\s+(?:pairs|teams|groups)\b/i, skip: (text, index) => ARRANGING.test(clauseBefore(text, index)) },
+  // A friend, partner or buddy who has to be there: "ask a friend to hide…", "race your friend", "you and your buddy".
+  {
+    re: new RegExp(
+      String.raw`\b(?:ask|get|have|let|make|challenge|dare|invite|bring|recruit|enlist)\s+(?:a|your|one|the|an?\s+other)\s+(?:friend|partner|buddy|pal|sibling|brother|sister|roommate|flatmate|housemate|mate|teammate|companion|cousin|parent|neighbou?r)s?\b`,
+      'i',
+    ),
+  },
+  {
+    re: new RegExp(
+      String.raw`\b(?:race|beat|chase|tag|join|meet|hug|high-five|team\s+up\s+with|play\s+(?:against|with)|walk\s+with|compete\s+(?:against|with)|swap\s+with|trade\s+with|sit\s+with)\s+(?:a|your|one|the\s+other)\s+${FRIEND}\b`,
+      'i',
+    ),
+  },
+  { re: new RegExp(String.raw`\byou\s+and\s+(?:a|your|one)\s+${FRIEND}\b`, 'i') },
+  {
+    re: new RegExp(
+      String.raw`\b(?:a|your)\s+(?:friend|partner|buddy|pal|teammate|companion)s?\s+(?:picks?|chooses?|hides?|holds?|reads?|guesses?|writes?|draws?|names?|takes?|waits?|stands?|counts?|times?|watches?|leads?|says?|whispers?|votes?|plays?|goes|must|should|can|will|gets?|keeps?|each|both)\b`,
+      'i',
+    ),
+  },
+  // "ask someone to hide it" — not the small favors a solo episode may ask of a stranger
+  { re: /\bask\s+(?:someone|somebody|anyone)\s+(?:else\s+)?to\s+(?!(?:take\s+(?:your|a)\s+(?:photo|picture|snap)|recommend|suggest|point|tell|show)\b)[a-z]+/i },
 ];
+
+// ── durations ────────────────────────────────────────────────────────
 
 const NUMBER_WORDS: Record<string, number> = {
   a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
@@ -198,8 +381,6 @@ function nearCopy(a: string, b: string, threshold: number): boolean {
   return 1 - levenshtein(x, y) / longest >= threshold;
 }
 
-const quote = (s: string) => `"${s.length > 60 ? `${s.slice(0, 59)}…` : s}"`;
-
 /** Instruction texts of a node (what the user is asked to do). */
 function instructions(n: StageNode): [string, string][] {
   const out: [string, string][] = [
@@ -244,14 +425,15 @@ export function checkHardConstraints(adv: Adventure, input: ConstraintInput): Co
   const problems: ConstraintProblem[] = [];
 
   if (prefs.budget === 0) {
+    const cues = prefs.setting === 'outside' ? [...PURCHASE_CUES, ...OUTSIDE_SPENDING_CUES] : PURCHASE_CUES;
     const hits: string[] = [];
     adv.items.forEach((item, i) => {
-      if (findCue(item, PURCHASE_CUES, PURCHASE_NEGATIONS)) hits.push(`items[${i}] ${quote(item)}`);
+      if (findCue(item, PURCHASE_CUES, PURCHASE_NEGATIONS)) hits.push(`items[${i}] ${quoteModelText(item)}`);
     });
     for (const n of adv.nodes) {
       for (const [field, text] of instructions(n)) {
-        const cue = findCue(text, PURCHASE_CUES, PURCHASE_NEGATIONS);
-        if (cue) hits.push(`${place(n.id)}.${field} (“${cue}”)`);
+        const cue = findCue(text, cues, PURCHASE_NEGATIONS);
+        if (cue) hits.push(`${place(n.id)}.${field} (${quoteModelText(cue)})`);
       }
     }
     if (hits.length) {
@@ -267,7 +449,7 @@ export function checkHardConstraints(adv: Adventure, input: ConstraintInput): Co
     for (const n of adv.nodes) {
       for (const [field, text] of instructions(n)) {
         const cue = findCue(text, LEAVE_HOME_CUES);
-        if (cue) hits.push(`${place(n.id)}.${field} (“${cue}”)`);
+        if (cue) hits.push(`${place(n.id)}.${field} (${quoteModelText(cue)})`);
       }
     }
     if (hits.length) {
@@ -282,7 +464,7 @@ export function checkHardConstraints(adv: Adventure, input: ConstraintInput): Co
     const hits: string[] = [];
     for (const [where, text] of soloTexts(adv)) {
       const cue = findCue(text, GROUP_CUES);
-      if (cue) hits.push(`${where} (“${cue}”)`);
+      if (cue) hits.push(`${where} (${quoteModelText(cue)})`);
     }
     if (hits.length) {
       problems.push({
@@ -298,7 +480,7 @@ export function checkHardConstraints(adv: Adventure, input: ConstraintInput): Co
       for (const [field, text] of instructions(n)) {
         if (field === 'crewTip') continue;
         const longest = longestMentionedMinutes(text);
-        if (longest.minutes > prefs.minutes) hits.push(`${place(n.id)}.${field} (“${longest.phrase}”)`);
+        if (longest.minutes > prefs.minutes) hits.push(`${place(n.id)}.${field} (${quoteModelText(longest.phrase)})`);
       }
     }
     if (hits.length) {
@@ -344,7 +526,7 @@ export function checkHardConstraints(adv: Adventure, input: ConstraintInput): Co
     if (new Set(labels).size !== labels.length) {
       problems.push({
         rule: 'distinct-options',
-        message: `The choice options have the same label (${n.choice.options.map((o) => quote(o.label)).join(' / ')}). Give each option a different label that says what kind of path it is.`,
+        message: `The choice options have the same label (${n.choice.options.map((o) => quoteModelText(o.label)).join(' / ')}). Give each option a different label that says what kind of path it is.`,
       });
     }
   }

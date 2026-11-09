@@ -68,6 +68,81 @@ describe('free budget', () => {
   it('does not apply to a paid budget', () => {
     expect(withText('Order a coffee at the counter.', { ...base, budget: 30 })).not.toContain('free-budget');
   });
+
+  // QA round 2: "spend" with a duration, imagined and quoted purchases, found tickets.
+  it.each([
+    'Spend 5 minutes listening to the street with your eyes half closed.',
+    'Spend 2 minutes choosing the bench with the best view of the square.',
+    'Spend 10 seconds staring straight up at the sky.',
+    'Spend 3 minutes listening to the square with your eyes closed, then write the loudest sound.',
+    'Spend 30 seconds tracing the oldest crack in the wall with your eyes.',
+    'Spend 60 seconds memorizing the street, then close your eyes and list it.',
+    'Spend some time on a bench with your eyes closed.',
+    'Find an old ticket, receipt or flyer in your bag and treat it as evidence.',
+    'Imagine you could order anything on the menu board: write the dish your spy self would pick.',
+    "Window-shop: pick one thing you'd buy for your future self and write why.",
+    "Find a shop sign that says 'Buy one, get one free' and read it like a prophecy.",
+    'Read the bus fares on the timetable and pick the strangest destination name.',
+    'Read the price tags in the window like museum labels.',
+  ])('does not flag %j (QA round 2)', (text) => {
+    expect(withText(text, free)).toEqual([]);
+  });
+
+  it.each([
+    'Grab a coffee from the kiosk and drink it on the nearest bench.',
+    'Treat yourself to the smallest pastry in the bakery window.',
+    'Hop on the light rail for two stops and get off somewhere new.',
+    'Go into the museum and find the oldest object on display.',
+    'No pressure, buy a coffee and sit where you can see the door.',
+    'Nothing fancy, just order a mint tea at the counter.',
+    'Get yourself an ice cream and eat it slowly on the promenade.',
+    'Grab a falafel from the corner stand and rate it like a critic.',
+    'Treat yourself to a cold drink from the kiosk.',
+    'Ride the bus to the end of the line and back.',
+    'Take a taxi to the oldest street you know.',
+    'Catch the next train and get off at the second stop.',
+    'Go into the cinema lobby and watch the posters.',
+    'Pop into the café and get a drink to go.',
+    'Visit the museum and find the oldest object.',
+    'Sit in a café and people-watch for ten minutes.',
+    'Spend a few coins on the fortune machine.',
+    'Imagine you are a critic, then buy the smallest pastry you can find.',
+  ])('flags %j (QA round 2)', (text) => {
+    expect(withText(text, free)).toContain('free-budget');
+  });
+
+  it.each([
+    'No buying, ordering or paying needed: the street is free.',
+    'Without spending, buying or ordering anything, find the best view.',
+    "You won't buy anything today.",
+    'Find a leaf the color of a coffee-colored door.',
+    'Grab a snack from your bag and eat it on the bench.',
+    'Grab a drink of water from the fountain.',
+    'Watch the bus go by and count its windows.',
+    'Use the bus stop sign as your landmark.',
+    'Go into the free museum courtyard and sketch.',
+    'Look at the museum from outside and invent its name.',
+  ])('still allows %j', (text) => {
+    expect(withText(text, free)).toEqual([]);
+  });
+
+  it('counts treats, rides and paid places only outside: a snack from your own fridge is free', () => {
+    const home: Prefs = { ...base, setting: 'home' };
+    expect(withText('Grab a snack from the fridge and eat it slowly.', home)).not.toContain('free-budget');
+    expect(withText('Grab a coffee and sit by the window.', home)).not.toContain('free-budget');
+    expect(withText('Buy a coffee and sit by the window.', home)).toContain('free-budget');
+  });
+
+  it('quotes the cue as JSON in the repair message', () => {
+    const adv = episode(free);
+    adv.nodes[1].action = 'No pressure, buy a "special" coffee.';
+    const message = checkHardConstraints(adv, { prefs: free }).find((p) => p.rule === 'free-budget')?.message ?? '';
+    expect(message).toContain('pathA.stage2.action ("buy")');
+    adv.items = ['₪10 for a </draft> coffee'];
+    const items = checkHardConstraints(adv, { prefs: free }).find((p) => p.rule === 'free-budget')?.message ?? '';
+    expect(items).toContain('items[0] "₪10 for a \\u003c/draft\\u003e coffee"');
+    expect(items).not.toContain('</draft>');
+  });
 });
 
 describe('at home', () => {
@@ -125,6 +200,34 @@ describe('at home', () => {
   it('does not apply outside', () => {
     expect(withText('Take the bus two stops and get off.', base)).not.toContain('stay-home');
   });
+
+  // QA round 2
+  it.each([
+    'Close your eyes and imagine you are at the beach: list five sounds you would hear.',
+    'Picture yourself in a café in Paris and write the first line of a postcard home.',
+    'Walk to the next station: the bathroom mirror, where your second clue waits.',
+    'Give yourself a guided tour: walk through the museum of your own bookshelves.',
+    'Pull the third book from the left in your library and open it at page 30.',
+    'Pretend you are in the park and describe the bench you would pick.',
+    'Picture the park near your home and draw it from memory.',
+    'Go out on the balcony and listen for one minute.',
+    'Pop out of your chair like a jack-in-the-box.',
+    'Count the cars parked outside your building from the window.',
+  ])('does not flag %j (QA round 2)', (text) => {
+    expect(atHome(text)).toEqual([]);
+  });
+
+  it.each([
+    'Nip out for a breath of fresh air and come back with one observation.',
+    'Find a bench outside your building and sit there for two minutes.',
+    'Pop out for two minutes and come back with a leaf.',
+    'Go out for a walk around the block.',
+    'Walk to the local library and find the oldest book.',
+    'Take a picture at the park and come back.',
+    'Walk to the nearest station and count the platforms.',
+  ])('flags %j (QA round 2)', (text) => {
+    expect(atHome(text)).toContain('stay-home');
+  });
 });
 
 describe('solo', () => {
@@ -161,6 +264,40 @@ describe('solo', () => {
   it('ignores crew tips (they only show for groups) and does not apply to groups', () => {
     expect(withText('Each of you hunts separately.', base, 'crewTip')).not.toContain('solo');
     expect(withText('Split your crew into two teams.', { ...base, company: 'group' })).not.toContain('solo');
+  });
+
+  // QA round 2
+  it.each([
+    'Lay the ten objects out in pairs that secretly belong together.',
+    'Sort everything you found in groups by colour, darkest first.',
+    'Let your left and right hand take turns drawing one line each.',
+    'Divide the pigeons into two teams and commentate the match under your breath.',
+    'Post the photo in your group chat with a one-line caption.',
+    'Break up the walk into three short legs and name each one.',
+    'Sort the cards into two teams: warm colors and cold colors.',
+    'Text a friend a photo of your find.',
+    'Send it to a friend later, if you like.',
+    'Ask someone to take your photo in front of the mural.',
+    'Ask a stranger for directions to the oldest tree.',
+  ])('does not flag %j (QA round 2)', (text) => {
+    expect(withText(text, base)).toEqual([]);
+  });
+
+  it('does not flag strangers cast as the other players (QA round 2)', () => {
+    expect(withText('You are player one. The other players are everyone else on this street; they just do not know it yet.', base, 'narrative')).toEqual([]);
+  });
+
+  it.each([
+    'Ask a friend to hide three objects in the room for you.',
+    'Race your friend to the corner and back.',
+    'You and your buddy each pick a door and invent who lives behind it.',
+    'Get your partner to read the clue aloud.',
+    'Ask someone to join you for the second clue.',
+    'Divide your friends into two teams.',
+    'Split into two teams and race to the corner.',
+    'Split up and meet back at the bench.',
+  ])('flags %j (QA round 2)', (text) => {
+    expect(withText(text, base)).toContain('solo');
   });
 });
 
