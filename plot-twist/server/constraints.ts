@@ -142,7 +142,7 @@ export const PURCHASE_CUES: readonly Cue[] = [
   // "spend" is money only with money words: "spend some cash", never "spend 3 minutes" or "spend 30 seconds"
   // (amounts in ₪ or shekels are caught above).
   {
-    re: /\b(?:spend|spends|spending|spent)\s+(?:(?:a\s+(?:little|bit\s+of|few|couple\s+of)|some|any|your|real|the|all\s+your|no\s+more\s+than|less\s+than|at\s+most|up\s+to)\s+)?(?:money|cash|coins|shekels?|shekalim|nis|ils|allowance|pocket\s+money|savings)\b/i,
+    re: /\b(?:spend|spends|spending|spent)\s+(?:(?:a\s+(?:little|bit\s+of|few|couple\s+of)|some|any|your|real|the|all\s+your|no\s+more\s+than|less\s+than|at\s+most|up\s+to)\s+)?(?:money|cash|coins|(?:a|one)\s+(?:single\s+|spare\s+)?coin|shekels?|shekalim|nis|ils|allowance|pocket\s+money|savings)\b/i,
     skip: notAPurchase,
   },
   { re: /\b(?:rent|rents|renting|rented|hire|hiring|hired)\s+(?:a|an|the)\s+(?:bike|scooter|boat|kayak|pedal\s*boat|car|locker|board)\b/i, skip: notAPurchase },

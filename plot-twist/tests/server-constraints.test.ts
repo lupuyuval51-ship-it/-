@@ -106,6 +106,7 @@ describe('free budget', () => {
     'Visit the museum and find the oldest object.',
     'Sit in a café and people-watch for ten minutes.',
     'Spend a few coins on the fortune machine.',
+    'Spend a coin on the fortune machine.',
     'Imagine you are a critic, then buy the smallest pastry you can find.',
   ])('flags %j (QA round 2)', (text) => {
     expect(withText(text, free)).toContain('free-budget');
