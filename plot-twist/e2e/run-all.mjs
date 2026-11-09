@@ -41,6 +41,9 @@ function check(name, ok, detail = '') {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** A toast in the visible stack (the screen-reader announcer repeats its text on its own). */
+const toastIn = (page, re) => page.locator('body > div.pointer-events-none button').filter({ hasText: re });
+
 async function waitFor(url, timeoutMs = 20_000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -297,7 +300,7 @@ async function journeySuite(browser, base) {
     Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true });
   });
   await page.getByRole('button', { name: /^share$/i }).click();
-  await page.getByText(/copied the episode summary/i).waitFor({ timeout: 5000 }).then(
+  await toastIn(page, /copied the episode summary/i).waitFor({ timeout: 5000 }).then(
     () => check('share falls back to clipboard copy', true),
     () => check('share falls back to clipboard copy', false),
   );
@@ -616,7 +619,7 @@ async function resilienceSuite(browser, base) {
     await setVisibility(page, 'hidden');
     await page.clock.fastForward('03:00:00');
     await setVisibility(page, 'visible');
-    await page.getByText(/welcome back — we paused the clock/i).waitFor({ timeout: 5000 }).then(
+    await toastIn(page, /welcome back — we paused the clock/i).waitFor({ timeout: 5000 }).then(
       () => check('back after 3 h in the background: "welcome back" and the clock is paused', true),
       () => check('back after 3 h in the background: "welcome back" and the clock is paused', false),
     );
@@ -642,7 +645,7 @@ async function resilienceSuite(browser, base) {
     await setVisibility(play, 'hidden');
     await ctx.clock.fastForward('03:00:00');
     await setVisibility(play, 'visible');
-    await play.getByText(/welcome back — we paused the clock/i).waitFor({ timeout: 5000 }).then(
+    await toastIn(play, /welcome back — we paused the clock/i).waitFor({ timeout: 5000 }).then(
       () => check('a second open tab does not count as watching the episode', true),
       () => check('a second open tab does not count as watching the episode', false),
     );
