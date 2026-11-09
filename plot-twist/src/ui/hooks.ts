@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { entryState, historyMove, isSheetOpen, pushEntry, sheetClosed, sheetOpened } from './router.ts';
+import { entryState, forgetSteps, historyMove, historyStep, isSheetOpen, pushEntry, sheetClosed, sheetOpened } from './router.ts';
 
 /** Re-renders every `intervalMs` while enabled; returns the current time. */
 export function useNow(intervalMs = 1000, enabled = true): number {
@@ -108,7 +108,7 @@ export function pushSheetEntry(key: string): void {
 
 /** Call when the sheet closes any other way (X, Escape, backdrop), so the entry doesn't linger. */
 export function dropSheetEntry(key: string): void {
-  if (sheetOnTop(key)) window.history.back();
+  if (sheetOnTop(key)) historyStep('back');
 }
 
 /** Closes the sheet when Back pops its entry. (It also registers the sheet as open: see router.ts.) */
@@ -163,7 +163,9 @@ export function useSheetHistory(open: boolean, key: string | undefined, onClose:
  * discarded tab), or Forward after it was closed. Nothing shows for it, so the next Back would
  * seem to do nothing. Such an entry is stepped over, at startup and whenever history lands on one,
  * in the direction the user was going: Forward carries on forward (back if there is nothing
- * beyond it), anything else steps back.
+ * beyond it), anything else steps back. A step that carries on the move that landed there counts
+ * as that move (the user's, when it was theirs); the step at startup and the way back from a
+ * Forward with nothing beyond are the app's own.
  * Install once, before the app renders (after the history index). Returns the uninstall function.
  */
 export function installSheetHistoryGuard(): () => void {
@@ -176,11 +178,14 @@ export function installSheetHistoryGuard(): () => void {
     if (!key) return;
     if (onPop && historyMove() === 'forward') {
       const at = entryState()?.idx;
-      window.history.forward();
+      historyStep('forward', { carryOn: true });
       window.setTimeout(() => {
-        if (entryState()?.idx === at && stale() === key) window.history.back();
+        if (entryState()?.idx !== at || stale() !== key) return;
+        // Nothing beyond it: the step forward went nowhere.
+        forgetSteps();
+        historyStep('back');
       }, 400);
-    } else window.history.back();
+    } else historyStep('back', { carryOn: onPop });
   };
   skip(false);
   const onPop = () => skip(true);

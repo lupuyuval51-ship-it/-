@@ -36,6 +36,7 @@ import { dealCurated, samePrefs } from './deal.ts';
 import {
   AI_BLOCK_KEY,
   clearGenBeat,
+  GEN_KEY,
   mergeStates,
   ownedElsewhere,
   parseAiBlock,
@@ -283,8 +284,8 @@ function settleWriting(p: PersistedState, note: string): PersistedState {
 
 interface Boot {
   state: State;
-  /** updatedAt of the stored copy this tab started from. */
-  stamp: number | null;
+  /** The stored copy this tab started from, exactly as stored. */
+  raw: string | null;
   /** True when booting changed the state (it must be written). */
   dirty: boolean;
   startupToast: string | null;
@@ -293,7 +294,7 @@ interface Boot {
 function bootState(): Boot {
   const storage = getBrowserStorage();
   const loaded = loadState(storage);
-  const stamp = loaded.status === 'loaded' || loaded.status === 'repaired' ? loaded.state.updatedAt : null;
+  const raw = readRaw(storage);
   let p = loaded.state;
   let startupToast: string | null = null;
   // A pause the AI Director asked for in another tab (or before a reload) still holds.
@@ -323,7 +324,7 @@ function bootState(): Boot {
       aiBlockedUntil: block?.until ?? 0,
       aiBlockReason: block?.reason ?? null,
     },
-    stamp,
+    raw,
     dirty: p !== loaded.state,
     startupToast,
   };
@@ -385,6 +386,15 @@ function writingFor(draw: Draw | null, g: { key: string; drawId: string; slot: n
 
 /** How long a takeover claim must stand before this tab writes the envelope. */
 const CLAIM_SETTLE_MS = 450;
+/** What a takeover claim's token starts with (a generation's own beat has another). */
+const CLAIM_ID = 'claim';
+
+/**
+ * How long a new generation waits before its (paid) request goes out. Tabs that draw at the same
+ * moment each save their own draw first; one of those draws is the one that stays, and by then
+ * every tab has heard which: only the tab whose draw stayed asks.
+ */
+const SETTLE_BEFORE_ASK_MS = 80;
 
 /** Just past the server's hold on a passing provider trouble (server/status.ts ERROR_TTL_MS). */
 const SERVER_HOLD_RECHECK_MS = 31_000;
@@ -406,8 +416,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const dirty = useRef(boot.current.dirty);
   /** When this tab last changed something (decides merges). */
   const changedAt = useRef(boot.current.dirty ? Date.now() : 0);
-  /** updatedAt of the stored copy this tab last read or wrote. */
-  const knownStamp = useRef<number | null>(boot.current.stamp);
+  /**
+   * The stored copy this tab last read or wrote, exactly — not just its time: two tabs that save in
+   * the same millisecond write the same `updatedAt`, and each would take the other's copy for its
+   * own (never adopting it, and later writing over it without a merge).
+   */
+  const knownRaw = useRef<string | null>(boot.current.raw);
   const lastSaveIssue = useRef<StorageIssue>(null);
   const drafts = useRef(new Set<() => void>());
   const gen = useRef<GenTarget | null>(null);
@@ -459,8 +473,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const storage = getBrowserStorage();
     let p = latest.current;
     const raw = readRaw(storage);
-    const stamp = storedStamp(raw);
-    if (raw !== null && stamp !== null && stamp !== knownStamp.current) {
+    if (raw !== null && raw !== knownRaw.current && storedStamp(raw) !== null) {
       // Someone else wrote since we last looked: merge instead of overwriting.
       try {
         const theirs = sanitizeState(JSON.parse(raw)).state;
@@ -474,7 +487,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const result = saveState(p, storage, now);
     const issue: StorageIssue = result.ok ? null : result.reason === 'quota' ? 'quota' : 'unavailable';
     if (result.ok) {
-      knownStamp.current = now;
+      knownRaw.current = readRaw(storage);
       dirty.current = false;
     }
     dispatch({ type: 'storage', writable: result.ok, issue });
@@ -492,8 +505,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /** Takes in a state written by another tab (merging if this tab has unsaved changes). */
   const receive = useCallback(
     (raw: string) => {
-      const stamp = storedStamp(raw);
-      if (stamp === null || stamp === knownStamp.current) return;
+      if (raw === knownRaw.current || storedStamp(raw) === null) return;
       let theirs: PersistedState;
       try {
         theirs = sanitizeState(JSON.parse(raw)).state;
@@ -501,7 +513,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return;
       }
       const next = dirty.current ? mergeStates(latest.current, theirs, changedAt.current) : theirs;
-      knownStamp.current = stamp;
+      knownRaw.current = raw;
       // A generation for an envelope that is no longer waiting on this tab is wasted work. One that
       // another tab carried into its re-deal (same scene) is still wanted: it goes on, into that draw.
       const g = gen.current;
@@ -582,6 +594,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // Both take that one (and only the losing tab's work stops).
         const raw = readRaw(getBrowserStorage()) ?? e.newValue;
         if (typeof raw === 'string') receive(raw);
+      }
+      if (e.key === GEN_KEY) {
+        // This tab is writing an envelope of the draw on the table, and its beat just went (a tab
+        // that lost a simultaneous draw cleared a beat it had written last), or another tab is
+        // claiming that envelope as orphaned: it isn't. Say so at once, before anyone pays for it
+        // again. Only a claim is answered, never another generation's beat (two tabs writing at
+        // once would answer each other forever), and a beat naming another draw is another tab's
+        // re-deal on its way: left alone.
+        const g = gen.current;
+        if (g && writingFor(latest.current.draw, g)) {
+          const beat = readGenBeat(getBrowserStorage());
+          if (!beat || (beat.token.startsWith(`${CLAIM_ID}-`) && beat.drawId === g.drawId && beat.slot === g.slot)) {
+            writeGenBeat(getBrowserStorage(), { drawId: g.drawId, slot: g.slot, owner: TAB_ID, token: g.token, at: Date.now() });
+          }
+        }
       }
       if (e.key === AI_BLOCK_KEY) {
         // Another tab was asked to pause AI envelopes: so is this one.
@@ -671,19 +698,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id);
   }, [state.aiBlockedUntil]);
 
-  // The server holds a passing provider trouble (Busy, Unstable, unreachable) for a short while
-  // (ERROR_TTL_MS, 30 s): look again as soon as that hold is over, not on the next minute's poll.
-  const serverState = state.serverDirector.state;
-  useEffect(() => {
-    if (serverState !== 'rate_limited' && serverState !== 'degraded' && serverState !== 'unreachable') return;
-    const id = window.setTimeout(() => {
-      if (document.visibilityState === 'visible') refreshDirectorRef.current(false);
-    }, SERVER_HOLD_RECHECK_MS);
-    return () => window.clearTimeout(id);
-  }, [serverState, state.serverDirector.checkedAt]);
-
   // ── AI Director status ──
+  /** A check came due while this tab was hidden: it runs as soon as the tab is shown again. */
+  const checkMissed = useRef(false);
+  /** When this tab last asked for the status. */
+  const lastAsked = useRef(0);
   const refreshDirector = useCallback((force = false) => {
+    checkMissed.current = false;
+    lastAsked.current = Date.now();
     const ctl = new AbortController();
     const done = fetchDirectorStatus(ctl.signal, force)
       .then((status) => {
@@ -695,19 +717,43 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
   const refreshDirectorRef = useRef(refreshDirector);
   refreshDirectorRef.current = refreshDirector;
+  /** A check that is due now: hidden tabs don't ask, they ask once they are shown again. */
+  const checkWhenShown = useCallback(() => {
+    if (document.visibilityState === 'visible') refreshDirectorRef.current(false);
+    else checkMissed.current = true;
+  }, []);
   useEffect(() => {
     const { ctl } = refreshDirector();
-    const id = window.setInterval(() => {
-      if (document.visibilityState === 'visible') refreshDirector();
-    }, 60_000);
-    const onFocus = () => refreshDirector();
+    const id = window.setInterval(checkWhenShown, 60_000);
+    // Shown again without a window focus event (a phone's screen turned back on, a tab restored):
+    // the check it missed meanwhile runs now. (Focus right after that asks nothing more.)
+    const onShown = () => {
+      if (checkMissed.current && document.visibilityState === 'visible') refreshDirector();
+    };
+    const onFocus = () => {
+      if (Date.now() - lastAsked.current >= 2_000) refreshDirector();
+    };
     window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onShown);
+    window.addEventListener('pageshow', onShown);
     return () => {
       ctl.abort();
       window.clearInterval(id);
       window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onShown);
+      window.removeEventListener('pageshow', onShown);
     };
-  }, [refreshDirector]);
+  }, [refreshDirector, checkWhenShown]);
+
+  // The server holds a passing provider trouble (Busy, Unstable, unreachable) for a short while
+  // (ERROR_TTL_MS, 30 s): look again as soon as that hold is over, not on the next minute's poll
+  // (in a hidden tab: as soon as it is shown again).
+  const serverState = state.serverDirector.state;
+  useEffect(() => {
+    if (serverState !== 'rate_limited' && serverState !== 'degraded' && serverState !== 'unreachable') return;
+    const id = window.setTimeout(checkWhenShown, SERVER_HOLD_RECHECK_MS);
+    return () => window.clearTimeout(id);
+  }, [serverState, state.serverDirector.checkedAt, checkWhenShown]);
 
   // ── motion preference → <html data-motion> ──
   useEffect(() => {
@@ -748,19 +794,48 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const envelopes = p.draw.envelopes.map((e) => (e.slot === target.slot ? { ...e, ...patch } : e));
           return { ...p, draw: markShown({ ...p.draw, envelopes }, patch.source === 'curated' ? patch.adventure : null) };
         });
+      /**
+       * Takes in what another tab stored that this tab hasn't heard of yet (its storage event is
+       * on its way). A draw that replaced this envelope's draw stops this generation (aborted): its
+       * outcome must not be written over the newer draw. One that carried the envelope on retargets it.
+       */
+      const catchUp = () => {
+        const raw = readRaw(getBrowserStorage());
+        if (raw !== null) receive(raw);
+        if (ctl.signal.aborted) throw new DOMException('Another draw replaced this one.', 'AbortError');
+      };
 
-      requestEpisode(
-        {
-          prefs: draw.prefs,
-          detail: detail || undefined,
-          localHour: new Date().getHours(),
-          avoidTitles: [...others.map((a) => a.title), ...recent],
-          avoidKinds: others.map((a) => a.kind),
-        },
-        { signal: ctl.signal, onEvent: (event) => dispatch({ type: 'generationEvent', drawId: target.drawId, event }) },
-      )
+      new Promise<void>((resolve, reject) => {
+        const settle = window.setTimeout(resolve, SETTLE_BEFORE_ASK_MS);
+        ctl.signal.addEventListener(
+          'abort',
+          () => {
+            window.clearTimeout(settle);
+            reject(new DOMException('Aborted', 'AbortError'));
+          },
+          { once: true },
+        );
+      })
+        .then(() => {
+          catchUp();
+          return requestEpisode(
+            {
+              prefs: draw.prefs,
+              detail: detail || undefined,
+              localHour: new Date().getHours(),
+              avoidTitles: [...others.map((a) => a.title), ...recent],
+              avoidKinds: others.map((a) => a.kind),
+            },
+            { signal: ctl.signal, onEvent: (event) => dispatch({ type: 'generationEvent', drawId: target.drawId, event }) },
+          );
+        })
         .then((adventure) => {
           if (ctl.signal.aborted) return;
+          try {
+            catchUp();
+          } catch {
+            return;
+          }
           setEnvelope({ status: 'ready', source: 'ai', adventure, opened: false, note: 'Written for you by the AI Director' });
           refreshDirector(false);
         })
@@ -781,6 +856,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             const reasonNow = aiBlockReason.current ?? why;
             writeAiBlock(getBrowserStorage(), { until: aiBlockedUntil.current, reason: reasonNow });
             dispatch({ type: 'aiBlocked', until: aiBlockedUntil.current, reason: reasonNow });
+          }
+          try {
+            catchUp();
+          } catch {
+            return;
           }
           const current = latest.current.draw;
           const fb = current && current.id === target.drawId ? fallbackFor(current, latest.current.completed) : null;
@@ -803,7 +883,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           dispatch({ type: 'endGeneration', drawId: target.drawId, slot: target.slot });
         });
     },
-    [update, refreshDirector, flush],
+    [update, refreshDirector, flush, receive],
   );
 
   useEffect(() => () => gen.current?.ctl.abort(), []);
@@ -832,7 +912,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     // Claim it first. Two open tabs that find it orphaned at once both claim; the claim written
     // last is the one both read back, so exactly one of them writes the envelope.
-    const claim = makeId('claim');
+    const claim = makeId(CLAIM_ID);
     writeGenBeat(storage, { drawId: draw.id, slot: env.slot, owner: TAB_ID, token: claim, at: Date.now() });
     const id = window.setTimeout(() => {
       const beat = readGenBeat(getBrowserStorage());
@@ -885,7 +965,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (carry) envelopes.push({ ...carry, slot: aiSlot });
       else if (aiOn) envelopes.push({ slot: aiSlot, status: 'writing', source: 'ai', adventure: null, opened: false, note: 'Written for you', genKey: makeId('gen') });
       const draw: Draw = { id: makeId('draw'), createdAt: Date.now(), prefs, seed, envelopes, shownIds };
-      if (detail && (aiOn || carry)) draw.detail = detail;
+      // Kept with every draw, even one dealt without an AI envelope (AI paused, busy or offline
+      // just then): "Draw again" asks for the same thing once the AI Director can write again.
+      if (detail) draw.detail = detail;
       dispatch({ type: 'match', match });
       const keepWriting = Boolean(carry && writingHere && g);
       if (g && !keepWriting) {

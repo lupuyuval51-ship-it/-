@@ -73,9 +73,49 @@ let lastIdx = 0;
 let lastMove: HistoryMove = null;
 /** The URL of the entry the app was last on: an entry the browser makes (a link, a typed address) sits on top of it. */
 let lastHash = '#/';
+/**
+ * The user made the move that reached the current entry (Back, Forward, a link), or the app carried
+ * one of theirs on (past a closed sheet's entry, past a screen with nothing to show) — not a step
+ * the app took itself (closing a sheet, Save & exit, a "back to" link, stepping over a stale entry
+ * at startup). Only a user's Back carries on back past a screen with nothing to show.
+ */
+let movedByUser = false;
 
 export function historyMove(): HistoryMove {
   return lastMove;
+}
+
+// ── The app's own history steps ───────────────────────────────────────
+
+type Direction = 'back' | 'forward';
+/** Steps the app took whose popstate has not come yet, oldest first. */
+const pendingSteps: { direction: Direction; byUser: boolean; until: number }[] = [];
+/** Longer than any step takes to arrive: one that hasn't by then went nowhere. */
+const STEP_ARRIVAL_MS = 1500;
+
+/**
+ * A step back or forward the app takes itself. `carryOn`: it carries on the move that reached the
+ * current entry (in the same direction), so it counts as the user's when that move was.
+ */
+export function historyStep(direction: Direction, opts: { carryOn?: boolean } = {}): void {
+  pendingSteps.push({ direction, byUser: Boolean(opts.carryOn) && movedByUser, until: Date.now() + STEP_ARRIVAL_MS });
+  if (direction === 'back') window.history.back();
+  else window.history.forward();
+}
+
+/** The app's steps that are still on their way went nowhere (nothing that way): none will arrive. */
+export function forgetSteps(): void {
+  pendingSteps.length = 0;
+}
+
+/** The app's step this history move is, if it is one. Steps the other way, or too old, went nowhere. */
+function takeStep(direction: Direction): { byUser: boolean } | null {
+  const now = Date.now();
+  while (pendingSteps.length > 0) {
+    const step = pendingSteps.shift()!;
+    if (step.direction === direction && step.until >= now) return step;
+  }
+  return null;
 }
 
 /** The entry the app is about to push: one past the current one. */
@@ -88,7 +128,7 @@ function landed(idx: number): void {
   lastIdx = idx;
   lastMove = 'new';
   lastHash = currentHash();
-  forwardFrom = null;
+  movedByUser = false;
   settled();
 }
 
@@ -177,16 +217,19 @@ export function installHistoryIndex(): () => void {
     lastIdx += 1;
     lastMove = 'new';
     lastHash = here;
+    movedByUser = true;
     window.history.replaceState({ ...(s ?? {}), ...(from ? { from } : {}), idx: lastIdx }, '');
     return true;
   };
   const onPop = () => {
     settled();
-    // A step forward that reached another screen was no bounce.
-    if (forwardFrom && forwardFrom.hash !== currentHash()) forwardFrom = null;
     if (!stampNew()) {
       const i = idxOf(entryState())!;
-      lastMove = i > lastIdx ? 'forward' : i < lastIdx ? 'back' : lastMove;
+      const direction: Direction | null = i > lastIdx ? 'forward' : i < lastIdx ? 'back' : null;
+      if (direction) {
+        lastMove = direction;
+        movedByUser = takeStep(direction)?.byUser ?? true;
+      }
       lastIdx = i;
       lastHash = currentHash();
     }
@@ -240,7 +283,7 @@ export function cameFrom(route: Route): boolean {
 
 /** In-app "back to" links: a step back when that screen is the entry below, so history doesn't grow. */
 export function goBackTo(route: Route): void {
-  if (cameFrom(route)) window.history.back();
+  if (cameFrom(route)) historyStep('back');
   else navigate(route);
 }
 
@@ -248,16 +291,12 @@ export function goBackTo(route: Route): void {
 const STEP_FALLBACK_MS = 400;
 let leaving: { idx: number | null; hash: string } | null = null;
 let stuckTimer = 0;
-/**
- * The entry leaveFor last carried on forward from. History coming back to it is a bounce (nothing
- * alive beyond it: the sheet guard stepped back), not the user pressing Back.
- */
-let forwardFrom: { idx: number | null; hash: string } | null = null;
 
 /**
  * Leaves a screen that has nothing to show (its episode or draw is gone) without leaving a dead
  * entry behind, where Back or Forward would only land on it to be sent on again:
- * - just reached by Forward or Back (`arrived`): carry on the same way, to where the user was heading;
+ * - just reached by the user's Forward or Back (`arrived`): carry on the same way, to where they
+ *   were heading;
  * - the entry below is `target` (or `stepBack` says the entry below leaves too): step back;
  * - otherwise: this entry becomes `target`.
  * A step with nowhere to go falls through to the next way. Calling it again for the same entry
@@ -274,44 +313,35 @@ export function leaveFor(target: Route, opts: { arrived?: boolean; stepBack?: bo
   const here = { idx: idxOf(state), hash: currentHash() };
   if (leaving && leaving.idx === here.idx && leaving.hash === here.hash) return;
   const stillHere = () => currentHash() === here.hash && idxOf(entryState()) === here.idx;
-  const thenIfStuck = (next: () => void) => {
+  const replace = () => navigate(target, { replace: true });
+  const step = (direction: Direction, carryOn: boolean, ifStuck: () => void) => {
+    leaving = here;
+    historyStep(direction, { carryOn });
     window.clearTimeout(stuckTimer);
     stuckTimer = window.setTimeout(() => {
       if (!stillHere()) return;
       leaving = null;
-      next();
+      forgetSteps();
+      ifStuck();
     }, STEP_FALLBACK_MS);
   };
-  const replace = () => navigate(target, { replace: true });
   if (state?.sheet) {
     if (!isSheetOpen(state.sheet)) return;
-    leaving = here;
-    window.history.back();
-    thenIfStuck(replace);
+    step('back', false, replace);
     return;
   }
-  const bounced = forwardFrom !== null && forwardFrom.idx === here.idx && forwardFrom.hash === here.hash;
-  forwardFrom = null;
-  leaving = here;
   const backOrReplace = () => {
-    if (opts.stepBack || cameFrom(target)) {
-      leaving = here;
-      window.history.back();
-      thenIfStuck(replace);
-    } else replace();
+    if (opts.stepBack || cameFrom(target)) step('back', false, replace);
+    else replace();
   };
-  if (opts.arrived && lastMove === 'forward') {
-    forwardFrom = here;
-    window.history.forward();
-    thenIfStuck(backOrReplace);
-  } else if (opts.arrived && lastMove === 'back' && !bounced) {
-    // Reached by Back: carry on back past it, as if it weren't there. (Becoming its target here
-    // would show the screen the user just pressed Back on — My Series above a removed finale —
-    // a second time.) With nothing below, it becomes its target. Not after a bounce: the user was
-    // going forward, and there was nothing alive beyond.
-    leaving = here;
-    window.history.back();
-    thenIfStuck(replace);
+  if (opts.arrived && lastMove === 'forward') step('forward', true, backOrReplace);
+  else if (opts.arrived && lastMove === 'back' && movedByUser) {
+    // The user's Back: carry on back past it, as if it weren't there. (Becoming its target here
+    // would show the screen they just pressed Back on — My Series above a removed finale — a
+    // second time.) With nothing below, it becomes its target. Not after a step the app took
+    // itself (Save & exit onto the envelopes it used up, the sheet guard's step at startup, the
+    // way back from a Forward that found nothing alive beyond): the user wasn't heading back.
+    step('back', true, replace);
   } else backOrReplace();
 }
 

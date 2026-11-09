@@ -22,6 +22,8 @@
  *  11. round6 (Forward onto emptied screens, bookmarked episodes, the discard question, focus when
  *      another tab takes a control, poster tiles, AI detail on Draw again, stalled AI connections,
  *      simultaneous draws, the dock's fade, the header at very large text and with 100 episodes)
+ *  12. round7 (the app's own history steps, Draw again after a paused AI, tabs drawing at the same
+ *      moment, a hidden tab's missed status check, the header at 350–400% text)
  */
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -31,6 +33,7 @@ import { a11yRound3Suite } from './a11ySuite.mjs';
 import { round4Suite } from './round4Suite.mjs';
 import { round5Suite } from './round5Suite.mjs';
 import { round6Suite } from './round6Suite.mjs';
+import { round7Suite } from './round7Suite.mjs';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
@@ -861,6 +864,8 @@ async function main() {
       round5: () => round5Suite(browser, { base: 'http://127.0.0.1:8790/', aiBase: 'http://127.0.0.1:8791/', slowAiBase: 'http://127.0.0.1:8793/' }, check),
       round6: () =>
         round6Suite(browser, { base: 'http://127.0.0.1:8790/', aiBase: 'http://127.0.0.1:8791/', slowAiBase: 'http://127.0.0.1:8793/', limitedAiBase: 'http://127.0.0.1:8794/' }, check),
+      round7: () =>
+        round7Suite(browser, { base: 'http://127.0.0.1:8790/', aiBase: 'http://127.0.0.1:8791/', slowAiBase: 'http://127.0.0.1:8793/', limitedAiBase: 'http://127.0.0.1:8794/' }, check),
     };
     for (const [name, run] of Object.entries(suites)) {
       if (only && only !== name) continue;

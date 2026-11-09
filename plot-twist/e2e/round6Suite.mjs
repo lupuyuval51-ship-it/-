@@ -416,6 +416,10 @@ export async function round6Suite(browser, { base, aiBase, slowAiBase, limitedAi
     await onlinePill(page).waitFor({ timeout: 15000 });
     await draw(page);
     await page.locator('[data-writing]').first().waitFor({ timeout: 5000 });
+    // The request goes out a moment after the draw (80 ms, while tabs that drew at the same time
+    // settle which draw stays): the silence is counted from there.
+    await page.clock.runFor(100);
+    await sleep(300);
     await page.clock.fastForward(30_000);
     await sleep(300);
     const stillWriting = await page.locator('[data-writing]').count();

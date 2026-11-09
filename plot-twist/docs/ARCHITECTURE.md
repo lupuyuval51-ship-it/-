@@ -168,8 +168,11 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
   one of the two writes stayed, and both tabs take that one.
 - Every local change stamps the sections it touched (`stamps.prefs`, `.draw`,
   `.run`, `.completed`, `.series`, `.settings`) with the **change** time.
-- Before writing, the store compares the stored `updatedAt` with the one it last
-  read or wrote. If someone else wrote in between, `mergeStates` combines both:
+- Before writing, the store compares what is stored with the copy it last read or
+  wrote — the exact stored text, not just its `updatedAt` (two tabs that save in
+  the same millisecond write the same `updatedAt`, and each would take the
+  other's copy for its own). If someone else wrote in between, `mergeStates`
+  combines both:
   - each section comes from whichever side changed it last (stamp against stamp),
     so edits to different sections in two tabs both survive;
   - completed episodes are a **union by id** (never lost), and for an episode in
@@ -181,9 +184,17 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
 - The AI envelope is written by one tab at a time — each one is a paid request:
   - The writing tab keeps a heartbeat (`plot-twist:v1:gen`, stale after 9 s)
     with a token of its own, so a generation that ends late (an aborted one, for
-    an old draw) never clears the beat of the next one.
+    an old draw) never clears the beat of the next one. If its beat goes anyway
+    (a tab that lost a simultaneous draw had written the beat last and clears
+    it) or another tab claims its envelope, it writes the beat again at once.
   - Any fresh beat from another tab means "wait", whatever draw it names: a
     re-deal writes its beat first and saves its draw right after.
+  - A new generation waits 80 ms before its request goes out, then catches up
+    with what is stored: tabs that draw at the same moment each save their own
+    draw, only one of those draws stays, and only the tab whose draw stayed asks
+    (one paid request instead of one per tab). Before writing an outcome it
+    catches up the same way, so an answer for a draw another tab has already
+    replaced is never written over the newer draw.
   - A tab that finds the envelope "writing" with no live beat — at load, or when
     it adopts another tab's draw while open — first writes a claim, waits about
     half a second and reads it back. Two tabs that both found it orphaned both
@@ -196,7 +207,9 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
     there instead of starting over: no second paid request. "Draw again" asks for
     exactly what the envelopes on the table asked for — their scene and their
     detail for the AI (the detail field, which is per tab, may be empty in another
-    tab or after a reload; on load it shows the current draw's detail).
+    tab or after a reload; on load it shows the current draw's detail). Every draw
+    keeps its detail, even one dealt without an AI envelope (AI paused, busy or
+    offline just then), so the next "Draw again" still asks with it.
   - A request whose connection goes silent is given up by the browser
     (`src/ai/client.ts`): nothing at all for 45 s (the server sends an event or a
     `: ping` at least every 15 s), or 20 s past the server's own deadline (sent
@@ -227,17 +240,25 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
   same way, on the `popstate` that announces it.
 - In-app back arrows step back when their screen is the entry below
   (`goBackTo`): going back and forth never piles up history. Save & exit steps
-  back down to Home (or past the envelopes the episode used up); with anything
-  else below (an episode opened from a bookmark), Home takes the episode's
-  place. Resume always puts the episode on top of Home, so Back from it comes
-  back Home.
+  back down to Home (or onto the envelopes the episode used up, which go on to
+  Home themselves); with anything else below (an episode opened from a
+  bookmark), Home takes the episode's place. Resume always puts the episode on
+  top of Home, so Back from it comes back Home.
+- Every history step the app takes itself goes through `historyStep`, which
+  notes it until its `popstate` comes: a move is the user's (Back, Forward, a
+  link) unless it is one of those steps — and a step that carries a move on (past
+  a stale sheet's entry, past a screen with nothing to show) counts as that
+  move. Closing a sheet, Save & exit, a "back to" link, the sheet guard's step at
+  startup and its way back from a Forward with nothing beyond are the app's own.
 - A screen whose data is gone (envelopes already played, an episode that is
   over, an episode removed in another tab) leaves with `leaveFor`, never
-  leaving a dead entry: reached by Forward or Back it carries on the same way
-  (as if it weren't there — but a step back that only bounced off a closed
-  sheet's entry, with nothing alive beyond it, is not the user going back);
-  with its target below, it steps back onto it (Play steps back past the
-  envelopes it used up); otherwise it becomes its target. Such a screen asks again every
+  leaving a dead entry: reached by the user's Forward or Back it carries on the
+  same way (as if it weren't there); with its target below, it steps back onto
+  it (Play steps back past the envelopes it used up); otherwise it becomes its
+  target. Reached by one of the app's own steps (a reload on a sheet's entry
+  over it, Save & exit onto used-up envelopes), it never carries on back: the
+  user wasn't heading there, and on the tab's first entry that would leave the
+  app. Such a screen asks again every
   time history lands on it (`useHistoryLanding`): a step that met a sheet's
   entry with the same URL comes back to the same screen without remounting it.
   On a sheet's entry, the screen's own entry is the one to leave from: a closed

@@ -10,7 +10,7 @@ import { useStore } from '../../state/store.tsx';
 import { ProgressRail } from '../components/Bits.tsx';
 import { formatClock, pad2, useFocusTrap, useInertApp, useNow, useScrollLock } from '../hooks.ts';
 import { IconBolt, IconCheck, IconClose, IconGroup, IconPause, IconPlay, IconSwap } from '../icons.tsx';
-import { cameFrom, leaveFor, navigate, useHistoryLanding } from '../router.ts';
+import { cameFrom, historyStep, leaveFor, navigate, useHistoryLanding } from '../router.ts';
 import { uiAccent } from '../color.ts';
 
 /**
@@ -391,11 +391,13 @@ export function Play() {
 
   const exit = () => {
     saveAndExit();
-    // Back down to the scene when it is the entry below, or past the envelopes this episode used
-    // up (they step back to the scene themselves): Save & exit and Resume never pile up history.
+    // Back down to the scene when it is the entry below, or onto the envelopes this episode used
+    // up (they go on to the scene themselves: a step back onto it when it is below them, else the
+    // scene takes their place — never further back, as the user's own Back would): Save & exit
+    // and Resume never pile up history.
     // Anything else below (the episode was opened from a bookmark): the scene takes the episode's
     // place, so Home is never above the episode and Resume puts the episode back on top of it.
-    if ((cameFrom({ name: 'envelopes' }) && !state.p.draw) || cameFrom({ name: 'scene' })) window.history.back();
+    if ((cameFrom({ name: 'envelopes' }) && !state.p.draw) || cameFrom({ name: 'scene' })) historyStep('back');
     else navigate({ name: 'scene' }, { replace: true });
   };
   const resumeAndFocus = () => {

@@ -20,7 +20,7 @@ import { Sheet } from '../components/Sheet.tsx';
 import { dialogOpen, formatCost, pad2, pushSheetEntry, sheetOnTop, useCloseOnBack, useReducedMotion } from '../hooks.ts';
 import { typographic } from '../../../shared/template.ts';
 import { IconArrowLeft, IconClock, IconCoin, IconGroup, IconHome, IconNote, IconOutside, IconRefresh, IconSolo, IconSparkle } from '../icons.tsx';
-import { entryState, goBackTo, leaveFor, navigate, useHistoryLanding } from '../router.ts';
+import { entryState, goBackTo, historyStep, leaveFor, navigate, useHistoryLanding } from '../router.ts';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const COUNT_WORDS = ['No envelopes', 'One envelope', 'Two envelopes', 'Three envelopes'];
@@ -185,7 +185,7 @@ export function Envelopes() {
   useEffect(() => {
     if (!letterGone) return;
     setOpenSlot(null);
-    if (letterOnTop()) window.history.back();
+    if (letterOnTop()) historyStep('back');
   }, [letterGone]);
   // Back closes the letter: it registers the letter's entry and closes it once that entry is left
   // (not when a sheet stacked above it closes and history lands back on the letter's own entry).
@@ -264,7 +264,7 @@ export function Envelopes() {
 
   const closeLetter = () => {
     setOpenSlot(null);
-    if (letterOnTop()) window.history.back();
+    if (letterOnTop()) historyStep('back');
   };
 
   return (
@@ -384,7 +384,7 @@ export function Envelopes() {
               // The episode takes the letter's history entry (navigate replaces a sheet's entry),
               // so Back from the episode skips the closed letter.
               if (run) navigate({ name: 'play' });
-              else if (letterOnTop()) window.history.back();
+              else if (letterOnTop()) historyStep('back');
             }}
           />
         )}

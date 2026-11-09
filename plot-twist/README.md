@@ -83,7 +83,8 @@ server's own word for it. The status is shared by every visitor, so only provide
 problems change it: after the provider is busy, unreachable or stalls while
 writing, that state holds for 30 seconds even if the Models API still answers,
 and then the next status request or generation request checks again (an open
-page asks again as soon as those 30 seconds are over). One
+page asks again as soon as those 30 seconds are over; a hidden one, as soon as
+it is shown again). One
 visitor's refused or rejected draft is only logged. `GET /api/status?refresh=1`
 re-checks the provider at most every 15 seconds.
 
