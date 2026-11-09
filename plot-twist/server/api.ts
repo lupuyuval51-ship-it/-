@@ -12,11 +12,11 @@ import { BUDGET_OPTIONS, COMPANY_OPTIONS, KINDS, MINUTES_OPTIONS, MOOD_OPTIONS, 
 import { sanitizeInline } from '../shared/template.ts';
 import type { Kind, Prefs } from '../shared/types.ts';
 import { createAnthropicBackend, type Backend } from './backend.ts';
-import { loadDotEnv, readConfig, type ServerConfig } from './config.ts';
+import { loadDotEnv, NETWORK_RATE_FACTOR, readConfig, type ServerConfig } from './config.ts';
 import { deadlineReason, generateEpisode, type GenerateEvent } from './director.ts';
 import type { BriefInput } from './prompt.ts';
-import { RateLimiter } from './rateLimit.ts';
-import { StatusTracker } from './status.ts';
+import { RateLimiter, takeAll } from './rateLimit.ts';
+import { StatusTracker, type DirectorStatus } from './status.ts';
 
 export interface ApiOptions {
   config?: ServerConfig;
@@ -38,6 +38,8 @@ export type ApiHandler = ((req: IncomingMessage, res: ServerResponse) => Promise
 const MAX_BODY_BYTES = 8 * 1024;
 export const MAX_DETAIL_LENGTH = 140;
 export const MAX_AVOID_TITLE_LENGTH = 60;
+/** How long a request waits for a status check before it goes on with the cached status. */
+export const STATUS_WAIT_MS = 10_000;
 
 function sendJson(res: ServerResponse, status: number, body: unknown, extra: Record<string, string> = {}) {
   if (res.headersSent) return;
@@ -183,6 +185,16 @@ export function normalizeIp(raw: string): string | null {
 }
 
 /**
+ * The IPv6 /48 a client key belongs to ("2001:db8:77::/48"), or null for IPv4 and
+ * anything else. A routed /48 (free from tunnel brokers) holds 65,536 /64 clients, so
+ * every /48 also shares one, larger, set of limits. Exported for tests.
+ */
+export function networkOf(key: string): string | null {
+  const m = /^([0-9a-f]{1,4}):([0-9a-f]{1,4}):([0-9a-f]{1,4}):[0-9a-f]{1,4}::\/64$/.exec(key);
+  return m ? `${m[1]}:${m[2]}:${m[3]}::/48` : null;
+}
+
+/**
  * The client a request counts against. Behind trusted proxies, the client is the
  * Nth X-Forwarded-For entry from the RIGHT (N = trusted hops): each proxy appends
  * the address it saw, so entries further left are whatever the client sent and
@@ -235,11 +247,33 @@ export function createApiHandler(opts: ApiOptions = {}): ApiHandler {
   const backend = opts.backend !== undefined ? opts.backend : config.apiKey ? createAnthropicBackend(config) : null;
   const status = new StatusTracker(backend, config.model, now, { misconfigured: !backend && Boolean(config.apiKeyProblem), log });
   const limiter = new RateLimiter(config.rateLimit.max, config.rateLimit.windowMs, now);
+  const networkLimiter = new RateLimiter(config.rateLimit.max * NETWORK_RATE_FACTOR, config.rateLimit.windowMs, now);
   const trustProxy = opts.trustProxy ?? config.trustProxy;
   const identity = { trustProxy, trustedHops: config.trustedHops };
   const origins = { trustProxy, allowedOrigins: config.allowedOrigins };
   let active = 0;
+  /** Open streams per client key and per IPv6 /48. */
   const openStreams = new Map<string, number>();
+  const streamsOf = (key: string | null) => (key ? (openStreams.get(key) ?? 0) : 0);
+  const holdStream = (key: string | null, delta: 1 | -1) => {
+    if (!key) return;
+    const left = streamsOf(key) + delta;
+    if (left > 0) openStreams.set(key, left);
+    else openStreams.delete(key);
+  };
+
+  /** The status after a check if one is due (an expired hold, a stale result), bounded by STATUS_WAIT_MS. */
+  const currentStatus = async (force: boolean): Promise<DirectorStatus> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const fallback = new Promise<DirectorStatus>((resolve) => {
+      timer = setTimeout(() => resolve(status.snapshot()), STATUS_WAIT_MS);
+    });
+    try {
+      return await Promise.race([status.refresh(force), fallback]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
 
   for (const warning of config.warnings) log(warning);
   if (backend) {
@@ -267,11 +301,7 @@ export function createApiHandler(opts: ApiOptions = {}): ApiHandler {
 
     if (url.pathname === '/api/status') {
       if (method !== 'GET' && method !== 'HEAD') return sendJson(res, 405, { error: 'method_not_allowed' }, { allow: 'GET' });
-      const snapshot = await Promise.race([
-        status.refresh(url.searchParams.get('refresh') === '1'),
-        new Promise<ReturnType<StatusTracker['snapshot']>>((r) => setTimeout(() => r(status.snapshot()), 10_000)),
-      ]);
-      return sendJson(res, 200, snapshot);
+      return sendJson(res, 200, await currentStatus(url.searchParams.get('refresh') === '1'));
     }
 
     if (url.pathname === '/api/episodes/generate') {
@@ -291,23 +321,36 @@ export function createApiHandler(opts: ApiOptions = {}): ApiHandler {
       if (!parsed.ok) return sendJson(res, 400, { error: 'invalid_request', message: parsed.error });
 
       if (!backend) return sendJson(res, 503, { error: config.apiKeyProblem ? 'unavailable' : 'not_configured', status: status.snapshot() });
-      const snap = status.snapshot();
+      // Not just the cached snapshot: a provider failure is held for 30 s, and once that has
+      // passed the next request re-checks (as /api/status would) instead of being refused
+      // until someone happens to load the status.
+      const snap = await currentStatus(false);
       if (!snap.canGenerate && snap.state !== 'checking') {
         return sendJson(res, 503, { error: 'unavailable', status: snap });
       }
       // Capacity first, quota second: a request turned away as busy must not use up the caller's quota.
       const key = clientKey(req, identity);
+      const network = networkOf(key);
       if (active >= config.maxConcurrent) return sendJson(res, 503, { error: 'busy' }, { 'retry-after': '20' });
-      if ((openStreams.get(key) ?? 0) >= config.maxStreamsPerClient) {
+      // The last free slot is kept for a client with nothing open yet, so one client (or one /48)
+      // can never hold every slot.
+      if (config.maxConcurrent > 1 && active === config.maxConcurrent - 1 && (streamsOf(key) > 0 || streamsOf(network) > 0)) {
+        return sendJson(res, 503, { error: 'busy' }, { 'retry-after': '20' });
+      }
+      if (streamsOf(key) >= config.maxStreamsPerClient) {
         return sendJson(res, 429, { error: 'too_many_streams', message: 'Finish or cancel the episode being written first.' }, { 'retry-after': '20' });
       }
-      const allowed = limiter.take(key);
+      if (network && streamsOf(network) >= config.maxStreamsPerNetwork) {
+        return sendJson(res, 429, { error: 'too_many_streams', message: 'Too many episodes are being written from your network right now.' }, { 'retry-after': '20' });
+      }
+      const allowed = takeAll(network ? [[limiter, key], [networkLimiter, network]] : [[limiter, key]]);
       if (!allowed.ok) {
         return sendJson(res, 429, { error: 'rate_limited', retryAfterMs: allowed.retryAfterMs }, { 'retry-after': String(Math.ceil(allowed.retryAfterMs / 1000)) });
       }
 
       active++;
-      openStreams.set(key, (openStreams.get(key) ?? 0) + 1);
+      holdStream(key, 1);
+      holdStream(network, 1);
       const controller = new AbortController();
       const onClose = () => {
         if (!res.writableEnded) controller.abort();
@@ -344,9 +387,8 @@ export function createApiHandler(opts: ApiOptions = {}): ApiHandler {
         clearTimeout(backstop);
         res.off('close', onClose);
         active--;
-        const left = (openStreams.get(key) ?? 1) - 1;
-        if (left > 0) openStreams.set(key, left);
-        else openStreams.delete(key);
+        holdStream(key, -1);
+        holdStream(network, -1);
         if (!res.writableEnded) res.end();
       }
       return;

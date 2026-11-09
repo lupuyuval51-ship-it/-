@@ -39,6 +39,14 @@ export interface DirectorDeps {
   attemptTimeoutMs?: number;
   /** Overall budget for the whole generation, repair round included (ms). Default 150 s. */
   deadlineMs?: number;
+  /**
+   * How long the provider may send nothing at all (no response headers, no streamed
+   * event, no ping) before an attempt that runs out of time counts as a stalled
+   * provider — the shared status then shows Unreachable. A slow but active stream that
+   * runs out of time fails only its own request. Default: 30 s, or half the attempt
+   * timeout when that is shorter.
+   */
+  idleTimeoutMs?: number;
   /** Clock for the budget arithmetic (tests). The deadline timers themselves always use real time. */
   now?: () => number;
 }
@@ -47,6 +55,9 @@ export interface DirectorDeps {
 export const EXPECTED_EPISODE_CHARS = 6_500;
 export const DEFAULT_ATTEMPT_TIMEOUT_MS = 120_000;
 export const DEFAULT_DEADLINE_MS = 150_000;
+export const DEFAULT_IDLE_TIMEOUT_MS = 30_000;
+/** A repair round needs at least this much of the budget (or a fifth of it, if smaller), and at least as long as the first draft took. */
+export const MIN_REPAIR_MS = 20_000;
 
 const FRIENDLY: Record<FailureKind, string> = {
   aborted: 'Cancelled.',
@@ -133,6 +144,22 @@ function untilAborted<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
   });
 }
 
+/** One model attempt in flight: its own timer, and when the provider last showed a sign of life. */
+interface AttemptState {
+  n: 1 | 2;
+  startedAt: number;
+  /** Response headers, a streamed event or a ping (or the attempt's start, before any of them). */
+  lastSignAt: number;
+  headers: boolean;
+  timer: AbortSignal;
+  /** What the timer stands for: the attempt cap, or what was left of the overall budget. */
+  limit: 'attempt' | 'deadline';
+}
+
+const secs = (ms: number) => (ms / 1000).toFixed(1);
+/** "150" for whole seconds, "0.2" otherwise (log details). */
+const wholeSecs = (ms: number) => (ms % 1000 === 0 ? String(ms / 1000) : secs(ms));
+
 export async function generateEpisode(
   input: BriefInput,
   deps: DirectorDeps,
@@ -143,29 +170,50 @@ export async function generateEpisode(
   const log = deps.log ?? ((m: string) => console.log(`[plot-twist] ${m}`));
   const attemptTimeoutMs = deps.attemptTimeoutMs ?? DEFAULT_ATTEMPT_TIMEOUT_MS;
   const deadlineMs = deps.deadlineMs ?? DEFAULT_DEADLINE_MS;
+  const idleTimeoutMs = deps.idleTimeoutMs ?? Math.min(DEFAULT_IDLE_TIMEOUT_MS, attemptTimeoutMs / 2);
   const now = deps.now ?? Date.now;
   const started = now();
-  const elapsed = () => ((now() - started) / 1000).toFixed(1);
+  const elapsed = () => secs(now() - started);
   const remaining = () => deadlineMs - (now() - started);
 
   // `signal` aborts when the user leaves (or with a deadline reason from the caller's backstop).
   // The overall deadline bounds everything, each attempt also has its own timer.
   const deadline = AbortSignal.timeout(deadlineMs);
   const overall = AbortSignal.any([signal, deadline]);
-  const timers: { attempt: AbortSignal | null } = { attempt: null };
+  // An object, not a `let`: it is assigned inside `attempt`, where control-flow narrowing cannot see it.
+  const inFlight: { attempt: AttemptState | null } = { attempt: null };
 
   const attempt = async (user: string, n: 1 | 2): Promise<AttemptResult> => {
     let writing = false;
     let lastProgress = 0;
     let titleSent = false;
-    timers.attempt = AbortSignal.timeout(Math.max(1, Math.min(attemptTimeoutMs, remaining())));
-    const attemptSignal = AbortSignal.any([overall, timers.attempt]);
+    const budget = remaining();
+    const startedAt = now();
+    const state: AttemptState = {
+      n,
+      startedAt,
+      lastSignAt: startedAt,
+      headers: false,
+      timer: AbortSignal.timeout(Math.max(1, Math.min(attemptTimeoutMs, budget))),
+      limit: budget <= attemptTimeoutMs ? 'deadline' : 'attempt',
+    };
+    inFlight.attempt = state;
+    const alive = () => {
+      state.lastSignAt = now();
+    };
+    const attemptSignal = AbortSignal.any([overall, state.timer]);
     if (n === 1) emit({ type: 'phase', phase: 'plotting', attempt: n });
     const result = await untilAborted(
       backend.stream(
         { system: SYSTEM_PROMPT, user, schema: AI_EPISODE_SCHEMA as unknown as Record<string, unknown>, effort },
         {
+          onActivity: (what) => {
+            alive();
+            if (what === 'headers') state.headers = true;
+          },
+          onThinking: alive,
           onText: (_delta, snapshot) => {
+            alive();
             if (attemptSignal.aborted) return;
             if (n === 1 && !writing) {
               writing = true;
@@ -197,17 +245,21 @@ export async function generateEpisode(
 
   try {
     const brief = buildUserBrief(input);
+    const firstStarted = now();
     let result = await attempt(brief, 1);
+    const firstMs = now() - firstStarted;
     let repaired = false;
     if (!result.ok && result.kind === 'invalid_output' && result.draft && !overall.aborted) {
       log(`draft rejected (${result.problems.length} problems): ${result.problems.slice(0, 4).join(' | ')}`);
+      // A repair rewrites the whole episode, so it takes about as long as the first draft did:
+      // starting one that the deadline will cut only makes the user wait longer for the fallback.
       const left = remaining();
-      if (left >= Math.min(20_000, deadlineMs / 5)) {
+      if (left >= Math.max(firstMs, Math.min(MIN_REPAIR_MS, deadlineMs / 5))) {
         repaired = true;
         emit({ type: 'phase', phase: 'repairing', attempt: 2 });
         result = await attempt(buildRepairBrief(brief, result.draft, result.problems), 2);
       } else {
-        log(`skipping the repair round: only ${(left / 1000).toFixed(1)}s of the budget left`);
+        log(`skipping the repair round: only ${secs(left)}s of the budget left, and the first draft took ${secs(firstMs)}s`);
       }
     }
     if (result.ok) {
@@ -224,22 +276,33 @@ export async function generateEpisode(
   } catch (err) {
     const c = classifyError(err);
     // The SDK reports every abort as a user abort, so the cause is read from our own signals:
-    // the user leaving is "aborted"; a server-side deadline (overall, per attempt, or the
-    // caller's backstop) is a "timeout" — a stalled provider, never "Cancelled.".
+    // the user leaving is "aborted"; running out of time (the overall budget, the attempt cap,
+    // or the caller's backstop) is a "timeout", never "Cancelled.". The budget is checked
+    // before the attempt timer: the timer of a repair round is sized to what was left of it.
     let kind: FailureKind = c.kind;
     let detail = c.message;
-    if (signal.aborted) {
-      kind = isDeadline(signal.reason) ? 'timeout' : 'aborted';
-      if (kind === 'timeout') detail = 'the server deadline for this request passed';
-    } else if (deadline.aborted) {
+    // Whether the failure says something about the provider (then everyone's status changes)
+    // or only about this request. A timeout is the provider's only if it had gone quiet.
+    let aboutProvider = true;
+    const attemptNow = inFlight.attempt;
+    const silentMs = attemptNow ? now() - attemptNow.lastSignAt : 0;
+    const timedOut = (what: string) => {
       kind = 'timeout';
-      detail = `no complete episode within the ${Math.round(deadlineMs / 1000)}s budget`;
-    } else if (timers.attempt?.aborted) {
-      kind = 'timeout';
-      detail = `one attempt took longer than ${Math.round(attemptTimeoutMs / 1000)}s`;
+      aboutProvider = silentMs >= idleTimeoutMs;
+      const sending = attemptNow?.headers ? 'still streaming' : 'still connecting';
+      detail = `${what}; ${aboutProvider ? `the provider had sent nothing for ${secs(silentMs)}s (stalled)` : `the provider was ${sending} (last sign ${secs(silentMs)}s before), so only this request failed`}`;
+    };
+    if (signal.aborted && !isDeadline(signal.reason)) {
+      kind = 'aborted';
+    } else if (signal.aborted || deadline.aborted || remaining() <= 0 || (attemptNow?.timer.aborted && attemptNow.limit === 'deadline')) {
+      timedOut(`no complete episode within the ${wholeSecs(deadlineMs)}s budget${attemptNow?.n === 2 ? ' (the repair round was cut)' : ''}`);
+    } else if (attemptNow?.timer.aborted) {
+      timedOut(`one attempt took longer than ${wholeSecs(attemptTimeoutMs)}s`);
+    } else if (c.kind === 'timeout') {
+      detail = 'no response headers within the attempt timeout'; // the SDK's own timer: the provider never answered
     }
-    status?.recordFailure(kind);
-    if (kind !== 'aborted') log(`generation error after ${elapsed()}s: ${kind} — ${detail}`);
+    if (aboutProvider) status?.recordFailure(kind);
+    if (kind !== 'aborted') log(`generation error after ${elapsed()}s: ${kind} — ${detail}${aboutProvider ? '' : ' (shared status unchanged)'}`);
     emit({ type: 'error', code: kind, message: FRIENDLY[kind], retryable: kind === 'timeout' || kind === 'aborted' ? true : c.retryable });
     return null;
   }

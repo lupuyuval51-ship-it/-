@@ -2,7 +2,7 @@
  * The model backend: a narrow interface the AI Director depends on, plus the
  * Anthropic SDK implementation. Tests substitute a fake backend.
  */
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic, { type Middleware } from '@anthropic-ai/sdk';
 import type { Effort, ServerConfig } from './config.ts';
 
 export interface StreamRequest {
@@ -17,6 +17,31 @@ export interface StreamHooks {
   onText?: (delta: string, snapshot: string) => void;
   /** Called while the model is thinking (before visible output). */
   onThinking?: () => void;
+  /**
+   * A sign of life from the provider: the response headers arrived ('headers'), or any
+   * bytes of the response stream did ('data' — events and keep-alive pings alike, which
+   * the SDK itself never surfaces). The Director tells a stalled provider from a slow
+   * but active one by these.
+   */
+  onActivity?: (what: 'headers' | 'data') => void;
+}
+
+/** Per-request middleware that reports the response headers and every chunk of the body to `onActivity`. */
+function activityMiddleware(onActivity: NonNullable<StreamHooks['onActivity']>): Middleware {
+  return async (request, next) => {
+    const response = await next(request);
+    onActivity('headers');
+    if (!response.ok || !response.body) return response;
+    const body = response.body.pipeThrough(
+      new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          onActivity('data');
+          controller.enqueue(chunk);
+        },
+      }),
+    );
+    return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
+  };
 }
 
 export interface StreamResult {
@@ -67,7 +92,7 @@ export function createAnthropicBackend(config: ServerConfig): Backend {
         // No SDK retries while the user waits: a retry restarts the whole wait and can double it.
         // The caller's signal bounds the attempt, the response stream included (the SDK's own
         // timeout only covers the wait for response headers).
-        { signal, maxRetries: 0 },
+        { signal, maxRetries: 0, ...(hooks.onActivity ? { middleware: [activityMiddleware(hooks.onActivity)] } : {}) },
       );
       stream.on('text', (delta, snapshot) => hooks.onText?.(delta, snapshot));
       stream.on('thinking', () => hooks.onThinking?.());

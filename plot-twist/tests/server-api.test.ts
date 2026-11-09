@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createServer, request, type IncomingHttpHeaders, type Server } from 'node:http';
-import { clientKey, createApiHandler, MAX_DETAIL_LENGTH, normalizeIp, originAllowed, parseGenerateBody, type ApiHandler, type ApiOptions } from '../server/api.ts';
+import { clientKey, createApiHandler, MAX_DETAIL_LENGTH, networkOf, normalizeIp, originAllowed, parseGenerateBody, type ApiHandler, type ApiOptions } from '../server/api.ts';
 import { createAnthropicBackend, type Backend, type StreamHooks, type StreamResult } from '../server/backend.ts';
 import { readConfig, type ServerConfig } from '../server/config.ts';
+import { ERROR_TTL_MS } from '../server/status.ts';
 import { buildUserBrief } from '../server/prompt.ts';
 import { validateAdventure } from '../shared/validate.ts';
 import { startMockAnthropic, type MockMode } from '../e2e/mockAnthropic.ts';
@@ -36,8 +37,8 @@ async function readSse(res: Response): Promise<{ event: string; data: any }[]> {
 
 const silent = () => {};
 
-async function setup(mode: MockMode, overrides: Partial<ServerConfig> = {}, api: Partial<ApiOptions> = {}) {
-  const mock = await startMockAnthropic({ mode, chunkDelayMs: 0 });
+async function setup(mode: MockMode, overrides: Partial<ServerConfig> = {}, api: Partial<ApiOptions> = {}, chunkDelayMs = 0) {
+  const mock = await startMockAnthropic({ mode, chunkDelayMs });
   const cfg = config({ baseURL: mock.url, maxRetries: 0, ...overrides });
   const logs: string[] = [];
   const handler = createApiHandler({ config: cfg, backend: createAnthropicBackend(cfg), log: (m) => logs.push(m), ...api });
@@ -495,7 +496,8 @@ describe('shared status through the SDK', () => {
 
 describe('a stalled stream through the SDK', () => {
   it('ends at the attempt deadline as a logged timeout, never "Cancelled." (QA repro)', async () => {
-    const env = await setup('stall', { timeoutMs: 300, deadlineMs: 5_000 });
+    // The provider says nothing after message_start, for far longer than half the attempt: a stall.
+    const env = await setup('stall', { timeoutMs: 600, deadlineMs: 5_000 });
     try {
       const started = Date.now();
       const events = await readSse(await generate(env.app.url));
@@ -521,6 +523,200 @@ describe('a stalled stream through the SDK', () => {
       await again.text();
     } finally {
       await env.close();
+    }
+  });
+});
+
+// ── QA round 2: one request's timeout is not an outage ──────────────
+
+describe('timeouts through the SDK (QA round 2)', () => {
+  it('a long but active stream that hits the attempt cap fails that request only (QA repro: slow.mjs)', async () => {
+    // ~18 chunks 40 ms apart (over 700 ms) against a 600 ms attempt cap.
+    const env = await setup('ok', { timeoutMs: 600, deadlineMs: 5_000 }, {}, 40);
+    try {
+      const events = await readSse(await generate(env.app.url));
+      expect(events.some((e) => e.event === 'progress')).toBe(true);
+      expect(events.at(-1)).toMatchObject({ event: 'error', data: { code: 'timeout', retryable: true } });
+      expect(env.logs.join('\n')).toMatch(/one attempt took longer than 0\.6s; the provider was still streaming .*shared status unchanged/);
+      // Everyone else: still Online, and their next envelope is accepted.
+      expect(await statusOf(env.app.url)).toMatchObject({ state: 'online', canGenerate: true, lastFailureAt: null });
+      const next = await generate(env.app.url, { prefs: { ...prefs, setting: 'home' } });
+      expect(next.status).toBe(200);
+      await next.body?.cancel();
+    } finally {
+      await env.close();
+    }
+  });
+
+  it('a repair round cut by the deadline fails that request only (QA repro: repairdeadline.mjs)', async () => {
+    // The first draft (invalid) streams in ~0.4 s; the repair streams 10× slower and is still writing at the 2 s deadline.
+    const env = await setup('invalid-then-slow', { timeoutMs: 10_000, deadlineMs: 2_000 }, {}, 20);
+    try {
+      const events = await readSse(await generate(env.app.url));
+      expect(events.some((e) => e.event === 'phase' && e.data.phase === 'repairing')).toBe(true);
+      expect(events.at(-1)).toMatchObject({ event: 'error', data: { code: 'timeout' } });
+      expect(env.logs.join('\n')).toMatch(/within the 2s budget \(the repair round was cut\); the provider was still streaming/);
+      expect(env.logs.join('\n')).not.toMatch(/one attempt took longer/);
+      expect(await statusOf(env.app.url)).toMatchObject({ state: 'online', canGenerate: true, lastFailureAt: null });
+      const next = await generate(env.app.url);
+      expect(next.status).toBe(200);
+      await next.body?.cancel();
+    } finally {
+      await env.close();
+    }
+  });
+
+  it('no response headers at all is the provider failing: Unreachable', async () => {
+    const env = await setup('no-headers', { timeoutMs: 400, deadlineMs: 5_000 });
+    try {
+      const events = await readSse(await generate(env.app.url));
+      expect(events.at(-1)).toMatchObject({ event: 'error', data: { code: 'timeout', retryable: true } });
+      expect(await statusOf(env.app.url)).toMatchObject({ state: 'unreachable', canGenerate: false });
+    } finally {
+      await env.close();
+    }
+  });
+});
+
+// ── QA round 2: the 30 s hold ends without a status request ──────────
+
+describe('the hold after a provider failure (QA round 2)', () => {
+  it('POSTs are accepted again once it has passed, without anyone loading /api/status (QA repro: afterhold.mjs)', async () => {
+    const clock = { t: 1_000_000 };
+    const env = await setup('stall', { timeoutMs: 600, deadlineMs: 5_000 }, { now: () => clock.t });
+    try {
+      await readSse(await generate(env.app.url)); // one stall: Unreachable for everyone
+      expect(env.handler.status.snapshot().state).toBe('unreachable');
+      clock.t += 10_000;
+      const during = await generate(env.app.url);
+      expect(during.status).toBe(503);
+      expect((await during.json()).error).toBe('unavailable');
+      expect(env.verifies()).toBe(1); // a POST inside the hold does not call the provider
+      clock.t += ERROR_TTL_MS;
+      const after = await generate(env.app.url); // no GET /api/status in between
+      expect(after.status).toBe(200);
+      await after.body?.cancel();
+      expect(env.verifies()).toBe(2); // the expired hold was re-checked once, by the POST
+    } finally {
+      await env.close();
+    }
+  });
+
+  it('a busy hold ends the same way', async () => {
+    const clock = { t: 1_000_000 };
+    const env = await gatedApp({}, { now: () => clock.t });
+    try {
+      env.handler.status.recordFailure('overloaded');
+      expect((await generate(env.url)).status).toBe(503);
+      clock.t += ERROR_TTL_MS + 1;
+      const after = await generate(env.url);
+      expect(after.status).toBe(200);
+      env.release();
+      await after.text();
+    } finally {
+      env.close();
+    }
+  });
+});
+
+// ── QA round 2: IPv6 networks ────────────────────────────────────────
+
+describe('IPv6 networks (QA round 2)', () => {
+  const v6 = (n: number, network = '2001:db8:77') => `${network}:${n.toString(16)}::1`; // n-th /64 inside one /48
+
+  it('groups IPv6 clients by /48 as well as by /64', () => {
+    expect(networkOf(normalizeIp(v6(1))!)).toBe('2001:db8:77::/48');
+    expect(networkOf(normalizeIp('2001:db8:77:ffff:1:2:3:4')!)).toBe('2001:db8:77::/48');
+    expect(networkOf(normalizeIp(v6(1, '2001:db8:78'))!)).toBe('2001:db8:78::/48');
+    expect(networkOf(normalizeIp('::ffff:203.0.113.7')!)).toBeNull();
+    expect(networkOf('203.0.113.7')).toBeNull();
+    expect(networkOf('unknown')).toBeNull();
+  });
+
+  it('a /48 shares 4× the per-client rate limit (QA repro: v6rotate.mjs)', async () => {
+    const env = await setup('ok', { rateLimit: { max: 1, windowMs: 60_000 }, trustProxy: true });
+    try {
+      const codes: number[] = [];
+      for (let n = 0; n < 6; n++) {
+        const res = await generate(env.app.url, { prefs }, { 'x-forwarded-for': v6(n) });
+        await res.text();
+        codes.push(res.status);
+      }
+      expect(codes).toEqual([200, 200, 200, 200, 429, 429]);
+      // Other networks are untouched.
+      for (const xff of [v6(0, '2001:db8:78'), '198.51.100.20']) {
+        const res = await generate(env.app.url, { prefs }, { 'x-forwarded-for': xff });
+        await res.text();
+        expect(res.status, xff).toBe(200);
+      }
+    } finally {
+      await env.close();
+    }
+  });
+
+  it('a /48 may hold at most 4 open streams', async () => {
+    const env = await gatedApp({ maxConcurrent: 10, trustProxy: true });
+    try {
+      const open: Response[] = [];
+      const codes: number[] = [];
+      for (let n = 0; n < 6; n++) {
+        const res = await generate(env.url, { prefs }, { 'x-forwarded-for': v6(n) });
+        codes.push(res.status);
+        if (res.status === 200) open.push(res);
+        else expect((await res.json()).error).toBe('too_many_streams');
+      }
+      expect(codes).toEqual([200, 200, 200, 200, 429, 429]);
+      const other = await generate(env.url, { prefs }, { 'x-forwarded-for': '198.51.100.20' });
+      expect(other.status).toBe(200);
+      env.release();
+      await Promise.all([...open, other].map((r) => r.text()));
+    } finally {
+      env.close();
+    }
+  });
+
+  it('one /48 (or one client) can never hold every global slot: the last one is kept for someone new', async () => {
+    const env = await gatedApp({ maxConcurrent: 4, rateLimit: { max: 1, windowMs: 60_000 }, trustProxy: true });
+    try {
+      const open: Response[] = [];
+      const codes: number[] = [];
+      for (let n = 0; n < 6; n++) {
+        const res = await generate(env.url, { prefs }, { 'x-forwarded-for': v6(n) });
+        codes.push(res.status);
+        if (res.status === 200) open.push(res);
+        else expect((await res.json()).error).toBe('busy');
+      }
+      expect(codes).toEqual([200, 200, 200, 503, 503, 503]);
+      const visitor = await generate(env.url, { prefs }, { 'x-forwarded-for': '198.51.100.20' });
+      expect(visitor.status).toBe(200); // the unrelated visitor still gets the last slot
+      open.push(visitor);
+      const full = await generate(env.url, { prefs }, { 'x-forwarded-for': '198.51.100.21' });
+      expect(full.status).toBe(503); // now everything is taken
+      await full.text();
+      env.release();
+      await Promise.all(open.map((r) => r.text()));
+      const later = await generate(env.url, { prefs }, { 'x-forwarded-for': v6(6) });
+      expect(later.status).toBe(200); // busy refusals used none of the /48's quota (4 = 3 used + this one)
+      await later.text();
+    } finally {
+      env.close();
+    }
+  });
+
+  it('a client with a stream open cannot take the last slot either', async () => {
+    const env = await gatedApp({ maxConcurrent: 2, trustProxy: true });
+    try {
+      const a = await generate(env.url, { prefs }, { 'x-forwarded-for': '203.0.113.7' });
+      expect(a.status).toBe(200);
+      const a2 = await generate(env.url, { prefs }, { 'x-forwarded-for': '203.0.113.7' });
+      expect(a2.status).toBe(503);
+      await a2.text();
+      const b = await generate(env.url, { prefs }, { 'x-forwarded-for': '198.51.100.4' });
+      expect(b.status).toBe(200);
+      env.release();
+      await Promise.all([a.text(), b.text()]);
+    } finally {
+      env.close();
     }
   });
 });

@@ -12,14 +12,18 @@ import { mockAiEpisode } from '../tests/fixtures/aiEpisode.ts';
 
 /**
  * - ok / invalid-then-ok / always-invalid / refusal: the Messages API writes (or refuses) an episode
+ * - invalid-then-slow: the first draft is invalid; every later one is valid but streams 10× slower
+ *   (a repair round that is still writing when the deadline comes)
  * - auth: every request is rejected with 401
  * - overloaded / rate-limited / server-error: the Messages API answers 529 / 429 / 500
  * - stall: the Messages API sends message_start, then nothing (until the client gives up)
+ * - no-headers: the Messages API accepts the request and never answers, not even with headers
  * - verify-error / verify-rate-limited: the Models API answers 500 / 429; messages work
  */
 export type MockMode =
   | 'ok'
   | 'invalid-then-ok'
+  | 'invalid-then-slow'
   | 'always-invalid'
   | 'refusal'
   | 'auth'
@@ -27,6 +31,7 @@ export type MockMode =
   | 'rate-limited'
   | 'server-error'
   | 'stall'
+  | 'no-headers'
   | 'verify-error'
   | 'verify-rate-limited';
 
@@ -124,13 +129,16 @@ export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url:
         res.end(failure.body);
         return;
       }
+      if (mode === 'no-headers') return; // the request is read, then nothing: only the client's timers end this
       const minutes = availableMinutes(body);
       const episode = mockAiEpisode(minutes);
       // Like a compliant model: pick a kind the brief did not rule out.
       const avoid = avoidedKinds(body);
       if (avoid.has(episode.kind)) episode.kind = KINDS.find((k) => !avoid.has(k)) ?? episode.kind;
-      const invalid = mode === 'always-invalid' || (mode === 'invalid-then-ok' && messageCalls === 1);
+      const firstCall = messageCalls === 1;
+      const invalid = mode === 'always-invalid' || ((mode === 'invalid-then-ok' || mode === 'invalid-then-slow') && firstCall);
       if (invalid) episode.stage1.minutes = minutes * 3; // breaks the time constraint → triggers repair
+      const chunkDelay = mode === 'invalid-then-slow' && !firstCall ? Math.max(50, delay * 10) : delay;
       const text = JSON.stringify(episode);
       const model = typeof body?.model === 'string' ? body.model : 'claude-opus-5-5';
 
@@ -149,8 +157,9 @@ export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url:
       }
       res.write(sse('content_block_start', { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }));
       for (let i = 0; i < text.length; i += 400) {
+        if (res.destroyed) return; // the client gave up
         res.write(sse('content_block_delta', { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: text.slice(i, i + 400) } }));
-        if (delay) await sleep(delay);
+        if (chunkDelay) await sleep(chunkDelay);
       }
       res.write(sse('content_block_stop', { type: 'content_block_stop', index: 1 }));
       res.write(sse('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: Math.round(text.length / 4) } }));

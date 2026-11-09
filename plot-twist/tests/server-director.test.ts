@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Backend, StreamHooks, StreamRequest, StreamResult } from '../server/backend.ts';
-import { deadlineReason, evaluateDraft, extractStreamingTitle, generateEpisode, type GenerateEvent } from '../server/director.ts';
+import { deadlineReason, evaluateDraft, extractStreamingTitle, generateEpisode, type DirectorDeps, type GenerateEvent } from '../server/director.ts';
 import { parseGenerateBody } from '../server/api.ts';
 import { buildUserBrief, SYSTEM_PROMPT, type BriefInput } from '../server/prompt.ts';
 import { StatusTracker } from '../server/status.ts';
@@ -316,7 +316,7 @@ function stallingBackend(opts: { ignoreSignal?: boolean } = {}): Backend & { abo
   return backend;
 }
 
-async function runStalled(backend: Backend, timing: { attemptTimeoutMs: number; deadlineMs: number }, abortAfter?: { ms: number; reason?: unknown }) {
+async function runStalled(backend: Backend, timing: { attemptTimeoutMs: number; deadlineMs: number; idleTimeoutMs?: number }, abortAfter?: { ms: number; reason?: unknown }) {
   const events: GenerateEvent[] = [];
   const logs: string[] = [];
   const status = new StatusTracker(backend, backend.model, Date.now, { log: () => {} });
@@ -354,8 +354,8 @@ describe('deadlines', () => {
     expect(ms).toBeLessThan(2_000);
   });
 
-  it("treats the caller's deadline reason as a timeout", async () => {
-    const { events, status } = await runStalled(stallingBackend(), { attemptTimeoutMs: 10_000, deadlineMs: 10_000 }, { ms: 40, reason: deadlineReason() });
+  it("treats the caller's deadline reason as a timeout (a stall when the provider was silent)", async () => {
+    const { events, status } = await runStalled(stallingBackend(), { attemptTimeoutMs: 10_000, deadlineMs: 10_000, idleTimeoutMs: 20 }, { ms: 40, reason: deadlineReason() });
     expect(events.at(-1)).toMatchObject({ type: 'error', code: 'timeout' });
     expect(status.state).toBe('unreachable');
   });
@@ -394,6 +394,156 @@ describe('deadlines', () => {
     expect(slow.calls).toBe(1);
     expect(logs.join('\n')).toMatch(/skipping the repair round/);
     expect(events.at(-1)).toMatchObject({ type: 'error', code: 'invalid_output' });
+  });
+});
+
+// ── QA round 2: who a timeout is blamed on ──────────────────────────
+
+/**
+ * Per call: a finished draft, a stream that keeps sending (with headers, like the SDK
+ * middleware reports them) and may go quiet after `silentAfterMs`, or total silence.
+ * Unfinished streams reject like the SDK when aborted.
+ */
+type Script = { text: string } | { streamEveryMs: number; silentAfterMs?: number } | { silent: true };
+
+function scriptedBackend(scripts: Script[]): Backend & { calls: number } {
+  const backend = {
+    provider: 'anthropic' as const,
+    model: 'claude-opus-5-5',
+    calls: 0,
+    stream(_req: StreamRequest, hooks: StreamHooks, signal: AbortSignal): Promise<StreamResult> {
+      const script = scripts[Math.min(backend.calls++, scripts.length - 1)];
+      if ('text' in script) {
+        hooks.onActivity?.('headers');
+        hooks.onText?.(script.text, script.text);
+        return Promise.resolve({ text: script.text, stopReason: 'end_turn', model: 'claude-opus-5-5' });
+      }
+      return new Promise<StreamResult>((_resolve, reject) => {
+        let timer: ReturnType<typeof setInterval> | undefined;
+        if ('streamEveryMs' in script) {
+          const started = Date.now();
+          let snapshot = '{"title":"';
+          hooks.onActivity?.('headers');
+          timer = setInterval(() => {
+            if (script.silentAfterMs !== undefined && Date.now() - started > script.silentAfterMs) return;
+            hooks.onActivity?.('data');
+            snapshot += 'x';
+            hooks.onText?.('x', snapshot);
+          }, script.streamEveryMs);
+        }
+        signal.addEventListener(
+          'abort',
+          () => {
+            clearInterval(timer);
+            reject(new Anthropic.APIUserAbortError());
+          },
+          { once: true },
+        );
+      });
+    },
+    async verify() {},
+  };
+  return backend;
+}
+
+/** Runs one generation against a verified (online) status. */
+async function runTimed(backend: Backend, timing: Pick<DirectorDeps, 'attemptTimeoutMs' | 'deadlineMs' | 'idleTimeoutMs'>) {
+  const events: GenerateEvent[] = [];
+  const logs: string[] = [];
+  const status = new StatusTracker(backend, backend.model, Date.now, { log: () => {} });
+  expect((await status.refresh(true)).state).toBe('online');
+  const started = Date.now();
+  const result = await generateEpisode({ prefs }, { backend, effort: 'medium', status, log: (m) => logs.push(m), ...timing }, new AbortController().signal, (e) => events.push(e));
+  return { result, events, logs: logs.join('\n'), status: status.snapshot(), ms: Date.now() - started };
+}
+
+const invalidDraft = () => {
+  const ep = mockAiEpisode(30);
+  ep.stage1.minutes = 80;
+  return JSON.stringify(ep);
+};
+
+describe('timeout attribution (QA round 2)', () => {
+  it('(a) an invalid draft whose repair is cut by the deadline fails only that request: the status stays online', async () => {
+    const backend = scriptedBackend([{ text: invalidDraft() }, { streamEveryMs: 20 }]);
+    const { events, logs, status, ms } = await runTimed(backend, { attemptTimeoutMs: 10_000, deadlineMs: 400 });
+    expect(backend.calls).toBe(2);
+    expect(events.some((e) => e.type === 'phase' && e.phase === 'repairing')).toBe(true);
+    expect(events.at(-1)).toMatchObject({ type: 'error', code: 'timeout', retryable: true, message: 'The AI Director took too long to write this one.' });
+    expect(ms).toBeLessThan(2_000);
+    expect(status).toMatchObject({ state: 'online', canGenerate: true, lastFailureAt: null });
+    // The cause is the budget (checked before the attempt timer, which was sized to what was left of it).
+    expect(logs).toMatch(/generation error after .*: timeout — no complete episode within the 0\.4s budget \(the repair round was cut\); the provider was still streaming/);
+    expect(logs).toMatch(/only this request failed \(shared status unchanged\)/);
+    expect(logs).not.toMatch(/one attempt took longer/);
+  });
+
+  it('(b) a slow but active stream that hits the attempt cap fails only that request', async () => {
+    const backend = scriptedBackend([{ streamEveryMs: 20 }]);
+    const { events, logs, status } = await runTimed(backend, { attemptTimeoutMs: 300, deadlineMs: 5_000 });
+    expect(events.some((e) => e.type === 'phase' && e.phase === 'writing')).toBe(true);
+    expect(events.at(-1)).toMatchObject({ type: 'error', code: 'timeout', retryable: true });
+    expect(status).toMatchObject({ state: 'online', canGenerate: true, lastFailureAt: null });
+    expect(logs).toMatch(/one attempt took longer than 0\.3s; the provider was still streaming/);
+  });
+
+  it('(c) a truly idle stall still marks the provider unreachable', async () => {
+    const { events, logs, status } = await runTimed(stallingBackend(), { attemptTimeoutMs: 300, deadlineMs: 5_000, idleTimeoutMs: 100 });
+    expect(events.at(-1)).toMatchObject({ type: 'error', code: 'timeout', retryable: true });
+    expect(status).toMatchObject({ state: 'unreachable', canGenerate: false });
+    expect(status.detail).toMatch(/stopped responding while writing/);
+    expect(logs).toMatch(/the provider had sent nothing for 0\.\ds \(stalled\)/);
+  });
+
+  it('(c) so does a stream that goes quiet partway, with the default idle limit (half of a short attempt)', async () => {
+    const backend = scriptedBackend([{ streamEveryMs: 20, silentAfterMs: 60 }]);
+    const { status, logs } = await runTimed(backend, { attemptTimeoutMs: 600, deadlineMs: 5_000 });
+    expect(status.state).toBe('unreachable');
+    expect(logs).toMatch(/stalled/);
+  });
+
+  it('a repair round that stalls until the deadline is a stall too', async () => {
+    const backend = scriptedBackend([{ text: invalidDraft() }, { silent: true }]);
+    const { status, logs } = await runTimed(backend, { attemptTimeoutMs: 10_000, deadlineMs: 400, idleTimeoutMs: 100 });
+    expect(status.state).toBe('unreachable');
+    expect(logs).toMatch(/the repair round was cut\); the provider had sent nothing/);
+  });
+
+  it("the caller's backstop during an active stream leaves the status alone", async () => {
+    const { events, status, logs } = await runStalled(scriptedBackend([{ streamEveryMs: 10 }]), { attemptTimeoutMs: 10_000, deadlineMs: 10_000 }, { ms: 80, reason: deadlineReason() });
+    expect(events.at(-1)).toMatchObject({ type: 'error', code: 'timeout' });
+    expect(status).toMatchObject({ state: 'checking', lastFailureAt: null });
+    expect(logs.join('\n')).toMatch(/shared status unchanged/);
+  });
+
+  it('starts a repair round only when the budget left covers about as long as the first draft took', async () => {
+    const firstDraftTakes = async (ms: number) => {
+      let clock = 1_000_000;
+      let calls = 0;
+      const backend: Backend = {
+        provider: 'anthropic',
+        model: 'claude-opus-5-5',
+        async stream() {
+          calls++;
+          clock += ms;
+          return { text: calls === 1 ? invalidDraft() : JSON.stringify(mockAiEpisode(30)), stopReason: 'end_turn', model: 'claude-opus-5-5' };
+        },
+        async verify() {},
+      };
+      const logs: string[] = [];
+      const events: GenerateEvent[] = [];
+      await generateEpisode({ prefs }, { backend, effort: 'medium', log: (m) => logs.push(m), deadlineMs: 150_000, now: () => clock }, new AbortController().signal, (e) => events.push(e));
+      return { calls, logs: logs.join('\n'), last: events.at(-1) };
+    };
+    // 70 s left after an 80 s first draft: the old 20 s floor would start a repair the deadline then cuts.
+    const slow = await firstDraftTakes(80_000);
+    expect(slow.calls).toBe(1);
+    expect(slow.logs).toMatch(/skipping the repair round: only 70\.0s of the budget left, and the first draft took 80\.0s/);
+    expect(slow.last).toMatchObject({ type: 'error', code: 'invalid_output' });
+    // 110 s left after a 40 s first draft: repair.
+    const quick = await firstDraftTakes(40_000);
+    expect(quick.calls).toBe(2);
+    expect(quick.last).toMatchObject({ type: 'episode', repaired: true });
   });
 });
 

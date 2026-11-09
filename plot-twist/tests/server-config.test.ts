@@ -4,8 +4,9 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { afterEach, describe, expect, it } from 'vitest';
+import { originAllowed } from '../server/api.ts';
 import { classifyError, redactSecrets, registerSecret } from '../server/backend.ts';
-import { readConfig } from '../server/config.ts';
+import { normalizeAllowedOrigin, readConfig } from '../server/config.ts';
 
 afterEach(() => {
   delete process.env.PLOT_TWIST_RATE_LIMIT;
@@ -50,6 +51,76 @@ describe('readConfig', () => {
     process.env.PLOT_TWIST_RATE_LIMIT = '99';
     expect(readConfig({}).rateLimit.max).toBe(8);
     expect(readConfig({ PLOT_TWIST_RATE_LIMIT: '3' }).rateLimit.max).toBe(3);
+  });
+
+  it('caps open streams per client and per IPv6 /48', () => {
+    expect(readConfig({})).toMatchObject({ maxStreamsPerClient: 2, maxStreamsPerNetwork: 4 });
+  });
+});
+
+// ── QA round 2: PLOT_TWIST_ALLOWED_ORIGINS ───────────────────────────
+
+describe('PLOT_TWIST_ALLOWED_ORIGINS', () => {
+  const origins = (value: string) => readConfig({ PLOT_TWIST_ALLOWED_ORIGINS: value });
+
+  it('keeps usable entries, normalized and without duplicates', () => {
+    const cfg = origins(' HTTPS://PlotTwist.Example:443/ , https://www.plottwist.example:8443, plottwist.example, http://[::1]:8080, [::1]:5173, localhost:5173, https://bücher.example, https://plottwist.example');
+    expect(cfg.allowedOrigins).toEqual([
+      'https://plottwist.example',
+      'https://www.plottwist.example:8443',
+      'plottwist.example',
+      'http://[::1]:8080',
+      '[::1]:5173',
+      'localhost:5173',
+      'https://xn--bcher-kva.example',
+    ]);
+    expect(cfg.warnings).toEqual([]);
+  });
+
+  it.each([
+    ['https://*.example.com', /wildcards are not supported/],
+    ['*.example.com', /wildcards are not supported/],
+    ['https://a.example;https://b.example', /separate entries with commas/],
+    ['https://a.example https://b.example', /separate entries with commas/],
+    ['https://a_b.example', /the host may only use a-z, 0-9/],
+    ['ftp://files.example', /only http:\/\/ and https:\/\//],
+    ['javascript://a.example', /only http:\/\/ and https:\/\//],
+    ['file:///etc', /only http:\/\/ and https:\/\//],
+    ['https://', /not a valid URL/],
+    ['a.example:99999', /port must be 1-65535/],
+    ['a.example:0', /port must be 1-65535/],
+    ['a.example/path', /expected https:\/\/host\[:port\] or host\[:port\]/],
+    ['[not-ipv6]:80', /expected https:\/\/host\[:port\] or host\[:port\]/],
+    ['data:text/html', /expected https:\/\/host\[:port\] or host\[:port\]/],
+    ['%%%', /expected https:\/\/host\[:port\] or host\[:port\]/],
+  ])('drops %j with a warning, without crashing (QA repro: f59b.mjs)', (entry, reason) => {
+    const cfg = origins(`${entry},https://ok.example`);
+    expect(cfg.allowedOrigins).toEqual(['https://ok.example']);
+    expect(cfg.warnings).toHaveLength(1);
+    expect(cfg.warnings[0]).toContain(`PLOT_TWIST_ALLOWED_ORIGINS: ignoring ${JSON.stringify(entry)}`);
+    expect(cfg.warnings[0]).toMatch(reason);
+  });
+
+  it('normalizeAllowedOrigin returns null for anything unusable', () => {
+    expect(normalizeAllowedOrigin('https://*.example.com')).toBeNull();
+    expect(normalizeAllowedOrigin('https://a.example;https://b.example')).toBeNull();
+    expect(normalizeAllowedOrigin('https://a.example/path')).toBe('https://a.example');
+    expect(normalizeAllowedOrigin('')).toBeNull();
+  });
+
+  it('a non-default port matches the Origin a browser sends there', () => {
+    const cfg = origins('https://plottwist.example:8443');
+    expect(originAllowed({ origin: 'https://plottwist.example:8443', host: '127.0.0.1:8787' }, { trustProxy: false, allowedOrigins: cfg.allowedOrigins })).toBe(true);
+    expect(originAllowed({ origin: 'https://plottwist.example', host: '127.0.0.1:8787' }, { trustProxy: false, allowedOrigins: cfg.allowedOrigins })).toBe(false);
+  });
+
+  it('behind nginx with $http_host, Host and X-Forwarded-Host carry the port the Origin has', () => {
+    // README: proxy_set_header Host $http_host; proxy_set_header X-Forwarded-Host $http_host;
+    const viaHttpHost = { origin: 'https://plottwist.example:8443', host: 'plottwist.example:8443', 'x-forwarded-host': 'plottwist.example:8443' };
+    expect(originAllowed(viaHttpHost, { trustProxy: true, allowedOrigins: [] })).toBe(true);
+    // The old example ($host) dropped the port, so every generation on :8443 was refused.
+    const viaHost = { origin: 'https://plottwist.example:8443', host: 'plottwist.example', 'x-forwarded-host': 'plottwist.example' };
+    expect(originAllowed(viaHost, { trustProxy: true, allowedOrigins: [] })).toBe(false);
   });
 });
 
