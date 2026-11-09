@@ -1,5 +1,0 @@
-
-> levelup-ai@1.0.0 typecheck
-> node scripts/typecheck.mjs
-
-typecheck/syntax: 10 modules OK

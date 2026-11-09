@@ -1,5 +1,0 @@
-
-> levelup-ai@1.0.0 test:dist
-> node scripts/smoke-dist.mjs
-
-dist smoke: healthy
