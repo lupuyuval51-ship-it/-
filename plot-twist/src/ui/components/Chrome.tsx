@@ -33,14 +33,15 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
   );
 }
 
+/** The pill's one word. "Offline": can't be reached right now; "Off": not set up on this server. */
 const SHORT: Record<string, string> = {
   online: 'Online',
-  degraded: 'Shaky',
+  degraded: 'Unstable',
   rate_limited: 'Busy',
   checking: 'Checking',
   unreachable: 'Offline',
   not_configured: 'Off',
-  no_server: 'Off',
+  no_server: 'Offline',
   misconfigured: 'Error',
   auth_failed: 'Error',
   forbidden: 'Error',
@@ -53,14 +54,15 @@ export function StatusPill({ status, onClick }: { status: DirectorStatus; onClic
     <button
       type="button"
       onClick={onClick}
-      className="group inline-flex h-11 min-w-0 items-center"
+      className="group inline-flex min-h-11 shrink-0 items-center"
       // The accessible name starts with the visible text, so "click AI Online" works for voice users.
       aria-label={`AI ${short}. AI Director: ${status.label}. Show details`}
     >
-      <span className="inline-flex h-9 min-w-0 items-center gap-2 whitespace-nowrap rounded-full border border-ivory/14 bg-ivory/[0.04] pl-2.5 pr-3 text-[0.7812rem] font-semibold text-ivory-dim transition-colors group-hover:border-ivory/30 group-hover:text-ivory">
+      <span className="inline-flex min-h-9 items-center gap-2 whitespace-nowrap rounded-full border border-ivory/14 bg-ivory/[0.04] py-1 pl-2.5 pr-3 text-[0.7812rem] font-semibold text-ivory-dim transition-colors group-hover:border-ivory/30 group-hover:text-ivory">
         <span className={`h-2 w-2 shrink-0 rounded-full ${DOT[status.state] ?? 'bg-ivory-mute'}`} aria-hidden="true" />
-        <span className="min-w-0 truncate" aria-hidden="true">
-          <span className="max-[359px]:hidden">
+        {/* Never truncated: on narrow screens the "AI ·" prefix goes, then the header wraps. */}
+        <span aria-hidden="true">
+          <span className="max-[419px]:hidden">
             AI <span className="text-ivory-mute">·</span>{' '}
           </span>
           <span className="text-ivory">{short}</span>
@@ -83,14 +85,17 @@ export function DirectorSheet({ open, onClose }: { open: boolean; onClose: () =>
   const { state, refreshDirector, toast } = useStore();
   const s = state.director;
   const [checking, setChecking] = useState(false);
-  const checkedAtClick = useRef<number | null>(null);
 
-  // Announce the outcome of "Check again" once the new status arrives.
-  useEffect(() => {
-    if (!checking || s.checkedAt === checkedAtClick.current) return;
-    setChecking(false);
-    toast(`AI Director checked: ${s.label}.`);
-  }, [checking, s.checkedAt, s.label, toast]);
+  // The check ends when the request settles — even if the server answers from its short
+  // refresh throttle with an unchanged snapshot — and its outcome is announced.
+  const check = () => {
+    if (checking) return;
+    setChecking(true);
+    void refreshDirector().then((status) => {
+      setChecking(false);
+      toast(status ? `AI Director checked: ${status.label}.` : 'Could not check the AI Director. Try again in a moment.', status ? 'info' : 'warn');
+    });
+  };
 
   return (
     <Sheet open={open} onClose={onClose} title="AI Director status">
@@ -117,16 +122,8 @@ export function DirectorSheet({ open, onClose }: { open: boolean; onClose: () =>
           curated episodes. If it misses, an archive episode takes its place. Curated episodes always work, even offline.
         </p>
       </div>
-      <button
-        type="button"
-        className="btn btn-secondary mt-5 w-full"
-        disabled={checking}
-        onClick={() => {
-          checkedAtClick.current = s.checkedAt;
-          setChecking(true);
-          refreshDirector();
-        }}
-      >
+      {/* aria-disabled, not disabled: a disabled button drops keyboard focus out of the dialog. */}
+      <button type="button" className="btn btn-secondary mt-5 w-full" aria-disabled={checking || undefined} onClick={check}>
         <IconRefresh size={18} className={checking ? 'anim-spin' : undefined} /> {checking ? 'Checking…' : 'Check again'}
       </button>
     </Sheet>
@@ -137,11 +134,11 @@ export function TopBar({ onStatus }: { onStatus: () => void }) {
   const { state } = useStore();
   const count = state.p.completed.length;
   return (
-    <header className="relative z-20 flex items-center justify-between gap-2 px-3 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] min-[360px]:px-4">
+    <header className="relative z-20 flex flex-wrap items-center justify-between gap-x-2 px-3 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] min-[360px]:px-4">
       <a href="#/" className="-ml-1 inline-flex min-h-11 min-w-0 items-center rounded-lg px-1" aria-label="PLOT TWIST — home">
         <Wordmark />
       </a>
-      <div className="flex min-w-0 items-center gap-1">
+      <div className="ml-auto flex items-center gap-1">
         <StatusPill status={state.director} onClick={onStatus} />
         <button
           type="button"
@@ -188,21 +185,42 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
 }
 
 /**
+ * Text for the toast announcer: the newest message only, set once per new toast. Dismissing a
+ * toast never changes it (that would re-read an older one), and a repeated message still
+ * changes the text so it is announced again.
+ */
+function useToastAnnouncement(toasts: readonly Toast[]): string {
+  const [text, setText] = useState('');
+  const lastId = useRef<string | null>(null);
+  useEffect(() => {
+    const newest = toasts[toasts.length - 1];
+    if (!newest || newest.id === lastId.current) return;
+    lastId.current = newest.id;
+    setText((prev) => (prev === newest.message ? `${newest.message}\u00a0` : newest.message));
+  }, [toasts]);
+  return text;
+}
+
+/**
  * Status messages. Portaled to <body> (so they stay announced while a dialog makes
  * the app inert) and placed below the header/sticky bar, never over its controls.
+ * Screen readers hear each message once, from a separate announcer; the visible stack
+ * (buttons that dismiss) is not a live region.
  */
 export function Toasts() {
   const { state, dismissToast } = useStore();
+  const announcement = useToastAnnouncement(state.toasts);
   return createPortal(
-    <div
-      className="pointer-events-none fixed inset-x-0 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[80] flex flex-col items-center gap-2 px-4"
-      role="status"
-      aria-live="polite"
-    >
-      {state.toasts.map((t) => (
-        <ToastItem key={t.id} toast={t} onDismiss={() => dismissToast(t.id)} />
-      ))}
-    </div>,
+    <>
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+      <div className="pointer-events-none fixed inset-x-0 top-[calc(max(0.5rem,env(safe-area-inset-top))+3.5rem)] z-[80] flex flex-col items-center gap-2 px-4">
+        {state.toasts.map((t) => (
+          <ToastItem key={t.id} toast={t} onDismiss={() => dismissToast(t.id)} />
+        ))}
+      </div>
+    </>,
     document.body,
   );
 }

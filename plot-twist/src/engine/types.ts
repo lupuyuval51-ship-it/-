@@ -177,6 +177,8 @@ export interface CompletedEpisode {
   award: Award;
   /** Optional one-sentence journal entry. */
   journal: string;
+  /** When the journal was last edited; when two tabs disagree, the newer edit wins. */
+  editedAt?: number;
   posterSeed: number;
 }
 

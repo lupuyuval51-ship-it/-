@@ -13,10 +13,11 @@
  *   4. layout  (no horizontal scroll at 320px on every screen; keyboard + reduced motion)
  *   5. conflict (dev server, `?library=none` → explanation + one-tap relaxations)
  *   6. resilience (two tabs, double taps, long absences, drafts, Back on the letter)
+ *   7. round3 (Back closes sheets, paused modal, Check again, toast announcer, journal, fallback)
  */
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -649,11 +650,151 @@ async function resilienceSuite(browser, base) {
   }
 }
 
+/** Dialogs, Back, announcements and other fixes from the third QA round. */
+async function round3Suite(browser, base, aiBase, fallbackBase) {
+  console.log('\n▶ round 3 (sheets and Back, paused dialog, Check again, toasts, journal, fallback)');
+  const fresh = async (page, url = base) => {
+    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.evaluate(() => localStorage.clear());
+    await page.reload({ waitUntil: 'networkidle' });
+  };
+  const pageState = (page) =>
+    page.evaluate(() => ({ hash: location.hash, dialogs: document.querySelectorAll('[role=dialog]').length, overflow: document.body.style.overflow, inert: document.getElementById('root')?.hasAttribute('inert') ?? false }));
+
+  // A. Back closes the AI status sheet (it used to navigate underneath and leave scrolling locked).
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 640 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    await fresh(page);
+    await startFirstEpisode(page);
+    await page.getByRole('button', { name: /save & exit/i }).first().click();
+    await page.waitForURL(/#\/$/);
+    await page.getByRole('button', { name: /AI Director:/ }).click();
+    await page.getByRole('dialog', { name: /AI Director status/i }).waitFor();
+    await page.goBack();
+    await sleep(400);
+    const s = await pageState(page);
+    check('Back closes the AI status sheet and stays on the screen', s.hash === '#/' && s.dialogs === 0 && s.overflow === '' && !s.inert, JSON.stringify(s));
+
+    // B. The paused screen is a real modal; resuming puts focus back on the visible timer button.
+    await page.getByRole('button', { name: /resume episode/i }).first().click();
+    await page.waitForURL(/#\/play/);
+    await page.getByRole('button', { name: /done — i did it/i }).waitFor();
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.getByRole('button', { name: 'Pause timer' }).click();
+    await page.getByRole('dialog', { name: /paused/i }).waitFor();
+    await sleep(250);
+    const inside = [];
+    for (let i = 0; i < 3; i++) {
+      await page.keyboard.press('Tab');
+      inside.push(await page.evaluate(() => Boolean(document.activeElement?.closest('[role=dialog]'))));
+    }
+    const locked = await pageState(page);
+    check('paused screen keeps Tab inside it; the episode and skip link are inert', inside.every(Boolean) && locked.inert && locked.overflow === 'hidden', JSON.stringify({ inside, locked }));
+    await page.keyboard.press('Escape');
+    await sleep(300);
+    const f = await page.evaluate(() => {
+      const a = document.activeElement;
+      const r = a.getBoundingClientRect();
+      return { name: a.getAttribute('aria-label'), inView: r.top >= 0 && r.bottom <= innerHeight, overflow: document.body.style.overflow };
+    });
+    check('resuming returns focus to the timer button, on screen, and unlocks scrolling', f.name === 'Pause timer' && f.inView && f.overflow === '', JSON.stringify(f));
+
+    // C. The journal confirms the save even when the autosave already stored it.
+    check('round 3: the episode plays to the finale', await playToEnd(page));
+    const journal = page.getByLabel(/one sentence for your journal/i);
+    await journal.fill('Round three was here.');
+    await sleep(900);
+    await journal.blur();
+    await sleep(150);
+    check('journal says "Saved to your series." after typing, a pause and leaving the field', (await page.getByText('Saved to your series.').count()) > 0);
+    await ctx.close();
+  }
+
+  // D. Toasts: screen readers hear only the newest message, not the whole stack again.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    await fresh(page);
+    await page.getByRole('button', { name: /give me a plot twist/i }).click();
+    await page.waitForURL(/#\/envelopes/);
+    await page.getByRole('button', { name: /draw again/i }).click();
+    await page.getByRole('button', { name: /AI Director:/ }).click();
+    await page.getByRole('button', { name: /check again/i }).click();
+    await sleep(1500);
+    const t = await page.evaluate(() => ({
+      announcer: [...document.querySelectorAll('body > div[role=status]')].map((n) => n.textContent.trim()),
+      stack: document.querySelectorAll('body > div.pointer-events-none button').length,
+    }));
+    check('toast announcer holds only the newest message', t.announcer.length === 1 && /^AI Director checked: /.test(t.announcer[0]) && !/New envelopes|dismiss/.test(t.announcer[0]) && t.stack >= 2, JSON.stringify(t));
+    await ctx.close();
+  }
+
+  // E. A letter closed by another tab (it started that episode) leaves no dead Back step.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const a = await ctx.newPage();
+    await fresh(a);
+    await a.getByRole('button', { name: /give me a plot twist/i }).click();
+    await a.waitForURL(/#\/envelopes/);
+    await a.locator('button.envelope').first().click();
+    await a.getByRole('dialog').waitFor();
+    const b = await ctx.newPage();
+    await b.goto(`${base}#/envelopes`, { waitUntil: 'networkidle' });
+    await b.locator('button.envelope').first().click();
+    await b.getByRole('dialog').waitFor();
+    await b.getByRole('button', { name: /start episode/i }).click();
+    await b.waitForURL(/#\/play/);
+    await sleep(900);
+    const gone = await pageState(a);
+    await a.goBack();
+    await sleep(400);
+    const after = await a.evaluate(() => location.hash);
+    // One Back must leave the envelopes screen (to the home screen this test started on).
+    check('a letter closed by another tab takes its history entry with it', gone.dialogs === 0 && !gone.inert && after !== '#/envelopes', JSON.stringify({ gone, after }));
+    await ctx.close();
+  }
+
+  // F. "Check again" ends when the request settles, even when the server throttles it, and keeps focus.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    await page.goto(aiBase, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: /AI Online/ }).waitFor({ timeout: 15_000 });
+    await page.getByRole('button', { name: /AI Director:/ }).click();
+    await page.getByRole('button', { name: /check again/i }).click();
+    await page.getByRole('button', { name: 'Check again' }).waitFor({ timeout: 8_000 });
+    await page.getByRole('button', { name: 'Check again' }).click(); // within 15 s: the server answers from its throttle
+    await sleep(3_000);
+    const c = await page.evaluate(() => ({ focus: document.activeElement?.textContent?.trim(), inDialog: Boolean(document.activeElement?.closest('[role=dialog]')) }));
+    check('"Check again" settles under the server throttle and keeps focus in the sheet', c.focus === 'Check again' && c.inDialog, JSON.stringify(c));
+    await ctx.close();
+  }
+
+  // G. The archive pick standing in for a failed AI envelope counts as shown (Draw again deals unseen first).
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    await fresh(page, fallbackBase);
+    await page.getByRole('button', { name: /AI Online/ }).waitFor({ timeout: 15_000 });
+    await page.getByRole('button', { name: /give me a plot twist/i }).click();
+    await page.waitForURL(/#\/envelopes/);
+    const st = await storageWhen(page, (s) => s.draw && s.draw.envelopes.length === 3 && s.draw.envelopes.every((e) => e.status !== 'writing'), 40_000);
+    const fb = st.draw.envelopes.find((e) => e.source === 'curated' && e.note);
+    check('a fallback archive pick is marked as shown', Boolean(fb && st.draw.shownIds.includes(fb.adventure.id)), JSON.stringify({ fb: fb?.adventure?.id, shown: st.draw.shownIds }));
+    await ctx.close();
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────
 async function main() {
   // Build into an isolated directory so E2E never disturbs a dist/ someone else is serving.
   const DIST = join(ROOT, 'e2e', '.dist');
-  if (!args.has('--skip-build')) {
+  // --skip-build only skips an up-to-date build: testing yesterday's bundle proves nothing.
+  const { staleDistWarning } = await import('../server/static.ts');
+  const stale = args.has('--skip-build') ? (existsSync(join(DIST, 'index.html')) ? staleDistWarning(DIST) : 'e2e/.dist/ does not exist yet') : null;
+  if (stale) console.log(`${stale} — building anyway.`);
+  if (!args.has('--skip-build') || stale) {
     console.log('Building…');
     execSync(`npx vite build --outDir ${JSON.stringify(DIST)} --emptyOutDir`, { cwd: ROOT, stdio: 'inherit' });
   }
@@ -676,6 +817,7 @@ async function main() {
       layout: () => layoutSuite(browser, 'http://127.0.0.1:8790/'),
       conflict: () => conflictSuite(browser, 'http://127.0.0.1:5197'),
       resilience: () => resilienceSuite(browser, 'http://127.0.0.1:8790/'),
+      round3: () => round3Suite(browser, 'http://127.0.0.1:8790/', 'http://127.0.0.1:8791/', 'http://127.0.0.1:8792/'),
     };
     for (const [name, run] of Object.entries(suites)) {
       if (only && only !== name) continue;

@@ -48,16 +48,26 @@ export function JournalField({ episode }: { episode: CompletedEpisode }) {
   const valueRef = useRef(value);
   valueRef.current = value;
   const committed = useRef(episode.journal);
+  // A quiet autosave happened that the reader hasn't been told about yet; blur / Enter say it.
+  const unannounced = useRef(false);
+  const savedTimer = useRef<number | undefined>(undefined);
   const commitRef = useRef((_announce: boolean) => {});
   commitRef.current = (announce: boolean) => {
     const next = valueRef.current.trim();
-    if (next === committed.current) return;
-    committed.current = next;
-    setJournal(episode.id, next);
-    if (announce) {
-      setSaved(true);
-      window.setTimeout(() => setSaved(false), 2000);
+    const changed = next !== committed.current;
+    if (changed) {
+      committed.current = next;
+      setJournal(episode.id, next);
     }
+    if (!announce) {
+      if (changed) unannounced.current = true;
+      return;
+    }
+    if (!changed && !unannounced.current) return;
+    unannounced.current = false;
+    setSaved(true);
+    window.clearTimeout(savedTimer.current);
+    savedTimer.current = window.setTimeout(() => setSaved(false), 2000);
   };
   const commit = () => commitRef.current(true);
   useEffect(() => {
@@ -69,8 +79,17 @@ export function JournalField({ episode }: { episode: CompletedEpisode }) {
     return () => {
       unregister();
       commitRef.current(false);
+      window.clearTimeout(savedTimer.current);
     };
   }, [registerDraft]);
+  // Another tab edited this journal: show its text, unless this field holds an unsaved edit
+  // (which is newer and is saved over it a moment later).
+  useEffect(() => {
+    if (episode.journal === committed.current) return;
+    if (valueRef.current.trim() !== committed.current) return;
+    committed.current = episode.journal;
+    setValue(episode.journal);
+  }, [episode.journal]);
   return (
     <div>
       <label htmlFor={`journal-${episode.id}`} className="t-kicker mb-2 block">

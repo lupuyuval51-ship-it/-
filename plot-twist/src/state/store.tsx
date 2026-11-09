@@ -213,6 +213,12 @@ function fallbackFor(draw: Draw, completed: readonly CompletedEpisode[]): Advent
   return null;
 }
 
+/** An archive pick that stands in for the AI envelope counts as shown, like the rest of the table. */
+function markShown(draw: Draw, adventure: Adventure | null | undefined): Draw {
+  if (!adventure || draw.shownIds.includes(adventure.id)) return draw;
+  return { ...draw, shownIds: [...draw.shownIds, adventure.id] };
+}
+
 /** Swaps every envelope still marked "writing" for a curated pick (with an honest note). */
 function settleWriting(p: PersistedState, note: string): PersistedState {
   const draw = p.draw;
@@ -224,7 +230,7 @@ function settleWriting(p: PersistedState, note: string): PersistedState {
     const next: DrawEnvelope = fb
       ? { ...env, status: 'ready', source: 'curated', adventure: fb, opened: false, note: `${note} Here is an archive pick instead.` }
       : { ...env, status: 'failed', adventure: null, note };
-    working = { ...working, envelopes: working.envelopes.map((e) => (e.slot === env.slot ? next : e)) };
+    working = markShown({ ...working, envelopes: working.envelopes.map((e) => (e.slot === env.slot ? next : e)) }, fb);
   }
   return { ...p, draw: working };
 }
@@ -296,7 +302,8 @@ export interface StoreApi {
   dismissNamePrompt: () => void;
   setMotion: (motion: MotionPreference) => void;
   resetAll: () => void;
-  refreshDirector: () => void;
+  /** Forces a fresh check; resolves with the status shown afterwards (null if the check failed). */
+  refreshDirector: () => Promise<DirectorStatus | null>;
   toast: (message: string, tone?: Toast['tone']) => void;
   dismissToast: (id: string) => void;
   /**
@@ -570,15 +577,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // ── AI Director status ──
   const refreshDirector = useCallback((force = false) => {
     const ctl = new AbortController();
-    fetchDirectorStatus(ctl.signal, force)
-      .then((status) => dispatch({ type: 'director', status }))
-      .catch(() => {});
-    return ctl;
+    const done = fetchDirectorStatus(ctl.signal, force)
+      .then((status) => {
+        dispatch({ type: 'director', status });
+        return status;
+      })
+      .catch(() => null);
+    return { ctl, done };
   }, []);
   const refreshDirectorRef = useRef(refreshDirector);
   refreshDirectorRef.current = refreshDirector;
   useEffect(() => {
-    const ctl = refreshDirector();
+    const { ctl } = refreshDirector();
     const id = window.setInterval(() => {
       if (document.visibilityState === 'visible') refreshDirector();
     }, 60_000);
@@ -626,7 +636,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const setEnvelope = (patch: Partial<DrawEnvelope>) =>
         update((p) => {
           if (!p.draw || p.draw.id !== target.drawId) return p;
-          return { ...p, draw: { ...p.draw, envelopes: p.draw.envelopes.map((e) => (e.slot === target.slot ? { ...e, ...patch } : e)) } };
+          const envelopes = p.draw.envelopes.map((e) => (e.slot === target.slot ? { ...e, ...patch } : e));
+          return { ...p, draw: markShown({ ...p.draw, envelopes }, patch.source === 'curated' ? patch.adventure : null) };
         });
 
       requestEpisode(
@@ -825,7 +836,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const value = journal.slice(0, 200);
           const target = p.completed.find((c) => c.id === episodeId);
           if (!target || target.journal === value) return p;
-          return { ...p, completed: p.completed.map((c) => (c.id === episodeId ? { ...c, journal: value } : c)) };
+          const editedAt = Date.now();
+          return { ...p, completed: p.completed.map((c) => (c.id === episodeId ? { ...c, journal: value, editedAt } : c)) };
         }),
       setSeriesName: (name) => update((p) => ({ ...p, series: { name: name && name.trim() ? name.trim().slice(0, 48) : null, namePromptDone: true } })),
       dismissNamePrompt: () => update((p) => ({ ...p, series: { ...p.series, namePromptDone: true } })),
@@ -837,7 +849,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         update((p) => ({ ...p, draw: null, run: null, completed: [], series: { name: null, namePromptDone: false }, resetAt: Date.now() }));
         dispatch({ type: 'match', match: null });
       },
-      refreshDirector: () => refreshDirector(true),
+      // Settles even when the server answers from its short refresh throttle with the same snapshot.
+      refreshDirector: () => refreshDirector(true).done.then((status) => (status ? withClientLimit(status, aiBlockedUntil.current, Date.now()) : null)),
       toast,
       dismissToast: (id) => dispatch({ type: 'dismissToast', id }),
       registerDraft,

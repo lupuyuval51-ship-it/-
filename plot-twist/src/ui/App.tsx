@@ -3,6 +3,7 @@ import type { Weirdness } from '../../shared/types.ts';
 import { isFinished } from '../engine/run.ts';
 import { StoreProvider, useStore } from '../state/store.tsx';
 import { DirectorSheet, StorageBanner, Toasts, TopBar } from './components/Chrome.tsx';
+import { dropSheetEntry, pushSheetEntry, useCloseOnBack } from './hooks.ts';
 import { useRoute, type Route } from './router.ts';
 import { Envelopes } from './screens/Envelopes.tsx';
 import { Finale } from './screens/Finale.tsx';
@@ -49,11 +50,23 @@ function Screen({ route }: { route: Route }) {
 /** Screens that move focus themselves (to the stage heading / the finale title). */
 const SELF_FOCUSING = new Set<Route['name']>(['play', 'finale']);
 
+/** History-entry key of the AI Director status sheet (Back closes it). */
+const STATUS_SHEET = 'plot-twist-status';
+
 function Shell() {
   const route = useRoute();
   const vibe = useVibe(route);
   const { state, pause, toast } = useStore();
   const [statusOpen, setStatusOpen] = useState(false);
+  const openStatus = () => {
+    pushSheetEntry(STATUS_SHEET);
+    setStatusOpen(true);
+  };
+  const closeStatus = () => {
+    setStatusOpen(false);
+    dropSheetEntry(STATUS_SHEET);
+  };
+  useCloseOnBack(statusOpen, STATUS_SHEET, () => setStatusOpen(false));
   const routeKey = route.name === 'finale' || route.name === 'episode' ? `${route.name}:${route.episodeId}` : route.name;
   const previousRoute = useRef<Route | null>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -65,6 +78,8 @@ function Shell() {
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
+    // The status sheet belongs to the screen it was opened on; it never follows a navigation.
+    setStatusOpen(false);
     const previous = previousRoute.current;
     previousRoute.current = route;
     if (!previous) return;
@@ -121,14 +136,14 @@ function Shell() {
         Skip to content
       </a>
       <div className="relative z-10 mx-auto min-h-dvh max-w-[480px]">
-        {route.name !== 'play' && <TopBar onStatus={() => setStatusOpen(true)} />}
+        {route.name !== 'play' && <TopBar onStatus={openStatus} />}
         <StorageBanner />
         <main id="main" ref={mainRef} key={routeKey} tabIndex={-1} className="overflow-x-clip outline-none">
           <Screen route={route} />
         </main>
       </div>
       <Toasts />
-      <DirectorSheet open={statusOpen} onClose={() => setStatusOpen(false)} />
+      <DirectorSheet open={statusOpen} onClose={closeStatus} />
     </div>
   );
 }

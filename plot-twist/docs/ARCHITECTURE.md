@@ -11,10 +11,14 @@ shared/            isomorphic content model (client + server, no DOM/Node APIs)
 server/            Node (type-stripped TS) — the only place provider credentials exist
   config.ts          env → ServerConfig (key sanity check, limits, proxy trust, allowed origins)
   api.ts             /api/health, /api/status, /api/episodes/generate (SSE); origin, rate and stream limits
+  rateLimit.ts       sliding-window limiter (per client key, and per IPv6 /48)
+  backend.ts         the Anthropic SDK call (streaming, structured output) behind a small interface
   director.ts        Claude call → parse → convert → validate → constraints → safety → (repair) → episode
   prompt.ts          byte-stable system prompt + per-request brief (client strings as quoted data)
   constraints.ts     hard-constraint heuristics on AI text (free/home/solo cues, time fill, distinct branches)
   safety.ts          word-order-independent safety screen for AI episodes
+  text.ts            shared text helpers for both screens: clause/negation/hypothetical
+                     detection, quoted spans, escaping model text for the repair brief
   status.ts          verified connection status (TTLs, recent writing failures)
   static.ts          production static files: containment check, gzip, security headers/CSP
   index.ts           production entry (static + API), stale-build warning
@@ -159,17 +163,43 @@ export function getBrowserStorage(): StorageLike | null;   // window.localStorag
   by `update()`); hiding, closing or idling never writes a stale snapshot.
 - Other tabs' writes are adopted immediately (`storage` event) and re-read when
   a tab becomes visible again or is restored from the back/forward cache.
+- Every local change stamps the sections it touched (`stamps.prefs`, `.draw`,
+  `.run`, `.completed`, `.series`, `.settings`) with the **change** time.
 - Before writing, the store compares the stored `updatedAt` with the one it last
   read or wrote. If someone else wrote in between, `mergeStates` combines both:
-  completed episodes are a **union by id** (never lost); every other section
-  comes from whichever side changed last; a run the other side finished is
-  dropped.
+  - each section comes from whichever side changed it last (stamp against stamp),
+    so edits to different sections in two tabs both survive;
+  - completed episodes are a **union by id** (never lost), and for an episode in
+    both, the journal edited last wins (`editedAt`);
+  - the same run never moves backwards (finished > more steps), the same draw's
+    envelopes never go from written back to "writing", and `opened` sticks;
+  - "Reset all" leaves a tombstone (`resetAt`): anything that predates it is
+    dropped from either side, so a concurrent edit can't resurrect it.
+- The AI envelope is written by one tab at a time: the writing tab keeps a
+  heartbeat (`plot-twist:v1:gen`, stale after 9 s). Another tab that finds the
+  envelope "writing" waits for that heartbeat to go stale before retrying.
 - "Last seen" for the running episode is a separate key (`plot-twist:v1:seen`)
   that only moves while the page is visible (15 s heartbeat, on hide, and on
   unload only if visible). Absence is checked on load, when the tab becomes
   visible, and on every heartbeat (a frozen timer after sleep shows up as a gap).
 - Unsaved input (field notes, journal) registers with `registerDraft` and is
   committed right before the page-hide save.
+
+### Dialogs and announcements (`src/ui/hooks.ts`, `Sheet.tsx`, `Chrome.tsx`)
+- Sheets and the paused screen are portaled to `<body>`. While any is open,
+  `#root` is inert and the page can't scroll; both locks are **counted**
+  (`useInertApp`, `useScrollLock`), so dialogs that open and close in any order
+  always release them.
+- A sheet the user opens (the envelope letter, the AI status sheet) gets its own
+  history entry with the same URL, so the phone's Back gesture closes it instead
+  of leaving the screen. Closing it any other way removes the entry again; a
+  letter that closes because another tab re-dealt also removes it.
+- Toasts are a visual stack; screen readers hear them from one separate live
+  region that holds only the newest message. Live regions that must keep talking
+  while a dialog is open (toasts, the AI envelope's progress) live outside
+  `#root`.
+- Buttons that are busy (Check again, Download PNG, Share) use `aria-disabled`,
+  not `disabled`, so keyboard focus stays on them.
 
 ## Poster (`src/poster/`) — contract in `src/poster/types.ts`
 ```ts
@@ -194,3 +224,31 @@ export async function sharePoster(blob: Blob, fileName: string, text: string): P
 - `sharePoster`: `navigator.canShare({ files })` → share the PNG; else
   `navigator.share` with text; else clipboard copy of `text` → `'copied'`;
   AbortError → `'cancelled'`.
+
+## AI Director server (`server/`)
+- **Pipeline per request:** brief (user strings as quoted, escaped data) →
+  Claude (streamed, structured output) → parse → `aiEpisodeToAdventure` →
+  `validateAdventure` + `fitsPrefs` → `constraints.ts` → `safety.ts`. On a miss,
+  one repair round, which gets the draft back as escaped JSON marked as
+  untrusted model output. It starts only if the time left is at least what the
+  first draft took. Anything that still fails becomes an error event, and the
+  client deals a curated episode.
+- **Shared status:** only provider problems change the status every visitor
+  sees.
+  - A *stall* is a provider that sends nothing at all (no headers, no event, no
+    keep-alive ping) for `DEFAULT_IDLE_TIMEOUT_MS` (30 s), or for half the
+    attempt timeout if that is shorter. It marks the provider Unreachable and
+    holds for 30 s.
+  - A stream that is still flowing when the attempt cap or the overall deadline
+    cuts it fails only that request (logged).
+  - A refused or rejected draft never changes the status.
+- **Limits (`api.ts`, `rateLimit.ts`):**
+  - The client key is the socket address, or the right-most trusted
+    `X-Forwarded-For` hop behind a proxy. IPv6 is grouped by /64.
+  - Each key gets `PLOT_TWIST_RATE_LIMIT` generations per window and 2 open
+    streams. Each IPv6 /48 also shares `NETWORK_RATE_FACTOR` (4×) that rate
+    and at most 4 open streams.
+  - The last free global slot is kept for a client with nothing open.
+  - Over a limit: `429` with `rate_limited` or `too_many_streams` (the message
+    says whether it was the visitor or the network) and `Retry-After`. The
+    browser then stops asking until the pause ends; the pill says Busy.

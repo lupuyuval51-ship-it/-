@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BUDGET_LABEL,
   COMPANY_LABEL,
@@ -95,6 +96,13 @@ function useAiAnnouncements(): string {
   const [message, setMessage] = useState('');
   const lastPhase = useRef<string | null>(null);
   const lastStatus = useRef(new Map<string, string>());
+  // The region starts empty for a moment: screen readers skip text written into a live
+  // region in the instant it appears. Then it carries the latest message.
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => setLive(true), 400);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     const key = g ? `${g.slot}:${g.phase}` : null;
@@ -117,13 +125,17 @@ function useAiAnnouncements(): string {
     }
   }, [draw]);
 
-  return message;
+  return live ? message : '';
 }
 
 export function Envelopes() {
   const { state, openEnvelope, startEpisode, reshuffle, retryAiEnvelope, drawEnvelopes, toast } = useStore();
   const draw = state.p.draw;
+  const latestDraw = useRef(draw);
+  latestDraw.current = draw;
   const [openSlot, setOpenSlot] = useState<number | null>(null);
+  // The episode that was tapped: the letter only ever shows that one.
+  const openedId = useRef<string | null>(null);
   const [opening, setOpening] = useState<number | null>(null);
   const reduced = useReducedMotion();
   const announcement = useAiAnnouncements();
@@ -152,6 +164,16 @@ export function Envelopes() {
       if (openTimer.current !== null) window.clearTimeout(openTimer.current);
     };
   }, []);
+
+  // Another tab can re-deal or start these envelopes while a letter is open. The letter then
+  // closes, and takes its history entry with it, so the next Back isn't swallowed.
+  const openNow = openSlot === null ? null : draw?.envelopes.find((e) => e.slot === openSlot) ?? null;
+  const letterGone = openSlot !== null && (!openNow || envelopeAdventure(openNow)?.id !== openedId.current);
+  useEffect(() => {
+    if (!letterGone) return;
+    setOpenSlot(null);
+    if (letterOnTop()) window.history.back();
+  }, [letterGone]);
 
   if (!draw) {
     return (
@@ -186,21 +208,25 @@ export function Envelopes() {
     window.requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
   };
 
-  const showLetter = (slot: number) => {
+  const showLetter = (slot: number, id: string | null) => {
+    setOpening(null);
+    // The envelope changed underneath during the seal animation (another tab re-dealt): no letter.
+    const env = latestDraw.current?.envelopes.find((e) => e.slot === slot);
+    if (!env || (envelopeAdventure(env)?.id ?? null) !== id) return;
     // One history entry per open letter, however many taps it took to open it.
     if (!letterOnTop()) window.history.pushState({ sheet: LETTER_STATE }, '');
-    setOpening(null);
+    openedId.current = id;
     setOpenSlot(slot);
   };
 
-  const open = (slot: number, alreadyOpened: boolean) => {
+  const open = (slot: number, alreadyOpened: boolean, id: string | null) => {
     openEnvelope(slot);
     if (alreadyOpened || reduced) {
       if (openTimer.current !== null) {
         window.clearTimeout(openTimer.current);
         openTimer.current = null;
       }
-      showLetter(slot);
+      showLetter(slot, id);
       return;
     }
     // The seal breaks and the flap swings open, then the letter rises.
@@ -209,7 +235,7 @@ export function Envelopes() {
     if (openTimer.current !== null) window.clearTimeout(openTimer.current);
     openTimer.current = window.setTimeout(() => {
       openTimer.current = null;
-      showLetter(slot);
+      showLetter(slot, id);
     }, 420);
   };
 
@@ -277,9 +303,13 @@ export function Envelopes() {
         </div>
       )}
 
-      <p className="sr-only" role="status" aria-live="polite">
-        {announcement}
-      </p>
+      {/* Portaled out of #root: it keeps talking while the letter (a modal) makes the screen inert. */}
+      {createPortal(
+        <p className="sr-only" role="status" aria-live="polite">
+          {announcement}
+        </p>,
+        document.body,
+      )}
 
       {draw.envelopes.length > 0 && (
         <ul ref={listRef} className="mt-7 space-y-5" aria-label="Envelopes">
@@ -290,7 +320,7 @@ export function Envelopes() {
                 adventure={envelopeAdventure(env)}
                 episodeNumber={episodeNumber}
                 generation={state.generation && state.generation.drawId === draw.id && state.generation.slot === env.slot ? state.generation : null}
-                onOpen={() => open(env.slot, env.opened)}
+                onOpen={() => open(env.slot, env.opened, envelopeAdventure(env)?.id ?? null)}
                 onRetry={() => retryAiEnvelope(env.slot)}
                 canRetry={state.director.canGenerate}
                 index={i}
@@ -330,6 +360,7 @@ export function Envelopes() {
               setOpenSlot(null);
               // Replace the letter's history entry, so Back from the episode skips the closed letter.
               if (run) navigate({ name: 'play' }, { replace: letterOnTop() });
+              else if (letterOnTop()) window.history.back();
             }}
           />
         )}

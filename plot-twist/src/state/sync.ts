@@ -43,16 +43,20 @@ export function readRaw(storage: StorageLike | null, key: string = STORAGE_KEY):
 }
 
 /**
- * Union of completed episodes by id. For an id present in both, `preferOurs`
- * decides which copy wins (it carries the newer journal / edits). Sorted by
- * completion time; numbering is repaired only when two episodes collide on a
- * number (two tabs finishing at once), so existing posters keep their numbers.
+ * Union of completed episodes by id. For an id present in both, the copy whose
+ * journal was edited last wins (`editedAt`); without that, `preferOurs` decides.
+ * Sorted by completion time; numbering is repaired only when two episodes
+ * collide on a number (two tabs finishing at once), so existing posters keep
+ * their numbers.
  */
 export function mergeCompleted(ours: readonly CompletedEpisode[], theirs: readonly CompletedEpisode[], preferOurs: boolean): CompletedEpisode[] {
   const byId = new Map<string, CompletedEpisode>();
   const [first, second] = preferOurs ? [theirs, ours] : [ours, theirs];
   for (const ep of first) byId.set(ep.id, ep);
-  for (const ep of second) byId.set(ep.id, ep);
+  for (const ep of second) {
+    const twin = byId.get(ep.id);
+    if (!twin || (ep.editedAt ?? 0) >= (twin.editedAt ?? 0)) byId.set(ep.id, ep);
+  }
   const merged = Array.from(byId.values()).sort((a, b) => a.completedAt - b.completedAt || a.id.localeCompare(b.id));
   const numbers = new Set(merged.map((e) => e.episodeNumber));
   if (numbers.size === merged.length) return merged;

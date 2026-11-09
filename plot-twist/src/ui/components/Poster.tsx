@@ -121,8 +121,12 @@ export function PosterImage({
 export function PosterActions({ episode, seriesName }: { episode: CompletedEpisode; seriesName: string | null }) {
   const { toast } = useStore();
   const [busy, setBusy] = useState<'download' | 'share' | null>(null);
+  // A ref, not the state: a quick second tap can land before React re-renders, and must not start a second export.
+  const running = useRef(false);
 
   const download = async () => {
+    if (running.current) return;
+    running.current = true;
     setBusy('download');
     try {
       const m = await loadPoster();
@@ -134,11 +138,14 @@ export function PosterActions({ episode, seriesName }: { episode: CompletedEpiso
       console.error(err);
       toast('Could not create the PNG in this browser.', 'warn');
     } finally {
+      running.current = false;
       setBusy(null);
     }
   };
 
   const share = async () => {
+    if (running.current) return;
+    running.current = true;
     setBusy('share');
     try {
       const m = await loadPoster();
@@ -153,16 +160,18 @@ export function PosterActions({ episode, seriesName }: { episode: CompletedEpiso
       console.error(err);
       toast('Could not prepare the poster for sharing.', 'warn');
     } finally {
+      running.current = false;
       setBusy(null);
     }
   };
 
+  // aria-disabled, not disabled, while busy: a disabled button would drop keyboard focus to <body>.
   return (
     <div className="grid grid-cols-1 gap-2.5 min-[360px]:grid-cols-[1.35fr_1fr]">
-      <button type="button" className="btn btn-primary whitespace-nowrap px-4" onClick={download} disabled={busy !== null}>
+      <button type="button" className="btn btn-primary whitespace-nowrap px-4" onClick={download} aria-disabled={busy !== null || undefined}>
         <IconDownload size={19} /> {busy === 'download' ? 'Saving…' : 'Download PNG'}
       </button>
-      <button type="button" className="btn btn-secondary whitespace-nowrap px-4" onClick={share} disabled={busy !== null}>
+      <button type="button" className="btn btn-secondary whitespace-nowrap px-4" onClick={share} aria-disabled={busy !== null || undefined}>
         <IconShare size={19} /> {busy === 'share' ? 'Sharing…' : 'Share'}
       </button>
     </div>

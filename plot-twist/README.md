@@ -65,10 +65,15 @@ npm run dev              # or npm start
 | `PLOT_TWIST_ALLOWED_ORIGINS` | — | Comma-separated extra origins allowed to request episodes, e.g. `https://plottwist.example,https://www.plottwist.example:8443` (bare hosts such as `plottwist.example` or `[::1]:5173` work too). No wildcards: list every origin. An entry that can never match a browser's `Origin` (a `*`, a `;` or space instead of a comma, another scheme, a host with characters other than `a-z 0-9 . -`) is ignored with a warning at startup. |
 | `PORT` | `8787` | Production server port. |
 
-The status pill shows the **verified** state: `Online` only after the key and
-model check out (a free Models API call), `Key rejected`, `Key invalid`,
-`Unreachable`, `Busy`, `Unstable`, `Not configured`, or `Off` when the server
-itself is unreachable. The status is shared by every visitor, so only provider
+The status pill shows the **verified** state in one word: `Online` only after
+the key and model check out (a free Models API call), `Checking`, `Busy`,
+`Unstable`, `Offline` (the AI provider or the PLOT TWIST server can't be reached
+right now), `Off` (no key on this server) or `Error` (the key or model is
+wrong). Tapping it opens the status sheet with the precise state — `Key
+rejected`, `Key invalid`, `No access`, `Model unavailable`, `Unreachable`,
+`Not configured`, and so on — and what it means. While this browser is over
+the per-visitor limit, the pill says `Busy` and envelopes come from the archive
+until the pause ends. The status is shared by every visitor, so only provider
 problems change it: after the provider is busy, unreachable or stalls while
 writing, that state holds for 30 seconds even if the Models API still answers,
 and then the next status request or generation request checks again. One

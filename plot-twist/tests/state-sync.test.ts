@@ -57,6 +57,16 @@ describe('mergeCompleted', () => {
     expect(mergeCompleted([ours], [theirs], false)[0].journal).toBe('theirs');
   });
 
+  it('keeps the journal edited last for an episode on both sides, whichever side is preferred', () => {
+    const base = episode('run-a', 1, T0);
+    const older = { ...base, journal: 'first thought', editedAt: T0 + 1_000 };
+    const newer = { ...base, journal: 'second thought', editedAt: T0 + 2_000 };
+    expect(mergeCompleted([older], [newer], true)[0].journal).toBe('second thought');
+    expect(mergeCompleted([newer], [older], false)[0].journal).toBe('second thought');
+    // An edited copy beats a copy that was never edited.
+    expect(mergeCompleted([base], [older], true)[0].journal).toBe('first thought');
+  });
+
   it('renumbers only when two tabs finished an episode with the same number', () => {
     const a = episode('run-a', 1, T0 + 1 * MIN);
     const b = episode('run-b', 2, T0 + 2 * MIN);
@@ -111,6 +121,17 @@ describe('mergeStates with section stamps', () => {
     expect(merged.prefs.minutes).toBe(120);
     expect(merged.settings.motion).toBe('reduce');
     expect(merged.stamps).toEqual({ prefs: T0 + 1_100, settings: T0 + 1_000 });
+  });
+
+  it('keeps a journal edit when the other tab finished another episode a moment later', () => {
+    const x = episode('run-x', 1, T0);
+    // Tab A wrote a journal line for X at t+1s; tab B (still holding X without it) finished Y at t+1.1s.
+    const ours = state({ completed: [{ ...x, journal: 'The door was blue.', editedAt: T0 + 1_000 }], stamps: { completed: T0 + 1_000 }, updatedAt: T0 });
+    const y = episode('run-y', 2, T0 + 1_100);
+    const theirs = state({ completed: [x, y], stamps: { completed: T0 + 1_100 }, updatedAt: T0 + 1_250 });
+    const merged = mergeStates(ours, theirs);
+    expect(merged.completed.map((e) => e.id)).toEqual(['run-x', 'run-y']);
+    expect(merged.completed[0].journal).toBe('The door was blue.');
   });
 
   it('never moves the same run backwards (the copy that got further wins)', () => {

@@ -429,6 +429,8 @@ function parseCompleted(raw: unknown, fallbackPrefs: Prefs, r: Repairs): Complet
   else if (raw.narrator !== undefined) r.repaired = true;
   if (typeof raw.stageLabel === 'string' && raw.stageLabel.trim()) episode.stageLabel = raw.stageLabel.slice(0, 24);
   else if (raw.stageLabel !== undefined) r.repaired = true;
+  if (isFiniteNumber(raw.editedAt) && raw.editedAt > 0) episode.editedAt = raw.editedAt;
+  else if (raw.editedAt !== undefined) r.repaired = true;
   return episode;
 }
 

@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { PALETTES } from '../../../shared/constants.ts';
 import { getNode } from '../../../shared/graph.ts';
 import { renderTemplate, typographic } from '../../../shared/template.ts';
@@ -7,7 +8,7 @@ import { currentNode, elapsedMs, isFinished, isPaused } from '../../engine/run.t
 import type { Run } from '../../engine/types.ts';
 import { useStore } from '../../state/store.tsx';
 import { ProgressRail } from '../components/Bits.tsx';
-import { formatClock, pad2, useNow } from '../hooks.ts';
+import { formatClock, pad2, useFocusTrap, useInertApp, useNow, useScrollLock } from '../hooks.ts';
 import { IconBolt, IconCheck, IconClose, IconGroup, IconPause, IconPlay, IconSwap } from '../icons.tsx';
 import { navigate } from '../router.ts';
 import { uiAccent } from '../color.ts';
@@ -41,7 +42,8 @@ function TimerButton({ run, onPause, onResume }: { run: Run; onPause: () => void
     <button
       type="button"
       onClick={paused ? onResume : onPause}
-      className={`inline-flex h-11 items-center gap-2 rounded-full border px-3.5 transition-colors ${paused ? 'border-[color:var(--ep-accent)] bg-[color:var(--ep-accent)]/10' : 'border-ivory/15 bg-ivory/[0.04] hover:border-ivory/30'}`}
+      data-timer-button
+      className={`inline-flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 transition-colors ${paused ? 'border-[color:var(--ep-accent)] bg-[color:var(--ep-accent)]/10' : 'border-ivory/15 bg-ivory/[0.04] hover:border-ivory/30'}`}
       aria-label={paused ? 'Resume timer' : 'Pause timer'}
       aria-describedby={descId}
     >
@@ -49,7 +51,8 @@ function TimerButton({ run, onPause, onResume }: { run: Run; onPause: () => void
       <span className={`t-num text-[0.9375rem] font-semibold ${over ? 'text-[color:var(--ep-accent)]' : paused ? 'text-ivory-dim' : 'text-ivory'}`} aria-hidden="true">
         {formatClock(elapsed)}
       </span>
-      <span className="t-num text-[0.75rem] text-ivory-mute" aria-hidden="true">
+      {/* On a small phone the OVER badge already says it; the plan's length makes room for it. */}
+      <span className={`t-num text-[0.75rem] text-ivory-mute ${over ? 'max-[379px]:hidden' : ''}`} aria-hidden="true">
         / {run.adventure.minutes}
         <span className="hidden min-[380px]:inline">:00</span>
         <span className="min-[380px]:hidden">m</span>
@@ -292,28 +295,22 @@ function ChoicePanel({ run, node, scrollOnArrive, armKey }: { run: Run; node: St
   );
 }
 
-function PausedOverlay({ run, onResume, onExit }: { run: Run; onResume: () => void; onExit: () => void }) {
-  const resumeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    resumeRef.current?.focus({ preventScroll: true });
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onResume();
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      document.removeEventListener('keydown', onKey);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return (
+/**
+ * The paused screen is a real modal: portaled out of #root, which goes inert, so Tab, swipe
+ * and the skip link can't reach the episode behind it. It scrolls on its own when the
+ * viewport is short (zoomed in), instead of cutting off "Save & exit".
+ */
+function PausedOverlay({ run, tint, onResume, onExit }: { run: Run; tint: CSSProperties; onResume: () => void; onExit: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  // Same order as Sheet: the app stops being inert before the focus trap hands focus back.
+  useInertApp(true);
+  useFocusTrap(ref, true, onResume);
+  useScrollLock(true);
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-ink-950/85 px-8 backdrop-blur-sm"
+      ref={ref}
+      style={tint}
+      className="fixed inset-0 z-50 grid place-items-center overflow-y-auto overscroll-contain bg-ink-950/85 px-8 py-6 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="paused-title"
@@ -329,14 +326,15 @@ function PausedOverlay({ run, onResume, onExit }: { run: Run; onResume: () => vo
         <p id="paused-desc" className="t-serif-italic mt-1 text-ivory-dim">
           The plot can wait. Paused time never counts.
         </p>
-        <button ref={resumeRef} type="button" className="btn btn-primary btn-xl mt-8 w-full" onClick={onResume}>
+        <button type="button" className="btn btn-primary btn-xl mt-8 w-full" onClick={onResume} data-autofocus>
           <IconPlay size={18} /> Resume episode
         </button>
         <button type="button" className="btn btn-ghost mt-2 w-full" onClick={onExit}>
           <IconClose size={18} /> Save &amp; exit
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -376,7 +374,7 @@ export function Play() {
   if (!node) return null;
   const palette = PALETTES[adventure.palette];
   // Each episode tints the play screen with its own palette, kept readable on ink.
-  const tint = { '--ep-accent': uiAccent(palette.accent), '--ep-ink': '#0b0a09' } as React.CSSProperties;
+  const tint = { '--ep-accent': uiAccent(palette.accent), '--ep-ink': '#0b0a09' } as CSSProperties;
   const nodeKey = `${node.id}:${run.phase}`;
   const scrollOnArrive = nodeKey !== firstNodeKey.current;
 
@@ -386,7 +384,9 @@ export function Play() {
   };
   const resumeAndFocus = () => {
     resume();
-    window.requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-stage-heading]')?.focus({ preventScroll: true }));
+    // Focus goes back to the control that pauses: it sits in the sticky bar, so it is always on
+    // screen, wherever the reader had scrolled to.
+    window.requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-timer-button]')?.focus({ preventScroll: true }));
   };
 
   return (
@@ -395,10 +395,10 @@ export function Play() {
         <div data-sticky-bar className="sticky top-0 z-40 -mx-5 flex items-center justify-between gap-2 bg-ink-950/85 px-3 py-2 backdrop-blur-md">
           <button
             type="button"
-            className="inline-flex h-11 items-center gap-1.5 rounded-full px-3 text-[0.8438rem] font-semibold text-ivory-dim hover:bg-ivory/[0.06] hover:text-ivory"
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[0.8438rem] font-semibold text-ivory-dim hover:bg-ivory/[0.06] hover:text-ivory"
             onClick={exit}
           >
-            <IconClose size={18} /> Save &amp; exit
+            <IconClose size={18} className="max-[359px]:hidden" /> Save &amp; exit
           </button>
           <TimerButton run={run} onPause={pause} onResume={resumeAndFocus} />
         </div>
@@ -422,7 +422,7 @@ export function Play() {
         )}
       </div>
 
-      {paused && <PausedOverlay run={run} onResume={resumeAndFocus} onExit={exit} />}
+      {paused && <PausedOverlay run={run} tint={tint} onResume={resumeAndFocus} onExit={exit} />}
     </div>
   );
 }

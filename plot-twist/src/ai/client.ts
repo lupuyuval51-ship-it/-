@@ -138,9 +138,12 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
   if (!res.ok || !res.body) {
     let code = `http_${res.status}`;
     let retryAfterMs: number | undefined;
+    let networkWide = false;
     try {
-      const body = (await res.json()) as { error?: string; retryAfterMs?: unknown };
+      const body = (await res.json()) as { error?: string; message?: unknown; retryAfterMs?: unknown };
       if (body.error) code = body.error;
+      // The stream cap is per visitor and per network; only the wording differs.
+      networkWide = typeof body.message === 'string' && /\bnetwork\b/i.test(body.message);
       if (typeof body.retryAfterMs === 'number' && Number.isFinite(body.retryAfterMs)) retryAfterMs = Math.max(0, body.retryAfterMs);
     } catch {
       /* not JSON */
@@ -155,7 +158,9 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
         : code === 'busy'
           ? 'The AI Director is busy with other episodes right now.'
           : code === 'too_many_streams'
-            ? 'The AI Director is still writing your other envelopes.'
+            ? networkWide
+              ? 'Too many episodes are being written from your network right now.'
+              : 'The AI Director is still writing your other envelopes.'
           : code === 'not_configured' || code === 'unavailable'
             ? 'The AI Director is not available right now.'
             : 'The AI Director could not take this request.';

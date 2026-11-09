@@ -1,27 +1,7 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { useFocusTrap } from '../hooks.ts';
+import { useFocusTrap, useInertApp, useScrollLock } from '../hooks.ts';
 import { IconClose } from '../icons.tsx';
-
-let inertCount = 0;
-
-/**
- * While any dialog is open, the app behind it is inert: not focusable, not clickable and
- * hidden from assistive tech (swipe / browse mode can't wander out of the dialog).
- * Dialogs and toasts are portaled to <body>, outside #root, so they stay live.
- */
-function useInertApp(active: boolean) {
-  useEffect(() => {
-    if (!active) return;
-    const root = document.getElementById('root');
-    inertCount += 1;
-    root?.setAttribute('inert', '');
-    return () => {
-      inertCount = Math.max(0, inertCount - 1);
-      if (inertCount === 0) root?.removeAttribute('inert');
-    };
-  }, [active]);
-}
 
 /**
  * Accessible modal: bottom sheet on phones, centered card on wide screens.
@@ -50,15 +30,7 @@ export function Sheet({
   // Declared before the focus trap: the app must stop being inert *before* focus is restored to it.
   useInertApp(open);
   useFocusTrap(ref, open, onClose);
-
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useScrollLock(open);
 
   if (!open) return null;
   const surface = variant === 'paper' ? 'paper' : 'bg-ink-900 border border-ink-700 text-ivory';
