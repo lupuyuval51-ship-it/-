@@ -9,12 +9,19 @@ shared/            isomorphic content model (client + server, no DOM/Node APIs)
   template.ts        {{key|fallback}} tokens: renderTemplate(), cleanNote()
   aiEpisode.ts       AI fixed-topology shape + JSON schema + aiEpisodeToAdventure()
 server/            Node (type-stripped TS) — the only place provider credentials exist
-  api.ts             /api/status, /api/episodes/generate (SSE)
-  director.ts        Claude call → parse → convert → validate → (repair) → episode
+  config.ts          env → ServerConfig (key sanity check, limits, proxy trust, allowed origins)
+  api.ts             /api/health, /api/status, /api/episodes/generate (SSE); origin, rate and stream limits
+  director.ts        Claude call → parse → convert → validate → constraints → safety → (repair) → episode
+  prompt.ts          byte-stable system prompt + per-request brief (client strings as quoted data)
+  constraints.ts     hard-constraint heuristics on AI text (free/home/solo cues, time fill, distinct branches)
+  safety.ts          word-order-independent safety screen for AI episodes
+  status.ts          verified connection status (TTLs, recent writing failures)
+  static.ts          production static files: containment check, gzip, security headers/CSP
+  index.ts           production entry (static + API), stale-build warning
 src/
   content/           curated library (one file per adventure, auto-collected)
   engine/            pure logic: random, matching, progression, run   (types.ts = contract)
-  state/             persistence (localStorage) + React store        (types.ts = contract)
+  state/             persistence (localStorage), tab sync, dealing + React store (types.ts = contract)
   poster/            canvas poster rendering + PNG export/share       (types.ts = contract)
   ai/                browser client for the AI Director API
   ui/                design system components + screens

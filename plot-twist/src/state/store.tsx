@@ -572,8 +572,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         })
         .catch((err: unknown) => {
           if ((err as Error).name === 'AbortError' || ctl.signal.aborted || unloading.current) return;
-          if (err instanceof DirectorError && (err.code === 'rate_limited' || err.code === 'busy')) {
-            aiBlockedUntil.current = Date.now() + (err.retryAfterMs ?? (err.code === 'busy' ? 20_000 : 60_000));
+          if (err instanceof DirectorError && (err.code === 'rate_limited' || err.code === 'busy' || err.code === 'too_many_streams')) {
+            aiBlockedUntil.current = Date.now() + (err.retryAfterMs ?? (err.code === 'rate_limited' ? 60_000 : 20_000));
           }
           const reason = err instanceof DirectorError ? err.message : 'The AI Director could not finish.';
           const current = latest.current.draw;

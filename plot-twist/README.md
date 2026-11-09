@@ -93,27 +93,35 @@ the site's origin in `PLOT_TWIST_ALLOWED_ORIGINS` instead.
 
 ## What's inside
 
-- **Set the scene** — time (15/30/60/120 min), budget (free / ₪30 / ₪100), home
-  or outside, solo or with others, mood, and the *How weird are we getting
-  today?* dial. The dial changes the content (ranking, "main character moves",
+- **Set the scene** — the *How weird are we getting today?* dial first, then
+  time (15/30/60/120 min), budget (free / ₪30 / ₪100), home or outside, solo or
+  with others, and mood. The dial changes the content (ranking, "main character moves",
   the AI's tone) **and** the atmosphere: *Keep it chill* is premium-minimal,
   *Surprise me* is cinematic mystery, *Main character energy* goes playful and
   colorful.
 - **Three envelopes** — distinct kinds of experience that all respect the hard
   constraints. Open any, read the intro, duration, items and cost, then
-  commit. Draw again any time. If nothing fits, the app explains the clash and
-  offers one-tap single-constraint fixes.
+  commit (Back closes the letter). *Draw again* deals episodes you have not
+  seen yet before repeating any; when everything that fits is already on the
+  table, it says so and offers one-tap single-constraint fixes — as it does
+  when nothing fits at all.
 - **Play** — three progressive stages, a branching choice that changes the
   later stages and the ending, an alternative challenge for every stage,
   optional field notes that come back later in the story and on the poster, a
   timer that never counts paused time, pause/resume, save & exit, and
-  automatic recovery after a refresh.
+  automatic recovery after a refresh. Leaving an episode pauses it; a long
+  absence (refresh, background tab, sleeping device) pauses the clock and
+  credits at most a fair share of the time away. A double tap can never make
+  a blind choice or skip a stage.
 - **Finale** — the twist, the ending and closing line, a recap of your choices,
   traits earned, a one-sentence journal entry, and a procedural poster
   (Canvas) you can **download as PNG** or share (native share → clipboard
   fallback). After your first episode you name your series.
 - **My Series** — the poster gallery, each episode's recap, and four traits
   (Curiosity, Creativity, Boldness, Connection) that level up as you play.
+  Everything lives in this browser (no account). Several open tabs stay in
+  sync, and an older tab can never erase an episode finished in another;
+  field notes and the journal are saved while you type.
 - **AI Director** — writes one personalized episode per draw (two curated
   envelopes stay instant). Output is constrained by a JSON schema, converted to
   the same content model as curated episodes, validated (structure, timing,
@@ -143,7 +151,7 @@ e2e/        Playwright journey checks against the production build
 npm run typecheck
 npm test                 # unit + integration
 npm run validate:content # every curated episode against the content model
-npm run e2e              # production build + real browser: full journey, AI, layout
+npm run e2e              # production build + real browser: journey, AI, fallback, layout, conflicts, resilience
 ```
 
 `npm run e2e` uses the system Playwright and a local Anthropic-compatible mock

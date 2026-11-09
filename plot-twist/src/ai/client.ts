@@ -7,6 +7,8 @@ import { validateAdventure, fitsPrefs } from '../../shared/validate.ts';
 
 export type DirectorState =
   | 'not_configured'
+  /** A key is set on the server but unusable (e.g. invalid characters). */
+  | 'misconfigured'
   | 'checking'
   | 'online'
   | 'degraded'
@@ -67,10 +69,11 @@ export interface GenerateRequest {
   avoidKinds?: Kind[];
 }
 
+/** `attempt` is 2 during the repair round (its progress restarts from 0). */
 export type DirectorEvent =
-  | { type: 'phase'; phase: 'plotting' | 'writing' | 'checking' | 'repairing' }
-  | { type: 'progress'; chars: number; expected: number }
-  | { type: 'title'; title: string }
+  | { type: 'phase'; phase: 'plotting' | 'writing' | 'checking' | 'repairing'; attempt?: 1 | 2 }
+  | { type: 'progress'; chars: number; expected: number; attempt?: 1 | 2 }
+  | { type: 'title'; title: string; attempt?: 1 | 2 }
   | { type: 'episode'; adventure: Adventure; model: string; repaired: boolean }
   | { type: 'error'; code: string; message: string; retryable: boolean };
 
@@ -124,10 +127,12 @@ export async function requestEpisode(req: GenerateRequest, opts: { signal?: Abor
         ? 'The AI Director is taking a short break — back in a few minutes.'
         : code === 'busy'
           ? 'The AI Director is busy with other episodes right now.'
+          : code === 'too_many_streams'
+            ? 'The AI Director is still writing your other envelopes.'
           : code === 'not_configured' || code === 'unavailable'
             ? 'The AI Director is not available right now.'
             : 'The AI Director could not take this request.';
-    throw new DirectorError(code, message, code === 'rate_limited' || code === 'busy', retryAfterMs);
+    throw new DirectorError(code, message, code === 'rate_limited' || code === 'busy' || code === 'too_many_streams', retryAfterMs);
   }
 
   const reader = res.body.getReader();
