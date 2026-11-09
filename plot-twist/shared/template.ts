@@ -40,6 +40,16 @@ export function malformedTokens(text: string): string[] {
   return bad;
 }
 
+/**
+ * Flattens free text to one clean line without shortening it: control
+ * characters (C0, DEL and C1) become spaces, runs of whitespace collapse to a
+ * single space, and the ends are trimmed. Callers apply their own length limit.
+ */
+export function sanitizeInline(text: string | undefined | null): string {
+  if (!text) return '';
+  return text.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 /** Cleans a user note for display inside generated text. */
 export function cleanNote(note: string | undefined | null): string {
   if (!note) return '';

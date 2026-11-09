@@ -6,9 +6,29 @@
  */
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { fileURLToPath } from 'node:url';
+import { KINDS } from '../shared/constants.ts';
+import type { Kind } from '../shared/types.ts';
 import { mockAiEpisode } from '../tests/fixtures/aiEpisode.ts';
 
-export type MockMode = 'ok' | 'invalid-then-ok' | 'always-invalid' | 'refusal' | 'auth' | 'overloaded';
+/**
+ * - ok / invalid-then-ok / always-invalid / refusal: the Messages API writes (or refuses) an episode
+ * - auth: every request is rejected with 401
+ * - overloaded / rate-limited / server-error: the Messages API answers 529 / 429 / 500
+ * - stall: the Messages API sends message_start, then nothing (until the client gives up)
+ * - verify-error / verify-rate-limited: the Models API answers 500 / 429; messages work
+ */
+export type MockMode =
+  | 'ok'
+  | 'invalid-then-ok'
+  | 'always-invalid'
+  | 'refusal'
+  | 'auth'
+  | 'overloaded'
+  | 'rate-limited'
+  | 'server-error'
+  | 'stall'
+  | 'verify-error'
+  | 'verify-rate-limited';
 
 export interface RecordedRequest {
   method: string;
@@ -30,11 +50,24 @@ function sse(event: string, data: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
-function availableMinutes(body: Record<string, unknown> | null): number {
+function briefOf(body: Record<string, unknown> | null): string {
   const messages = (body?.messages as { content: unknown }[] | undefined) ?? [];
-  const text = typeof messages[0]?.content === 'string' ? (messages[0].content as string) : '';
-  const m = /Available time: (\d+) minutes/.exec(text);
+  return typeof messages[0]?.content === 'string' ? (messages[0].content as string) : '';
+}
+
+function availableMinutes(body: Record<string, unknown> | null): number {
+  const m = /Available time: (\d+) minutes/.exec(briefOf(body));
   return m ? Number(m[1]) : 30;
+}
+
+/** Kinds the brief's "- Kind:" rule says are taken (a compliant model picks another one). */
+function avoidedKinds(body: Record<string, unknown> | null): Set<Kind> {
+  const line = briefOf(body).split('\n').find((l) => l.startsWith('- Kind:')) ?? '';
+  return new Set(KINDS.filter((k) => new RegExp(`\\b${k}\\b`).test(line)));
+}
+
+function apiError(status: number, type: string, message: string) {
+  return { status, body: JSON.stringify({ type: 'error', error: { type, message } }) };
 }
 
 export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url: string; requests: RecordedRequest[]; close: () => Promise<void>; server: Server }> {
@@ -63,6 +96,13 @@ export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url:
     }
 
     if (req.method === 'GET' && path.startsWith('/v1/models/')) {
+      const failure =
+        mode === 'verify-error' ? apiError(500, 'api_error', 'Internal server error') : mode === 'verify-rate-limited' ? apiError(429, 'rate_limit_error', 'Rate limited') : null;
+      if (failure) {
+        res.writeHead(failure.status, { 'content-type': 'application/json' });
+        res.end(failure.body);
+        return;
+      }
       const id = decodeURIComponent(path.slice('/v1/models/'.length));
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ id, type: 'model', display_name: id, created_at: '2026-01-01T00:00:00Z', max_input_tokens: 1000000, max_tokens: 128000 }));
@@ -71,13 +111,24 @@ export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url:
 
     if (req.method === 'POST' && path === '/v1/messages') {
       messageCalls++;
-      if (mode === 'overloaded') {
-        res.writeHead(529, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } }));
+      const failure =
+        mode === 'overloaded'
+          ? apiError(529, 'overloaded_error', 'Overloaded')
+          : mode === 'rate-limited'
+            ? apiError(429, 'rate_limit_error', 'Rate limited')
+            : mode === 'server-error'
+              ? apiError(500, 'api_error', 'Internal server error')
+              : null;
+      if (failure) {
+        res.writeHead(failure.status, { 'content-type': 'application/json' });
+        res.end(failure.body);
         return;
       }
       const minutes = availableMinutes(body);
       const episode = mockAiEpisode(minutes);
+      // Like a compliant model: pick a kind the brief did not rule out.
+      const avoid = avoidedKinds(body);
+      if (avoid.has(episode.kind)) episode.kind = KINDS.find((k) => !avoid.has(k)) ?? episode.kind;
       const invalid = mode === 'always-invalid' || (mode === 'invalid-then-ok' && messageCalls === 1);
       if (invalid) episode.stage1.minutes = minutes * 3; // breaks the time constraint → triggers repair
       const text = JSON.stringify(episode);
@@ -85,6 +136,7 @@ export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url:
 
       res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' });
       res.write(sse('message_start', { type: 'message_start', message: { id: `msg_mock_${messageCalls}`, type: 'message', role: 'assistant', model, content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 1200, output_tokens: 1 } } }));
+      if (mode === 'stall') return; // headers and message_start, then silence: only the client's deadline ends this
       // A thinking block first, like a real adaptive-thinking response (display omitted → empty text).
       res.write(sse('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '', signature: '' } }));
       res.write(sse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: 'mock-signature' } }));
@@ -118,7 +170,11 @@ export async function startMockAnthropic(opts: MockOptions = {}): Promise<{ url:
     url: `http://127.0.0.1:${port}`,
     requests,
     server,
-    close: () => new Promise<void>((r) => server.close(() => r())),
+    close: () =>
+      new Promise<void>((r) => {
+        server.close(() => r());
+        server.closeAllConnections(); // a stalled stream would otherwise keep close() waiting
+      }),
   };
 }
 

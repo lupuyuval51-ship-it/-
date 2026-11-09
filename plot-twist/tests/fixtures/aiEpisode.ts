@@ -3,7 +3,8 @@ import exemplar from '../../src/content/adventures/undercover-tourist.ts';
 
 /**
  * A valid AI-shape episode for tests and the mock provider, derived from the
- * exemplar with a distinct title, and stage minutes scaled to `minutes`.
+ * exemplar with a distinct title, and stage minutes scaled (up or down) so each
+ * path fills about 90% of `minutes`, as the brief asks.
  */
 export function mockAiEpisode(minutes = 30): AiEpisode {
   const base = adventureToAiEpisode(exemplar);
@@ -16,7 +17,7 @@ export function mockAiEpisode(minutes = 30): AiEpisode {
     ep.stage1.minutes + ep.pathA.stage2.minutes + ep.pathA.stage3.minutes,
     ep.stage1.minutes + ep.pathB.stage2.minutes + ep.pathB.stage3.minutes,
   );
-  const factor = Math.min(1, (minutes * 0.9) / longest);
+  const factor = (minutes * 0.9) / longest;
   for (const s of [ep.stage1, ep.pathA.stage2, ep.pathA.stage3, ep.pathB.stage2, ep.pathB.stage3]) {
     s.minutes = Math.max(1, Math.floor(s.minutes * factor));
   }
